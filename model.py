@@ -176,6 +176,7 @@ class SelfAttention(nn.Module):
         output = torch.matmul(scores, values)
         # (B, H_Q, 1, Head_Dim) -> (B, 1, H_Q, Head_Dim) -> (B, 1, Dim)
         output = (output.transpose(1, 2).contiguous().view(batch_size, seq_len, -1))
+
         return self.wo(output) # (B, 1, Dim) -> (B, 1, Dim)
 
 
@@ -257,6 +258,8 @@ class Transformer(nn.Module):
         self.freqs_complex = precompute_theta_pos_frequencies(self.args.dim // self.args.n_heads, self.args.max_seq_len * 2, device=self.args.device)
 
     def forward(self, tokens: torch.Tensor, start_pos: int):
+        print('token: ', tokens)
+        print('pos: ', start_pos)
         # (B, Seq_Len)
         batch_size, seq_len = tokens.shape
         assert seq_len == 1, "Only one token at a time can be processed"
@@ -266,10 +269,28 @@ class Transformer(nn.Module):
 
         # Retrieve the pairs (m, theta) corresponding to the positions [start_pos, start_pos + seq_len]
         freqs_complex = self.freqs_complex[start_pos:start_pos + seq_len]
-        
+
+        mask = None
+        if seq_len > 1:
+            mask = torch.full(
+                (seq_len, seq_len), float("-inf"), device=tokens.device
+            )
+
+            mask = torch.triu(mask, diagonal=1)
+
+            # When performing key-value caching, we compute the attention scores
+            # only for the new sequence. Thus, the matrix of scores is of size
+            # (seqlen, cache_len + seqlen), and the only masked entries are (i, j) for
+            # j > cache_len + i, since row i corresponds to token cache_len + i.
+            mask = torch.hstack([
+                torch.zeros((seq_len, start_pos), device=tokens.device),
+                mask
+            ]).type_as(h)
+        print(mask)
         # Consecutively apply all the encoder layers
         for layer in self.layers:
             h = layer(h, start_pos, freqs_complex)
+
         h = self.norm(h)
         output = self.output(h).float()
         return output
