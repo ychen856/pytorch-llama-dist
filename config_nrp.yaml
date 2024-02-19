@@ -42,8 +42,8 @@ llama_2_7b:
 
 
 llama_2_7b_hf:
-  ckpt_dir_hf: ~/ychen-storage/llama-7b
-  tokenizer_path_hf: ~/ychen-storage/llama-7b
+  ckpt_dir_hf: /ychen-storage/llama-7b
+  tokenizer_path_hf: /ychen-storage/llama-7b
 
 
 llama_2_7b_sep:
