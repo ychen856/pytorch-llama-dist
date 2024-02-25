@@ -74,7 +74,7 @@ class LLaMA:
 
 if __name__ == '__main__':
     with open(args.config) as f:
-        config = yaml.load(f)
+        config = yaml.load(f, Loader=yaml.FullLoader)
     for key in config:
         for k, v in config[key].items():
             setattr(args, k, v)
