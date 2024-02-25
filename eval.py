@@ -88,6 +88,7 @@ def eval_ppl_wikitext(model, testenc, bs=1, device=None):
 
     # Calculate number of samples
     nsamples = testenc.numel() // model.args.max_seq_len
+    nsamples = 1
     print('testenc numel: ', testenc.numel())
 
     # List to store negative log likelihoods
@@ -107,6 +108,8 @@ def eval_ppl_wikitext(model, testenc, bs=1, device=None):
         # Prepare inputs and move to device
         inputs = testenc[:, (i * model.args.max_seq_len):(j * model.args.max_seq_len)].to(device)
         inputs = inputs.reshape(j - i, model.args.max_seq_len)
+        print('inputs: ', inputs)
+
         lm_logits = model.eval(inputs)
 
         shift_logits = lm_logits[:, :-1, :].contiguous()
@@ -205,7 +208,7 @@ def eval_ppl_wikitext_hf(model, testenc, bs=1, device=None):
     nlls = []
     print(f"nsamples {nsamples}")
 
-    nsamples = 5
+    nsamples = 1
     # Loop through each batch
     for i in range(0, nsamples, bs):
         if i % 50 == 0:
@@ -258,6 +261,7 @@ def eval_ppl_wikitext_sep_hf(models, testenc, bs=1, device=None):
 
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
+    nsamples = 1
     # List to store negative log likelihoods
     nlls = []
     print(f"nsamples {nsamples}")
@@ -274,7 +278,7 @@ def eval_ppl_wikitext_sep_hf(models, testenc, bs=1, device=None):
         # Prepare inputs and move to device
         inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
         inputs = inputs.reshape(j - i, seqlen)
-
+        print('inputs: ', inputs)
         # Forward pass through the model
         out, ids, mask = models[0](inputs)
         for i in range (1, len(models) - 2):

@@ -174,8 +174,12 @@ class LLaMA:
             total_count = total_count + 1
             with torch.no_grad():
                 logits, freq = self.model[0].forward(input[:, cur_pos-1:cur_pos], cur_pos)
+                print('logits: ', logits)
+                print('freq: ', freq)
                 for i in range (1, len(self.model)):
                     logits = self.model[i].forward(logits, freq, cur_pos)
+                    print(i)
+                    print(logits)
                     if i == 21:
                         logits_norm = self.model[33].forward(logits, freq, cur_pos)
                         logits_linear = self.model[34].forward(logits_norm, freq, cur_pos)
@@ -199,7 +203,7 @@ if __name__ == '__main__':
         for k, v in config[key].items():
             setattr(args, k, v)
 
-
+    print('config type: ', args.config)
     torch.manual_seed(0)
 
     allow_cuda = False
@@ -256,6 +260,13 @@ if __name__ == '__main__':
         max_batch_size=32,
         device=device
     )
+
+    for i in range (0, len(model.model)):
+        m = model.model[i]
+        for name, param in m.named_parameters():
+            if param.requires_grad:
+                print(name, param.data)
+
 
     ppl = eval_ppl(model, model.tokenizer)
     print(f"ppl on wikitext after layer 29 {ppl}")

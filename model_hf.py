@@ -1070,6 +1070,7 @@ class LlamaForCausalLM_emb(LlamaPreTrainedModel):
         '''return CausalLMOutputWithPast(
             logits=outputs
         )'''
+        print('imb: ', outputs)
         return outputs
 
     def prepare_inputs_for_generation(
@@ -1236,6 +1237,7 @@ class LlamaForCausalLM_layer_0(LlamaPreTrainedModel):
             hidden_states=outputs.hidden_states,
             attentions=outputs.attentions,
         )'''
+        print('output: ', outputs)
         return outputs
 
     def prepare_inputs_for_generation(

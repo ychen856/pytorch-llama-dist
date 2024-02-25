@@ -189,7 +189,7 @@ if __name__ == '__main__':
         for k, v in config[key].items():
             setattr(args, k, v)
 
-
+    print('config type: ', args.config)
     torch.manual_seed(0)
 
     allow_cuda = False

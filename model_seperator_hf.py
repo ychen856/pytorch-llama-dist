@@ -19,7 +19,7 @@ from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCa
 
 import sys
 
-from eval import eval_ppl_sep_hf
+from eval import eval_ppl_sep_hf, eval_ppl_hf
 
 import yaml
 
@@ -61,7 +61,7 @@ if __name__ == '__main__':
 
     print("loading success")
 
-    ppl = eval_ppl_sep_hf(model, tokenizer, device)
+    ppl = eval_ppl_hf(model, tokenizer, device)
     print(f"ppl on wikitext {ppl}")
 
 
