@@ -38,8 +38,8 @@ model_config:
   vocab_size: 32000
 
 llama_2_7b:
-  ckpt_dir: /home/yichun/workspace/llama-2-7b
-  tokenizer_path: /home/yichun/workspace/llama-2-7b/tokenizer.model
+  ckpt_dir: /ychen-storage/Llama-2-7b
+  tokenizer_path: /ychen-storage/Llama-2-7b
 
 
 llama_2_7b_hf:
@@ -50,8 +50,8 @@ llama_2_7b_hf:
 llama_2_7b_sep:
     #ckpt_dir_sep: D:/workspace/llama-2-7b-sep
     #tokenizer_path_sep: D:/workspace/llama-2-7b-sep/tokenizer.model
-    ckpt_dir_sep: /home/yichun/workspace/llama-2-7b-sep
-    tokenizer_path_sep: /home/yichun/workspace/llama-2-7b-sep/tokenizer.model
+    ckpt_dir_sep: /ychen-storage/llama-2-7b-sep
+    tokenizer_path_sep: /ychen-storage/llama-2-7b-sep/tokenizer.model
 
     ckpt_dir_sep_hf: /home/yichun/workspace/llama-2-7b-sep-hf
     tokenizer_path_sep_hf: /home/yichun/workspace/llama-2-7b-sep-hf/tokenizer.model
