@@ -38,8 +38,8 @@ model_config:
   vocab_size: 32000
 
 llama_2_7b:
-  ckpt_dir: /ychen-storage/Llama-2-7b
-  tokenizer_path: /ychen-storage/Llama-2-7b
+  ckpt_dir: /ychen-storage/Llama-2-7b/
+  tokenizer_path: /ychen-storage/Llama-2-7b/
 
 
 llama_2_7b_hf:
