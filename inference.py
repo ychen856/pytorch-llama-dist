@@ -12,11 +12,11 @@ import yaml
 
 from datasets import load_dataset
 
-import llama_pruner
+#import llama_pruner
 from model import ModelArgs, Transformer
 from eval import *
 
-from prune_all import *
+#from prune_all import *
 
 import torch.nn.utils.prune as prune
 import torch.nn.functional as F
@@ -278,12 +278,6 @@ if __name__ == '__main__':
     tokenizer = LlamaTokenizer.from_pretrained('/home/yichun/workspace/llama-2-7b-chat-hf', use_fast=False)
     testenc = tokenizer("\n\n".join(wikisamples2), return_tensors='pt')
     prune_wanda_outlier(args, model, tokenizer, device, prune_n=0, prune_m=0)'''
-    dataset = "wikitext2"
-    testloader = get_loaders(
-        dataset, seed=0, seqlen=model.args.max_seq_len, tokenizer=model.tokenizer
-    )
-    inps, outs, attention_mask, position_ids = prepare_calibration_input(model, testloader, device, args)
-
 
 
     #prune_mag_outlier(args, model, model.tokenizer, device, prune_n=0, prune_m=0)
