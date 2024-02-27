@@ -192,7 +192,7 @@ if __name__ == '__main__':
     print('config type: ', args.config)
     torch.manual_seed(0)
 
-    allow_cuda = False
+    allow_cuda = True
     device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
 
     prompts = [
