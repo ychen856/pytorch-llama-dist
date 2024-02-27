@@ -54,7 +54,7 @@ class LLaMA:
             assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
             ckpt_path = checkpoints[0]
             print(f'Loading checkpoint "{ckpt_path}"')
-            checkpoint = torch.load(ckpt_path, map_location="cpu")
+            checkpoint = torch.load(ckpt_path, map_location=torch.device('cuda'))
             print(f"Loaded checkpoint in {time.time() - prev_time:.2f}s")
             prev_time = time.time()
         with open(Path(checkpoints_dir) / "params.json", "r") as f:
