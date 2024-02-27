@@ -184,7 +184,7 @@ class LLaMA:
 
 if __name__ == '__main__':
     with open(args.config) as f:
-        config = yaml.load(f)
+        config = yaml.load(f, Loader=yaml.FullLoader)
     for key in config:
         for k, v in config[key].items():
             setattr(args, k, v)
@@ -258,8 +258,8 @@ if __name__ == '__main__':
     )
 
     # no pruning
-    #ppl = eval_ppl(model, model.tokenizer)
-    #print(f"ppl on wikitext {ppl}")
+    ppl = eval_ppl(model, model.tokenizer)
+    print(f"ppl on wikitext {ppl}")
 
     #magnitude pruning
     '''for i in range(0, 32):
