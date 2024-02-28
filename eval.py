@@ -95,7 +95,7 @@ def eval_ppl_wikitext(model, testenc, bs=1, device=None):
     nlls = []
     print(f"nsamples {nsamples}")
 
-    nsamples = 5
+    nsamples = 1
     bs = 1
     # Loop through each batch
     for i in range(0, nsamples, bs):
@@ -111,7 +111,7 @@ def eval_ppl_wikitext(model, testenc, bs=1, device=None):
         print('inputs: ', inputs)
 
         lm_logits = model.eval(inputs)
-
+        print('logits: ', lm_logits)
         shift_logits = lm_logits[:, :-1, :].contiguous()
         shift_labels = inputs[:, 1:]
         # Compute loss
@@ -139,64 +139,6 @@ def eval_ppl_wikitext(model, testenc, bs=1, device=None):
 
 
 
-    '''# Get input IDs
-    testenc = testenc.input_ids
-
-    # Calculate number of samples
-    #nsamples = testenc.numel() // model.seqlen
-    nsamples = testenc.numel() // model.args.max_seq_len
-
-    # List to store negative log likelihoods
-    nlls = []
-    print(f"nsamples {nsamples}")
-
-    # Loop through each batch
-    for i in range(0,nsamples,bs):
-        if i % 50 == 0:
-            print(f"sample {i}")
-
-        # Calculate end index
-        j = min(i+bs, nsamples)
-
-        # Prepare inputs and move to device
-        inputs = testenc[:,(i * model.args.max_seq_len):(j * model.args.max_seq_len)].to(device)
-        inputs = inputs.reshape(j-i, model.args.max_seq_len)
-
-        # Forward pass through the model
-        #lm_logits = model(inputs).logits
-        lm_logits = model(inputs, 0)
-        print('inputs: ', inputs)
-        print('logits: ', lm_logits)
-
-        # Shift logits and labels for next token prediction
-        shift_logits = lm_logits[:, :-1, :].contiguous()
-        shift_labels = inputs[:, 1:]
-
-        # Compute loss
-        loss_fct = nn.CrossEntropyLoss()
-        loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
-
-        # Calculate negative log likelihood
-        neg_log_likelihood = loss.float() * model.args.max_seq_len * (j-i)
-
-        # Append to list of negative log likelihoods
-        nlls.append(neg_log_likelihood)
-
-
-        # print ("nlls",nlls)
-        sys.stdout.flush()
-
-    
-    print ('begin calcualte ppl')
-    # Compute perplexity
-    ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * model.args.max_seq_len))
-
-    # Empty CUDA cache to save memory
-    torch.cuda.empty_cache()
-
-    return ppl.item()'''
-
-
 def eval_ppl_wikitext_hf(model, testenc, bs=1, device=None):
     # Get input IDs
     testenc = testenc.input_ids
@@ -208,7 +150,6 @@ def eval_ppl_wikitext_hf(model, testenc, bs=1, device=None):
     nlls = []
     print(f"nsamples {nsamples}")
 
-    nsamples = 1
     # Loop through each batch
     for i in range(0, nsamples, bs):
         if i % 50 == 0:
@@ -224,7 +165,6 @@ def eval_ppl_wikitext_hf(model, testenc, bs=1, device=None):
 
         # Forward pass through the model
         lm_logits = model(inputs).logits
-        #print('lm logits: ', lm_logits)
         # Shift logits and labels for next token prediction
         shift_logits = lm_logits[:, :-1, :].contiguous()
         shift_labels = inputs[:, 1:]
@@ -261,11 +201,11 @@ def eval_ppl_wikitext_sep_hf(models, testenc, bs=1, device=None):
 
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
-    nsamples = 1
+
+
     # List to store negative log likelihoods
     nlls = []
     print(f"nsamples {nsamples}")
-
     # Loop through each batch
     for i in range(0, nsamples, bs):
         if i % 50 == 0:
@@ -278,31 +218,32 @@ def eval_ppl_wikitext_sep_hf(models, testenc, bs=1, device=None):
         # Prepare inputs and move to device
         inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
         inputs = inputs.reshape(j - i, seqlen)
-        print('inputs: ', inputs)
+
         # Forward pass through the model
         out, ids, mask = models[0](inputs)
-        for i in range (1, len(models) - 2):
-            out = models[i](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-            mask = out.attentions
-        print('out: ', out)
-        print('model 33', models[33])
+        #print('out: ', out)
+        for k in range (1, len(models) - 2):
+            out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+
         lm_logits = models[33](out.last_hidden_state)
         lm_logits = models[34](lm_logits)
-        #lm_logits = models[0](inputs).logits
         #print('lm logits: ', lm_logits)
         # Shift logits and labels for next token prediction
         shift_logits = lm_logits[:, :-1, :].contiguous()
         shift_labels = inputs[:, 1:]
-        print('shift logits: ', shift_logits)
-        print('shift labels: ', shift_labels)
+        #print('shift logits: ', shift_logits)
+        #print('shift labels: ', shift_labels)
 
 
         # Compute loss
         loss_fct = nn.CrossEntropyLoss()
         loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
-
+        #print('loss', loss)
         # Calculate negative log likelihood
         neg_log_likelihood = loss.float() * seqlen * (j - i)
+        #print('j - i: ', j - i)
+        #print('likelihood: ', neg_log_likelihood)
+
 
         # Append to list of negative log likelihoods
         nlls.append(neg_log_likelihood)
@@ -313,7 +254,6 @@ def eval_ppl_wikitext_sep_hf(models, testenc, bs=1, device=None):
     print('begin calcualte ppl')
     # Compute perplexity
     ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
-
     # Empty CUDA cache to save memory
     torch.cuda.empty_cache()
 

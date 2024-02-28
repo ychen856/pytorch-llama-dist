@@ -56,6 +56,7 @@ def get_llm2(checkpoints_dir, start_idx, end_idx, device, cache_dir="llm_weights
         args.ckpt_dir_hf,
         return_unused_kwargs=True
     )
+    print('config: ', config)
 
     models = []
 
@@ -63,6 +64,7 @@ def get_llm2(checkpoints_dir, start_idx, end_idx, device, cache_dir="llm_weights
     checkpoint_list = []
 
     checkpoints = sorted(Path(checkpoints_dir).glob("*.pth"))
+    print('file: ', Path(checkpoints_dir).glob("*.*"))
     assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
 
     for checkpoint in checkpoints:
@@ -111,8 +113,8 @@ def get_llm2(checkpoints_dir, start_idx, end_idx, device, cache_dir="llm_weights
             models[i].model.layers.self_attn.o_proj.type(torch.float16)
 
             models[i].model.layers.mlp.gate_proj.weight = nn.Parameter(checkpoint_list[i]['layers.feed_forward.w1.weight'])
-            models[i].model.layers.mlp.up_proj.weight = nn.Parameter(checkpoint_list[i]['layers.feed_forward.w2.weight'])
-            models[i].model.layers.mlp.down_proj.weight = nn.Parameter(checkpoint_list[i]['layers.feed_forward.w3.weight'])
+            models[i].model.layers.mlp.up_proj.weight = nn.Parameter(checkpoint_list[i]['layers.feed_forward.w3.weight'])
+            models[i].model.layers.mlp.down_proj.weight = nn.Parameter(checkpoint_list[i]['layers.feed_forward.w2.weight'])
             models[i].model.layers.mlp.gate_proj.type(torch.float16)
             models[i].model.layers.mlp.up_proj.type(torch.float16)
             models[i].model.layers.mlp.down_proj.type(torch.float16)
@@ -132,6 +134,13 @@ def get_llm2(checkpoints_dir, start_idx, end_idx, device, cache_dir="llm_weights
         for name, param in model.named_parameters():
             if param.requires_grad:
                 print(name, param.data)
+
+    for i in range(0, len(models)):
+        if i < 10:
+            torch.save(models[i].state_dict(), args.ckpt_dir_hf_sep + '/consolidated.0' + str(i) + '.pth')
+        else:
+            torch.save(models[i].state_dict(), args.ckpt_dir_hf_sep + '/consolidated.' + str(i) + '.pth')
+
 
     return models
 

@@ -175,7 +175,6 @@ class LLaMA:
             with torch.no_grad():
                 logits, freq = self.model[0].forward(input[:, cur_pos-1:cur_pos], cur_pos)
                 print('logits: ', logits)
-                print('freq: ', freq)
                 for i in range (1, len(self.model)):
                     logits = self.model[i].forward(logits, freq, cur_pos)
                     print(i)
