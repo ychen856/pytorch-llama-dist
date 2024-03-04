@@ -9,7 +9,7 @@ text = 'fodge'
 newx = pickle.dumps(text)
 total_size = len(newx)
 
-conn = http.client.HTTPConnection('localhost', 80)
+conn = http.client.HTTPConnection('10.100.218.157', 80)
 #conn = http.client.HTTPConnection('test-service.nrp-nautilus.io')
 conn.connect()
 
