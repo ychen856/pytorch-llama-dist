@@ -64,13 +64,13 @@ if __name__ == '__main__':
     #allow_cuda = False
     #device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
     device = torch.device("cuda")
-    '''print(torch.cuda.memory_allocated())
-
-    model = get_llm(args.ckpt_dir_hf, 'llm_weights')
-    tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-    print('model: ', model)
-
     print(torch.cuda.memory_allocated())
+
+    model2 = get_llm(args.ckpt_dir_hf, 'llm_weights')
+    tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
+    print('model: ', model2)
+    config = model2.config
+    '''print(torch.cuda.memory_allocated())
     torch.set_default_dtype(torch.float16)
     model2 = LlamaForCausalLM(model.config)
     model2.seqlen = 1024
@@ -79,21 +79,21 @@ if __name__ == '__main__':
     del model
     print(torch.cuda.memory_allocated())'''
 
-    checkpoints = sorted(Path(args.ckpt_dir_hf).glob("*.pth"))
+    '''checkpoints = sorted(Path(args.ckpt_dir_hf).glob("*.pth"))
     ckpt_path = checkpoints[0]
     checkpoint = torch.load(ckpt_path, map_location='cpu')
     config, kwargs = AutoConfig.from_pretrained(
         args.ckpt_dir_hf,
         return_unused_kwargs=True
-    )
+    )'''
 
-    torch.set_default_dtype(torch.float16)
+    '''torch.set_default_dtype(torch.float16)
     model2 = LlamaForCausalLM(config)
     model2.seqlen = 1024
     model2.load_state_dict(checkpoint, strict=True)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
     model2.cuda()
-    print('model2: ', model2)
+    print('model2: ', model2)'''
 
     '''print(torch.cuda.memory_allocated())
     for name, param in model2.named_parameters():
