@@ -108,7 +108,7 @@ if __name__ == '__main__':
     ppl = eval_ppl_hf(model2, tokenizer, device)
     print(f"ppl on wikitext {ppl}")
 
-'''    model_embbding = LlamaForCausalLM_emb(config)
+    model_embbding = LlamaForCausalLM_emb(config)
     model_embbding.model.embed_tokens = model2.model.embed_tokens
     torch.save(model_embbding.state_dict(), args.ckpt_dir_hf_sep + '/consolidated.00.pth')
 
@@ -247,7 +247,7 @@ if __name__ == '__main__':
     model_linear = LlamaForCausalLM_linear(config)
     model_linear.lm_head = model2.lm_head
     torch.save(model_linear.state_dict(), args.ckpt_dir_hf_sep + '/consolidated.34.pth')
-'''
+
 
 
 
