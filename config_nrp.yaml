@@ -53,6 +53,8 @@ llama_2_7b_sep:
     ckpt_dir_sep: /ychen-storage/llama-2-7b-sep
     tokenizer_path_sep: /ychen-storage/llama-2-7b-sep/tokenizer.model
 
-    ckpt_dir_sep_hf: /home/yichun/workspace/llama-2-7b-sep-hf
-    tokenizer_path_sep_hf: /home/yichun/workspace/llama-2-7b-sep-hf/tokenizer.model
+llama_2_7b_hf_sep:
+    ckpt_dir_hf_sep:  /ychen-storage/llama-2-7b-chat-hf-sep/
+    tokenizer_path_hf_sep: /ychen-storage/llama-2-7b-chat-hf-sep/tokenizer.model
+
 

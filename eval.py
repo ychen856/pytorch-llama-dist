@@ -108,10 +108,9 @@ def eval_ppl_wikitext(model, testenc, bs=1, device=None):
         # Prepare inputs and move to device
         inputs = testenc[:, (i * model.args.max_seq_len):(j * model.args.max_seq_len)].to(device)
         inputs = inputs.reshape(j - i, model.args.max_seq_len)
-        print('inputs: ', inputs)
 
         lm_logits = model.eval(inputs)
-        print('logits: ', lm_logits)
+
         shift_logits = lm_logits[:, :-1, :].contiguous()
         shift_labels = inputs[:, 1:]
         # Compute loss
@@ -135,8 +134,6 @@ def eval_ppl_wikitext(model, testenc, bs=1, device=None):
     torch.cuda.empty_cache()
 
     return ppl.item()
-
-
 
 
 def eval_ppl_wikitext_hf(model, testenc, bs=1, device=None):
@@ -168,13 +165,11 @@ def eval_ppl_wikitext_hf(model, testenc, bs=1, device=None):
         # Shift logits and labels for next token prediction
         shift_logits = lm_logits[:, :-1, :].contiguous()
         shift_labels = inputs[:, 1:]
-        #print('shift logits: ', shift_logits)
-        #print('shift labels: ', shift_labels)
+
         # Compute loss
         loss_fct = nn.CrossEntropyLoss()
         loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
-        #print('loss fct shift logits: ', shift_logits.reshape(-1, shift_logits.size(-1)))
-        #print('loss fct shift labels: ', shift_labels.reshape(-1))
+
 
         # Calculate negative log likelihood
         neg_log_likelihood = loss.float() * model.seqlen * (j - i)
@@ -227,28 +222,24 @@ def eval_ppl_wikitext_sep_hf(models, testenc, bs=1, device=None):
 
         lm_logits = models[33](out.last_hidden_state)
         lm_logits = models[34](lm_logits)
-        #print('lm logits: ', lm_logits)
+
         # Shift logits and labels for next token prediction
         shift_logits = lm_logits[:, :-1, :].contiguous()
         shift_labels = inputs[:, 1:]
-        #print('shift logits: ', shift_logits)
-        #print('shift labels: ', shift_labels)
 
 
         # Compute loss
         loss_fct = nn.CrossEntropyLoss()
         loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
-        #print('loss', loss)
+
         # Calculate negative log likelihood
         neg_log_likelihood = loss.float() * seqlen * (j - i)
-        #print('j - i: ', j - i)
-        #print('likelihood: ', neg_log_likelihood)
 
 
         # Append to list of negative log likelihoods
         nlls.append(neg_log_likelihood)
 
-        # print ("nlls",nlls)
+
         sys.stdout.flush()
 
     print('begin calcualte ppl')
