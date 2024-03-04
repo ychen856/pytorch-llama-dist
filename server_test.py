@@ -27,7 +27,7 @@ class S(BaseHTTPRequestHandler):
         #data = pickle.loads(post_data)
         #print(data)
 
-def run(server_class=HTTPServer, handler_class=S, port=8000):
+def run(server_class=HTTPServer, handler_class=S, port=80):
     server_address = ('localhost', port)
     httpd = server_class(server_address, handler_class)
     print('Starting httpd...')
