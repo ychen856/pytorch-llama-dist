@@ -30,6 +30,11 @@ class S(BaseHTTPRequestHandler):
         print('length: ', content_length)
         print(post_data)
         print(pickle.loads(post_data))
+
+        # Process the received data here:
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b'Data received successfully!')
         #body = self.get_body(conn, size)
         #data = pickle.loads(post_data)
         #print(data)

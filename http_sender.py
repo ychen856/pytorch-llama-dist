@@ -46,7 +46,7 @@ def send_data(server_address, text):
     conn.send(newx)
     resp = conn.getresponse()
 
-    print('resp: ', resp)
+    print('resp: ', resp.readlines())
 
 
 
