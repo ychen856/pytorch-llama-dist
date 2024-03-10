@@ -61,5 +61,6 @@ communication:
     server_address: test-service.nrp-nautilus.io
     server_port: 80
     client_address: 10.147.17.35
-    client_port: 80
+    client_port: 8000
+
 
