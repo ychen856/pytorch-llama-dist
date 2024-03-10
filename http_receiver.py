@@ -4,6 +4,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import pickle
 import argparse
 import yaml
+import http_sender
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
@@ -39,9 +40,9 @@ class S(BaseHTTPRequestHandler):
         #data = pickle.loads(post_data)
         #print(data)
 
-def run(server_class=HTTPServer, handler_class=S, port=80):
+def run(server_class=HTTPServer, handler_class=S, server_ip='', port=80):
     #server_address = ('localhost', port)
-    server_address = ('', port)
+    server_address = (server_ip, port)
     httpd = server_class(server_address, handler_class)
     print('Starting httpd...')
     httpd.serve_forever()
@@ -56,6 +57,10 @@ if __name__ == "__main__":
 
     print('port: ', args.server_port)
     run(port=args.server_port)
+
+    #sending response
+    text = 'this is response!'
+    http_sender.send_data(args.client_data, text)
     #server_class = HTTPServer
     #run(server_class, 5, args.server_port)
 

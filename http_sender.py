@@ -3,7 +3,7 @@ import os.path
 import pickle
 import argparse
 import yaml
-
+import http_receiver
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
@@ -29,11 +29,11 @@ print(newx)
 conn.send(newx)
 resp = conn.getresponse()'''
 
-def send_data(server_address, text):
+def send_data(server_ip, text):
     newx = pickle.dumps(text)
     total_size = len(newx)
 
-    conn = http.client.HTTPConnection(server_address)
+    conn = http.client.HTTPConnection(server_ip)
     conn.connect()
 
     conn.putrequest('POST', '/upload/')
@@ -59,6 +59,11 @@ if __name__ == "__main__":
 
     text = 'fodge'
     send_data(args.server_address, text)
+
+
+    # receiveing response
+    http_receiver.run(server_ip=args.client_ip, port=args.client_port)
+
 
 
 
