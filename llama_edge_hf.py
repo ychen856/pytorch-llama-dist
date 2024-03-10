@@ -1,0 +1,252 @@
+# this code is used for seperating the weights into small pieces and store them into seperated .pt files. One time usage.
+
+from typing import Optional
+
+import numpy as np
+import torch
+import time
+from pathlib import Path
+import json
+from sentencepiece import SentencePieceProcessor
+from tqdm import tqdm
+import argparse
+from data import get_loaders
+import torch.nn as nn
+import safetensors
+
+from safetensors.torch import save_file
+from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
+
+import sys
+
+from eval_sep_hf import eval_ppl_sep_hf
+from layerwrapper import WrappedGPT
+from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
+    LlamaForCausalLM_linear
+import yaml
+from model import ModelArgs, Transformer
+from model_dist import Transformer_emb, Transformer_b0, Transformer_b1, Transformer_b2, Transformer_b3, \
+    Transformer_b4, Transformer_b5, Transformer_b6, Transformer_b7, Transformer_b8, Transformer_b9, Transformer_b10, Transformer_b11, \
+    Transformer_b12, Transformer_b13, Transformer_b14, Transformer_b15, Transformer_b16, Transformer_b17, Transformer_b18, Transformer_b19, \
+    Transformer_b20, Transformer_b21, Transformer_b22, Transformer_b23, Transformer_b24, Transformer_b25, Transformer_b26, Transformer_b27, \
+    Transformer_b28, Transformer_b29, Transformer_b30, Transformer_b31, Transformer_norm, Transformer_linear
+from prune_all import prepare_calibration_input_opt, prepare_calibration_input, find_layers, check_outlier_mean, \
+    return_given_alpha, check_sparsity
+
+parser = argparse.ArgumentParser(
+    description='Pytorch Imagenet Training')
+parser.add_argument('--config', default='config_server.yaml')
+args = parser.parse_args()
+
+
+def get_llm(model, cache_dir="llm_weights"):
+    model = AutoModelForCausalLM.from_pretrained(
+        model,
+        torch_dtype=torch.float16,
+        cache_dir=cache_dir,
+        low_cpu_mem_usage=True,
+        device_map="auto"
+    )
+
+    model.seqlen = 1024
+    return model
+
+def get_llm2(checkpoints_dir, start_idx, end_idx, device, cache_dir="llm_weights"):
+    config, kwargs = AutoConfig.from_pretrained(
+        args.ckpt_dir_hf,
+        return_unused_kwargs=True
+    )
+    print('config: ', config)
+
+    models = []
+
+    prev_time = time.time()
+    checkpoint_list = []
+
+    checkpoints = sorted(Path(checkpoints_dir).glob("*.pth"))
+    print('file: ', Path(checkpoints_dir).glob("*.*"))
+    assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
+
+    for checkpoint in checkpoints:
+        ckpt_path = checkpoint
+        print(f'Loading checkpoint "{ckpt_path}"')
+
+        checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
+        print(f"Loaded checkpoint in {time.time() - prev_time:.2f}s")
+    prev_time = time.time()
+
+
+    if device == "cuda":
+        torch.set_default_tensor_type(torch.cuda.HalfTensor)
+    else:
+        torch.set_default_tensor_type(torch.BFloat16Tensor)
+
+
+    for i in range(start_idx, end_idx + 1):
+        print('i', i)
+        if i == 0:
+            models.append(LlamaForCausalLM_emb(config))
+            models[0].load_state_dict(checkpoint_list[0], strict=True)
+            #models[0].model.embed_tokens.weight = nn.Parameter(checkpoint_list[0]['tok_embeddings.weight'])
+            models[0].model.embed_tokens.type(torch.float16)
+            models[0].to(device)
+
+        elif i == 33:
+            models.append((LlamaForCausalLM_norm(config)))
+            models[33].load_state_dict(checkpoint_list[33], strict=True)
+            #models[33].model.norm.weight = nn.Parameter(checkpoint_list[33]['norm.weight'])
+            models[33].model.norm.type(torch.float16)
+            models[33].to(device)
+
+        elif i == 34:
+            models.append((LlamaForCausalLM_linear(config)))
+            models[34].load_state_dict(checkpoint_list[34], strict=True)
+            #models[34].lm_head.weight = nn.Parameter(checkpoint_list[34]['output.weight'])
+            models[34].lm_head.type(torch.float16)
+            models[34].to(device)
+        else:
+            models.append(LlamaForCausalLM_layer_0(config))
+            models[i].load_state_dict(checkpoint_list[i], strict=True)
+            '''models[i].model.layers.self_attn.q_proj.weight = nn.Parameter(checkpoint_list[i]['layers.attention.wq.weight'])
+            models[i].model.layers.self_attn.k_proj.weight = nn.Parameter(checkpoint_list[i]['layers.attention.wk.weight'])
+            models[i].model.layers.self_attn.v_proj.weight = nn.Parameter(checkpoint_list[i]['layers.attention.wv.weight'])
+            models[i].model.layers.self_attn.o_proj.weight = nn.Parameter(checkpoint_list[i]['layers.attention.wo.weight'])'''
+            models[i].model.layers.self_attn.q_proj.type(torch.float16)
+            models[i].model.layers.self_attn.k_proj.type(torch.float16)
+            models[i].model.layers.self_attn.v_proj.type(torch.float16)
+            models[i].model.layers.self_attn.o_proj.type(torch.float16)
+
+            '''models[i].model.layers.mlp.gate_proj.weight = nn.Parameter(checkpoint_list[i]['layers.feed_forward.w1.weight'])
+            models[i].model.layers.mlp.up_proj.weight = nn.Parameter(checkpoint_list[i]['layers.feed_forward.w3.weight'])
+            models[i].model.layers.mlp.down_proj.weight = nn.Parameter(checkpoint_list[i]['layers.feed_forward.w2.weight'])'''
+            models[i].model.layers.mlp.gate_proj.type(torch.float16)
+            models[i].model.layers.mlp.up_proj.type(torch.float16)
+            models[i].model.layers.mlp.down_proj.type(torch.float16)
+
+            '''models[i].model.layers.input_layernorm.weight = nn.Parameter(checkpoint_list[i]['layers.attention_norm.weight'])
+            models[i].model.layers.post_attention_layernorm.weight = nn.Parameter(checkpoint_list[i]['layers.ffn_norm.weight'])'''
+            models[i].model.layers.input_layernorm.type(torch.float16)
+            models[i].model.layers.post_attention_layernorm.type(torch.float16)
+            models[i].to(device)
+
+
+        print(f"Loaded state dict in {time.time() - prev_time:.2f}s")
+
+
+    for i in range(0, len(models)):
+        model = models[i]
+        for name, param in model.named_parameters():
+            if param.requires_grad:
+                print(name, param.data)
+
+    for i in range(0, len(models)):
+        if i < 10:
+            torch.save(models[i].state_dict(), args.ckpt_dir_hf_sep + '/consolidated.0' + str(i) + '.pth')
+        else:
+            torch.save(models[i].state_dict(), args.ckpt_dir_hf_sep + '/consolidated.' + str(i) + '.pth')
+
+
+    return models
+
+
+def load_model(checkpoints_dir, start_idx, end_idx, device):
+    config, kwargs = AutoConfig.from_pretrained(
+        args.ckpt_dir_hf,
+        return_unused_kwargs=True
+    )
+    print('config: ', config)
+
+    checkpoint_list = []
+    checkpoints = sorted(Path(checkpoints_dir).glob("*.pth"))
+    assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
+
+    for checkpoint in checkpoints:
+        ckpt_path = checkpoint
+        print(f'Loading checkpoint "{ckpt_path}"')
+
+        checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
+
+
+    if device == "cuda":
+        torch.set_default_tensor_type(torch.cuda.HalfTensor)
+    else:
+        torch.set_default_tensor_type(torch.BFloat16Tensor)
+
+    models = []
+    for i in range(start_idx, end_idx + 1):
+        if i == 0:
+            models.append(LlamaForCausalLM_emb(config))
+            models[i].load_state_dict(checkpoint_list[i], strict=True)
+            models[0].model.embed_tokens.weight = nn.Parameter(checkpoint_list[0]['model.embed_tokens.weight'])
+            models[0].to(device)
+        elif i == 33:
+            models.append((LlamaForCausalLM_norm(config)))
+            models[i].load_state_dict(checkpoint_list[i], strict=True)
+            models[33].model.norm.weight = nn.Parameter(checkpoint_list[33]['model.norm.weight'])
+            models[33].to(device)
+
+        elif i == 34:
+            models.append((LlamaForCausalLM_linear(config)))
+            models[i].load_state_dict(checkpoint_list[i], strict=True)
+            models[34].lm_head.weight = nn.Parameter(checkpoint_list[34]['lm_head.weight'])
+            models[34].to(device)
+        else:
+            models.append(LlamaForCausalLM_layer_0(config))
+            models[i].load_state_dict(checkpoint_list[i], strict=True)
+            models[i].model.layers.self_attn.q_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.q_proj.weight'])
+            models[i].model.layers.self_attn.k_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.k_proj.weight'])
+            models[i].model.layers.self_attn.v_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.v_proj.weight'])
+            models[i].model.layers.self_attn.o_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.o_proj.weight'])
+
+            models[i].model.layers.mlp.gate_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.mlp.gate_proj.weight'])
+            models[i].model.layers.mlp.up_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.mlp.up_proj.weight'])
+            models[i].model.layers.mlp.down_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.mlp.down_proj.weight'])
+
+            models[i].model.layers.input_layernorm.weight = nn.Parameter(checkpoint_list[i]['model.layers.input_layernorm.weight'])
+            models[i].model.layers.post_attention_layernorm.weight = nn.Parameter(checkpoint_list[i]['model.layers.post_attention_layernorm.weight'])
+
+            models[i].to(device)
+
+    '''for i in range(0, len(models)):
+        model = models[i]
+        for name, param in model.named_parameters():
+            if param.requires_grad:
+                print(name, param.data)'''
+
+    return models
+
+if __name__ == '__main__':
+    with open(args.config) as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+    for key in config:
+        for k, v in config[key].items():
+            setattr(args, k, v)
+
+    print('config type: ', args.config)
+    torch.manual_seed(0)
+
+
+
+    start_idx = 0
+    end_idx = 17
+    #allow_cuda = False
+    #device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
+    device = torch.device("cuda")
+    models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
+    tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
+
+
+
+    #model = get_llm(args.ckpt_dir_hf, 'llm_weights')
+    #tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
+
+    print("loading success")
+
+    ppl = eval_ppl_sep_hf(models, tokenizer, start_idx, end_idx, device)
+    print(f"ppl on wikitext {ppl}")
+
+
+    '''models = get_llm2(args.ckpt_dir_sep, 0, 34, device, 'llm_weights')
+    tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
+    ppl = eval_ppl_sep_hf(models, tokenizer, device)
+    print(f"ppl on wikitext {ppl}")'''
