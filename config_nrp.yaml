@@ -57,4 +57,9 @@ llama_2_7b_hf_sep:
     ckpt_dir_hf_sep:  /ychen-storage/llama-2-7b-chat-hf-sep/
     tokenizer_path_hf_sep: /ychen-storage/llama-2-7b-chat-hf-sep/tokenizer.model
 
+communication:
+    server_address: test-service.nrp-nautilus.io
+    server_port: 80
+    client_address: 10.147.17.35
+    client_port: 80
 
