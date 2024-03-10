@@ -54,7 +54,8 @@ if __name__ == "__main__":
         for k, v in config[key].items():
             setattr(args, k, v)
 
-    run()
+    print('port: ', args.server_port)
+    run(port=args.server_port)
     #server_class = HTTPServer
     #run(server_class, 5, args.server_port)
 
