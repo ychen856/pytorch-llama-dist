@@ -129,9 +129,16 @@ def task1_data_receiving(args):
 
 def task2_computation(models, start_idx, end_idx):
     inputs = None
+    ids = None
+    mask = None
+
     while 1:
-        inputs = http_receiver.get_queue_data()
-        if len(inputs) > 0:
+        data = http_receiver.get_queue_data()
+        inputs = data[0]
+        ids = data[1]
+        mask = data[2]
+
+        if len(data) > 0:
             break
 
     lm_logits = None
