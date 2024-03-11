@@ -37,7 +37,7 @@ class S(BaseHTTPRequestHandler):
         post_data = self.rfile.read(content_length)
         self._set_headers()
         print('length: ', content_length)
-        print(post_data)
+        #print(post_data)
 
         decrypt_data = pickle.loads(post_data)
         print(decrypt_data)

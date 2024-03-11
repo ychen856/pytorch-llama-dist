@@ -42,7 +42,7 @@ def send_data(server_ip, text):
     conn.endheaders()
 
     print(text)
-    print(newx)
+    #print(newx)
     conn.send(newx)
     resp = conn.getresponse()
 
