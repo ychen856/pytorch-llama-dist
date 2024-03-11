@@ -130,6 +130,7 @@ def task1_data_receiving(args):
 def task2_computation(models, start_idx, end_idx, device):
     #for i in range (0, len(models)):
     #    models[i].to(device)
+    print(next(models[0].parameters()).is_cuda)
     while 1:
         data = http_receiver.get_queue_data()
 
