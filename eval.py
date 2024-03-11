@@ -197,7 +197,7 @@ def eval_ppl_wikitext_sep_hf(models, testenc, bs=1, device=None):
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
 
-
+    nsamples = 1
     # List to store negative log likelihoods
     nlls = []
     print(f"nsamples {nsamples}")

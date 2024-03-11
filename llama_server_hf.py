@@ -149,6 +149,8 @@ def task2_computation(models, start_idx, end_idx, device):
 
         lm_logits = models[33 - start_idx](out.last_hidden_state)
         lm_logits = models[34 - start_idx](lm_logits)
+        print('lm_logits: ', lm_logits)
+
     else:
         print('single device:')
         # Forward pass through the model
@@ -160,7 +162,7 @@ def task2_computation(models, start_idx, end_idx, device):
         lm_logits = models[33](out.last_hidden_state)
         lm_logits = models[34](lm_logits)
 
-    print('logit: ', lm_logits)
+
     print('computation finished!!')
     #http_receiver.set_outgoing_queue('helloooooooo')
     #http_receiver.set_outgoing_queue(lm_logits)
