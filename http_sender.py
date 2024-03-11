@@ -71,8 +71,6 @@ if __name__ == "__main__":
     send_data(args.server_ip, args.server_port, text)
 
 
-    # receiveing response
-    http_receiver.run(server_ip=args.client_ip, port=args.client_port)
 
 
 

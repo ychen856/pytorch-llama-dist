@@ -58,6 +58,9 @@ class S(BaseHTTPRequestHandler):
         self.return_message()
 
     def return_message(self):
+        while 1:
+            if len(outgoing_queue) > 0:
+                break
         # Process the received data here:
         self.send_response(200)
         self.end_headers()
@@ -83,11 +86,7 @@ if __name__ == "__main__":
     print('port: ', args.server_port)
     run(port=args.server_port)
 
-    #sending response
-    text = 'this is response!'
-    http_sender.send_data(args.client_data, text)
-    #server_class = HTTPServer
-    #run(server_class, 5, args.server_port)
+
 
 '''if __name__ == "__main__":
     from sys import argv

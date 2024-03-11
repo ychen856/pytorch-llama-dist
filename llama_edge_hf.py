@@ -202,7 +202,7 @@ def task3_summerizing(models, test_loader, bs, device):
         inputs = inputs.reshape(j - i, seqlen)
 
         while 1:
-            lm_logits = http_receiver.get_queue_data()
+            lm_logits = http_sender.get_queue_data()
 
             if len(lm_logits) > 0:
                 break

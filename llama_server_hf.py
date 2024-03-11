@@ -160,8 +160,8 @@ def task2_computation(models, start_idx, end_idx, device):
         lm_logits = models[34](lm_logits)
 
     print('computation finished!!')
-    http_sender.send_data(args.client_ip, args.client_port, lm_logits)
-    print('data sent!!')
+    http_receiver.set_outgoing_queue(lm_logits)
+    print('data store!!')
 
 if __name__ == '__main__':
     with open(args.config) as f:
