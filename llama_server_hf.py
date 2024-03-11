@@ -169,7 +169,7 @@ def task2_computation(models, start_idx, end_idx, device):
         lm_logits = models[33](out.last_hidden_state)
         lm_logits = models[34](lm_logits)
 
-        print('computation finished!!')
+    print('computation finished!!')
 
 if __name__ == '__main__':
     with open(args.config) as f:

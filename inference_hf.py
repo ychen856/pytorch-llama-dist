@@ -227,7 +227,7 @@ if __name__ == '__main__':
     #allow_cuda = False
     #device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
     device = torch.device("cuda")
-    models = load_model(args.ckpt_dir_hf_sep, 0, 34, device)
+    models = load_model(args.ckpt_dir_hf_sep, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
 
 
