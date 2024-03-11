@@ -29,11 +29,11 @@ print(newx)
 conn.send(newx)
 resp = conn.getresponse()'''
 
-def send_data(server_ip, text):
+def send_data(server_ip, server_port, text):
     newx = pickle.dumps(text)
     total_size = len(newx)
 
-    conn = http.client.HTTPConnection(server_ip)
+    conn = http.client.HTTPConnection(server_ip, server_port)
     conn.connect()
 
     conn.putrequest('POST', '/upload/')
@@ -58,7 +58,7 @@ if __name__ == "__main__":
             setattr(args, k, v)
 
     text = 'fodge'
-    send_data(args.server_ip, text)
+    send_data(args.server_ip, args.server_port, text)
 
 
     # receiveing response

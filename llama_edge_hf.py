@@ -127,8 +127,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 def task1_data_receiving(args):
     http_receiver.run(server_ip=args.client_ip, port=args.client_port)
 
-def task2_computation(models, test_loader, start_idx, end_idx, device):
-    bs = 1
+def task2_computation(models, test_loader, bs, start_idx, end_idx, device):
     seqlen = 1024
     # Get input IDs
     testenc = test_loader.input_ids
@@ -159,7 +158,7 @@ def task2_computation(models, test_loader, start_idx, end_idx, device):
 
             for k in range(1, len(models)):
                 out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-            http_sender.send_data(args.server_ip, [out, ids, mask])
+            http_sender.send_data(args.server_ip, args.server_port, [out, ids, mask])
 
         elif (start_idx != 0 and end_idx == 34):
             print('server device:')
@@ -254,11 +253,12 @@ if __name__ == '__main__':
 
     print("loading success")
     test_loader = get_eval_data(tokenizer)
+    bs = 1
 
     # Create and start threads
     thread1 = threading.Thread(target=task1_data_receiving, args=[args])
-    thread2 = threading.Thread(target=task2_computation, args=[models, test_loader, bs, device])
-    thread3 = threading.Thread(target=task3_summerizing)
+    thread2 = threading.Thread(target=task2_computation, args=[models, test_loader, bs, start_idx, end_idx, device])
+    thread3 = threading.Thread(target=task3_summerizing, args=[models, test_loader, bs, device])
     thread1.start()
     thread2.start()
     thread3.start()
