@@ -128,6 +128,7 @@ def task1_data_receiving(args):
     http_receiver.run(port=args.server_port)
 
 def task2_computation(models, start_idx, end_idx):
+    inputs = None
     while 1:
         inputs = http_receiver.get_queue_data()
         if len(inputs) > 0:
@@ -139,7 +140,7 @@ def task2_computation(models, start_idx, end_idx):
         print('server device:')
         for k in range(start_idx, len(models) - 2):
             k = k - start_idx
-            out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+            out, ids, mask = models[k](inputs.last_hidden_state, position_ids=ids, attention_mask=mask)
 
         lm_logits = models[33](out.last_hidden_state)
         lm_logits = models[34](lm_logits)
