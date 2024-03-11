@@ -82,23 +82,23 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
     models = []
     for i in range(start_idx, end_idx + 1):
         print('i: ', i)
-        j = i - (start_idx - 1)
+        j = i - start_idx
         if i == 0:
             models.append(LlamaForCausalLM_emb(config))
             models[j].load_state_dict(checkpoint_list[i], strict=True)
             #models[0].model.embed_tokens.weight = nn.Parameter(checkpoint_list[0]['model.embed_tokens.weight'])
-            models[0].to(device)
+            models[j].to(device)
         elif i == 33:
             models.append((LlamaForCausalLM_norm(config)))
             models[j].load_state_dict(checkpoint_list[i], strict=True)
             #models[33].model.norm.weight = nn.Parameter(checkpoint_list[33]['model.norm.weight'])
-            models[33].to(device)
+            models[j].to(device)
 
         elif i == 34:
             models.append((LlamaForCausalLM_linear(config)))
             models[j].load_state_dict(checkpoint_list[i], strict=True)
             #models[34].lm_head.weight = nn.Parameter(checkpoint_list[34]['lm_head.weight'])
-            models[34].to(device)
+            models[j].to(device)
         else:
             models.append(LlamaForCausalLM_layer_0(config))
             models[j].load_state_dict(checkpoint_list[i], strict=True)
