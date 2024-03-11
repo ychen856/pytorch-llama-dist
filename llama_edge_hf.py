@@ -150,7 +150,7 @@ def task2_computation(models, test_loader, bs, start_idx, end_idx, device):
         inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
         inputs = inputs.reshape(j - i, seqlen)
 
-        lm_logits = None
+
         if (start_idx == 0 and end_idx < 33):
             print('edge device:')
             # Forward pass through the model
@@ -207,6 +207,7 @@ def task3_summerizing(models, test_loader, bs, device):
             if len(lm_logits) > 0:
                 break
 
+        http_sender.pop_incoming_queue()
         # Shift logits and labels for next token prediction
         shift_logits = lm_logits[:, :-1, :].contiguous()
         shift_labels = inputs[:, 1:]

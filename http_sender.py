@@ -37,6 +37,9 @@ def get_queue_data():
     else:
         return []
 
+def pop_incoming_queue():
+    returning_queue.pop(0)
+
 def send_data(server_ip, server_port, text):
     newx = pickle.dumps(text)
     total_size = len(newx)
@@ -53,7 +56,9 @@ def send_data(server_ip, server_port, text):
     #print(newx)
     conn.send(newx)
     resp = conn.getresponse()
-    print('resp: ', resp.readlines())
+
+
+    #print('resp: ', resp.readlines())
     print('len resp: ', len(resp.readlines()[-1]))
     resp_message =  pickle.loads(resp.readlines()[-1])
     returning_queue.append(resp_message)
