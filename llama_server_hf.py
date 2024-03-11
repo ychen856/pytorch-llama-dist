@@ -124,7 +124,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
     return models
 
-def task1_data_receiving():
+def task1_data_receiving(args):
     http_receiver.run(port=args.server_port)
 
 def task2_computation(models, start_idx, end_idx):
