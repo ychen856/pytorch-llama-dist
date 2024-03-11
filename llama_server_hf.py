@@ -10,6 +10,8 @@ import json
 from sentencepiece import SentencePieceProcessor
 from tqdm import tqdm
 import argparse
+
+import http_sender
 from data import get_loaders
 import torch.nn as nn
 import safetensors
@@ -128,9 +130,6 @@ def task1_data_receiving(args):
     http_receiver.run(port=args.server_port)
 
 def task2_computation(models, start_idx, end_idx, device):
-    #for i in range (0, len(models)):
-    #    models[i].to(device)
-    print(next(models[0].parameters()).is_cuda)
     while 1:
         data = http_receiver.get_queue_data()
 
@@ -138,18 +137,9 @@ def task2_computation(models, start_idx, end_idx, device):
             inputs = data[0].last_hidden_state
             ids = data[1]
             mask = data[2]
-            '''inputs = (data[0].last_hidden_state).clone().detach()
-            ids = data[1].clone().detach()
-            mask = data[2].clone().detach()'''
 
             break
 
-    print('inputs: ', inputs)
-    print('ids: ', ids)
-    print('mask: ', mask)
-    '''inputs.to(device)
-    ids.to(device)
-    mask.to(device)'''
     if (start_idx != 0 and end_idx == 34):
         print('server device:')
         for k in range(start_idx, len(models) - 2):
@@ -170,6 +160,8 @@ def task2_computation(models, start_idx, end_idx, device):
         lm_logits = models[34](lm_logits)
 
     print('computation finished!!')
+    http_sender.send_data(args.client_ip, lm_logits)
+    print('data sent!!')
 
 if __name__ == '__main__':
     with open(args.config) as f:

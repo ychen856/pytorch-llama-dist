@@ -1,5 +1,5 @@
 # this code is used for seperating the weights into small pieces and store them into seperated .pt files. One time usage.
-
+import threading
 from typing import Optional
 
 import numpy as np
@@ -10,6 +10,8 @@ import json
 from sentencepiece import SentencePieceProcessor
 from tqdm import tqdm
 import argparse
+
+import http_receiver
 from data import get_loaders
 import torch.nn as nn
 import safetensors
@@ -122,31 +124,10 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
     return models
 
-if __name__ == '__main__':
-    with open(args.config) as f:
-        config = yaml.load(f, Loader=yaml.FullLoader)
-    for key in config:
-        for k, v in config[key].items():
-            setattr(args, k, v)
+def task1_data_receiving(args):
+    http_receiver.run(server_ip=args.client_ip, port=args.client_port)
 
-    print('config type: ', args.config)
-    torch.manual_seed(0)
-
-
-    start_idx = 0
-    end_idx = 3
-    #allow_cuda = False
-    #device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
-    device = torch.device("cuda")
-    models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
-    tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-
-
-    print("loading success")
-    test_loader = get_eval_data(tokenizer)
-
-
-
+def task2_computation(models, test_loader, start_idx, end_idx, device):
     bs = 1
     seqlen = 1024
     # Get input IDs
@@ -197,6 +178,100 @@ if __name__ == '__main__':
 
             lm_logits = models[33](out.last_hidden_state)
             lm_logits = models[34](lm_logits)
+
+def task3_summerizing(models, test_loader, bs, device):
+    seqlen = 1024
+    # Get input IDs
+    testenc = test_loader.input_ids
+
+    # Calculate number of samples
+    nsamples = testenc.numel() // seqlen
+
+    # List to store negative log likelihoods
+    nlls = []
+    print(f"nsamples {nsamples}")
+    # Loop through each batch
+    for i in range(0, nsamples, bs):
+        if i % 50 == 0:
+            print(f"sample {i}")
+
+        # Calculate end index
+        j = min(i + bs, nsamples)
+
+        # Prepare inputs and move to device
+        inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
+        inputs = inputs.reshape(j - i, seqlen)
+
+        while 1:
+            lm_logits = http_receiver.get_queue_data()
+
+            if len(lm_logits) > 0:
+                break
+
+        # Shift logits and labels for next token prediction
+        shift_logits = lm_logits[:, :-1, :].contiguous()
+        shift_labels = inputs[:, 1:]
+
+        # Compute loss
+        loss_fct = nn.CrossEntropyLoss()
+        loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
+
+        # Calculate negative log likelihood
+        neg_log_likelihood = loss.float() * seqlen * (j - i)
+
+        # Append to list of negative log likelihoods
+        nlls.append(neg_log_likelihood)
+
+        sys.stdout.flush()
+
+    print('begin calcualte ppl')
+    # Compute perplexity
+    ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
+    # Empty CUDA cache to save memory
+    torch.cuda.empty_cache()
+    print('ppl: ', ppl)
+
+
+if __name__ == '__main__':
+    with open(args.config) as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+    for key in config:
+        for k, v in config[key].items():
+            setattr(args, k, v)
+
+    print('config type: ', args.config)
+    torch.manual_seed(0)
+
+
+    start_idx = 0
+    end_idx = 3
+    #allow_cuda = False
+    #device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
+    device = torch.device("cuda")
+    models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
+    tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
+
+
+    print("loading success")
+    test_loader = get_eval_data(tokenizer)
+
+    # Create and start threads
+    thread1 = threading.Thread(target=task1_data_receiving, args=[args])
+    thread2 = threading.Thread(target=task2_computation, args=[models, test_loader, bs, device])
+    thread3 = threading.Thread(target=task3_summerizing)
+    thread1.start()
+    thread2.start()
+    thread3.start()
+
+    # Wait for both threads to finish (optional)
+    thread1.join()
+    thread2.join()
+    thread3.join()
+
+    print("Both tasks completed!")
+
+
+
 
 
 
