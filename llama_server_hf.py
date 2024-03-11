@@ -129,6 +129,7 @@ def task1_data_receiving(args):
 
 def task2_computation(models, start_idx, end_idx):
     while 1:
+        print('hi')
         inputs = http_receiver.get_queue_data()
         if len(inputs) > 0:
             break
