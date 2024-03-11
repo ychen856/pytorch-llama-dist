@@ -134,7 +134,7 @@ def task2_computation(models, start_idx, end_idx, device):
         data = http_receiver.get_queue_data()
 
         if len(data) > 0:
-            inputs = torch.tensor(data[0]).to(device)
+            inputs = torch.tensor(data[0].last_hidden_state).to(device)
             ids = torch.tensor(data[1]).to(device)
             mask = torch.tensor(data[2]).to(device)
 
@@ -145,7 +145,7 @@ def task2_computation(models, start_idx, end_idx, device):
         print('server device:')
         for k in range(start_idx, len(models) - 2):
             k = k - start_idx
-            out, ids, mask = models[k](inputs.last_hidden_state, position_ids=ids, attention_mask=mask)
+            out, ids, mask = models[k](inputs, position_ids=ids, attention_mask=mask)
 
         lm_logits = models[33](out.last_hidden_state)
         lm_logits = models[34](lm_logits)
