@@ -65,7 +65,7 @@ class S(BaseHTTPRequestHandler):
         self.send_response(200)
         self.end_headers()
 
-        newx = pickle.dumps('Data received successfully!')
+        newx = pickle.dumps(outgoing_queue[0])
         self.wfile.write(newx)
 
 def run(server_class=HTTPServer, handler_class=S, server_ip='', port=80):
