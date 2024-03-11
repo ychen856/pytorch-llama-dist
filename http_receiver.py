@@ -66,6 +66,7 @@ class S(BaseHTTPRequestHandler):
 
         # Process the received data here:
         self.send_response(200)
+        self.send_header('Content-type', 'application/octet-stream')
         self.end_headers()
 
         newx = pickle.dumps(outgoing_queue[0])
