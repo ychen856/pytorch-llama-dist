@@ -161,7 +161,8 @@ def task2_computation(models, start_idx, end_idx, device):
         lm_logits = models[34](lm_logits)
 
     print('computation finished!!')
-    http_receiver.set_outgoing_queue(lm_logits)
+    http_receiver.set_outgoing_queue('helloooooooo')
+    #http_receiver.set_outgoing_queue(lm_logits)
     print('data store!!')
 
 if __name__ == '__main__':

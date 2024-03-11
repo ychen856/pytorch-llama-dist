@@ -72,6 +72,7 @@ class S(BaseHTTPRequestHandler):
         print('len server reponse: ', len(newx))
         self.wfile.write(newx)
         outgoing_queue.pop(0)
+        print('end response')
 
 def run(server_class=HTTPServer, handler_class=S, server_ip='', port=80):
     #server_address = ('localhost', port)
