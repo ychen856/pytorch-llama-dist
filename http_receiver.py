@@ -14,7 +14,7 @@ args = parser.parse_args()
 incoming_queue = []
 
 def get_queue_data():
-    if len(incoming_queue > 0):
+    if len(incoming_queue) > 0:
         return incoming_queue[0]
     else:
         return []
