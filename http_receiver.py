@@ -70,6 +70,7 @@ class S(BaseHTTPRequestHandler):
         self.end_headers()
 
         newx = pickle.dumps(outgoing_queue[0])
+        print('newx: ', newx)
         print('len server reponse: ', len(newx))
         self.wfile.write(newx)
         outgoing_queue.pop(0)
