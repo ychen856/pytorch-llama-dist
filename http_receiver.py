@@ -12,12 +12,15 @@ parser.add_argument('--config', default='config_server.yaml')
 args = parser.parse_args()
 
 incoming_queue = []
-
+outgoing_queue = []
 def get_queue_data():
     if len(incoming_queue) > 0:
         return incoming_queue[0]
     else:
         return []
+
+def set_outgoing_queue(outputs):
+    outgoing_queue.append(outputs)
 
 class S(BaseHTTPRequestHandler):
     def _set_headers(self):
@@ -45,15 +48,22 @@ class S(BaseHTTPRequestHandler):
         incoming_queue.append(decrypt_data)
 
         # Process the received data here:
+        '''self.send_response(200)
+        self.end_headers()
+
+        newx = pickle.dumps('Data received successfully!')
+        self.wfile.write(newx)'''
+
+
+        self.return_message()
+
+    def return_message(self):
+        # Process the received data here:
         self.send_response(200)
         self.end_headers()
 
         newx = pickle.dumps('Data received successfully!')
         self.wfile.write(newx)
-        #self.wfile.write(b'Data received successfully!')
-        #body = self.get_body(conn, size)
-        #data = pickle.loads(post_data)
-        #print(data)
 
 def run(server_class=HTTPServer, handler_class=S, server_ip='', port=80):
     #server_address = ('localhost', port)
