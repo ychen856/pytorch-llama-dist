@@ -51,12 +51,10 @@ class S(BaseHTTPRequestHandler):
         self.send_response(200)
         self.end_headers()
 
-        newx = pickle.dumps('Data received successfully!')
-        self.wfile.write(newx)
-        newx2 = pickle.dumps('second phase!!')
-        self.wfile.write(newx2)
+        #newx = pickle.dumps('Data received successfully!')
+        #self.wfile.write(newx)
 
-        #self.return_message()
+        self.return_message()
 
     def return_message(self):
         while 1:
@@ -65,7 +63,7 @@ class S(BaseHTTPRequestHandler):
         # Process the received data here:
         self.send_response(200)
         self.end_headers()
-
+        print('len server reponse: ', len(outgoing_queue[0]))
         newx = pickle.dumps(outgoing_queue[0])
         self.wfile.write(newx)
 

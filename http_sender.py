@@ -54,6 +54,7 @@ def send_data(server_ip, server_port, text):
     conn.send(newx)
     resp = conn.getresponse()
 
+    print('len resp: ', len(resp.readlines()[4]))
     resp_message =  pickle.loads(resp.readlines()[4])
     returning_queue.append(resp_message)
     print('resp: ', resp_message)
