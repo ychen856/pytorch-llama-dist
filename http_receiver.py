@@ -51,11 +51,11 @@ class S(BaseHTTPRequestHandler):
         incoming_queue.append(decrypt_data)
 
         # Process the received data here:
-        self.send_response(200)
+        '''self.send_response(200)
         self.end_headers()
 
-        #newx = pickle.dumps('Data received successfully!')
-        #self.wfile.write(newx)
+        newx = pickle.dumps('Data received successfully!')
+        self.wfile.write(newx)'''
 
         self.return_message()
 
