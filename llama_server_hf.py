@@ -1,5 +1,5 @@
 # this code is used for seperating the weights into small pieces and store them into seperated .pt files. One time usage.
-
+import threading
 from typing import Optional
 
 import numpy as np
@@ -13,7 +13,7 @@ import argparse
 from data import get_loaders
 import torch.nn as nn
 import safetensors
-import http_sender
+import http_receiver
 from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
 
@@ -38,6 +38,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--config', default='config_server.yaml')
 args = parser.parse_args()
 
+incoming_queue = []
 
 def get_llm(model, cache_dir="llm_weights"):
     model = AutoModelForCausalLM.from_pretrained(
@@ -122,6 +123,34 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
     return models
 
+def task1_data_receiving():
+    http_receiver.run(port=args.server_port)
+
+def task2_computation(models, start_idx, end_idx):
+    inputs = http_receiver.get_queue_data()
+
+    lm_logits = None
+
+    if (start_idx != 0 and end_idx == 34):
+        print('server device:')
+        for k in range(start_idx, len(models) - 2):
+            out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+
+        lm_logits = models[33](out.last_hidden_state)
+        lm_logits = models[34](lm_logits)
+    else:
+        print('single device:')
+        # Forward pass through the model
+        out, ids, mask = models[0](inputs)
+
+        for k in range(1, len(models) - 2):
+            out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+
+        lm_logits = models[33](out.last_hidden_state)
+        lm_logits = models[34](lm_logits)
+
+        print('computation finished!!')
+
 if __name__ == '__main__':
     with open(args.config) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
@@ -133,8 +162,9 @@ if __name__ == '__main__':
     torch.manual_seed(0)
 
 
-    start_idx = 0
-    end_idx = 3
+
+    start_idx = 4
+    end_idx = 34
     #allow_cuda = False
     #device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
     device = torch.device("cuda")
@@ -142,67 +172,24 @@ if __name__ == '__main__':
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
 
 
+
+    #model = get_llm(args.ckpt_dir_hf, 'llm_weights')
+    #tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
+
     print("loading success")
-    test_loader = get_eval_data(tokenizer)
 
+    # Create and start threads
+    thread1 = threading.Thread(target=task1_data_receiving, args=(args))
+    thread2 = threading.Thread(target=task2_computation, args=(models, start_idx, end_idx))
 
+    thread1.start()
+    thread2.start()
 
-    bs = 1
-    seqlen = 1024
-    # Get input IDs
-    testenc = test_loader.input_ids
+    # Wait for both threads to finish (optional)
+    thread1.join()
+    thread2.join()
 
-    # Calculate number of samples
-    nsamples = testenc.numel() // seqlen
-
-    # List to store negative log likelihoods
-    nlls = []
-    print(f"nsamples {nsamples}")
-    # Loop through each batch
-    for i in range(0, nsamples, bs):
-        if i % 50 == 0:
-            print(f"sample {i}")
-
-        # Calculate end index
-        j = min(i + bs, nsamples)
-
-        # Prepare inputs and move to device
-        inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
-        inputs = inputs.reshape(j - i, seqlen)
-
-        lm_logits = None
-        if (start_idx == 0 and end_idx < 33):
-            print('edge device:')
-            # Forward pass through the model
-            out, ids, mask = models[0](inputs)
-
-            for k in range(1, len(models)):
-                out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-            http_sender.send_data(args.server_ip, out)
-
-        elif (start_idx != 0 and end_idx == 34):
-            print('server device:')
-            for k in range(start_idx, len(models) - 2):
-                out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-
-            lm_logits = models[33](out.last_hidden_state)
-            lm_logits = models[34](lm_logits)
-        else:
-            print('single device:')
-            # Forward pass through the model
-            out, ids, mask = models[0](inputs)
-
-            for k in range(1, len(models) - 2):
-                out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-
-            lm_logits = models[33](out.last_hidden_state)
-            lm_logits = models[34](lm_logits)
-
-
-
-    #ppl = eval_ppl_sep_hf(models, tokenizer, args, start_idx, end_idx, device)
-    #print(f"ppl on wikitext {ppl}")
-
+    print("Both tasks completed!")
 
     '''models = get_llm2(args.ckpt_dir_sep, 0, 34, device, 'llm_weights')
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)

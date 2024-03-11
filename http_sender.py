@@ -58,7 +58,7 @@ if __name__ == "__main__":
             setattr(args, k, v)
 
     text = 'fodge'
-    send_data(args.server_address, text)
+    send_data(args.server_ip, text)
 
 
     # receiveing response

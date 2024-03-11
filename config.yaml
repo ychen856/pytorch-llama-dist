@@ -45,8 +45,8 @@ llama_2_7b:
 llama_2_7b_hf:
   #ckpt_dir_hf: /home/yichun/workspace/llama-2-7b-chat-hf/
   #tokenizer_path_hf: /home/yichun/workspace/llama-2-7b-chat-hf/
-  ckpt_dir_hf: /home/ubuntu/llamaOwl/llama-2-7b-chat-hf/
-  tokenizer_path_hf: /home/ubuntu/llamaOwl/llama-2-7b-chat-hf/
+  ckpt_dir_hf: D:/workspace/llama-2-7b-chat-hf/
+  tokenizer_path_hf: D:/workspace/llama-2-7b-chat-hf/
 
 
 llama_2_7b_sep:
@@ -55,6 +55,11 @@ llama_2_7b_sep:
     #ckpt_dir_sep: /home/ubuntu/llamaOwl/llama-2-7b-sep
     #tokenizer_path_sep: /home/ubuntu/llamaOwl/llama-2-7b-sep/tokenizer.model
 
-    ckpt_dir_sep_hf: /home/yichun/workspace/llama-2-7b-sep-hf
-    tokenizer_path_sep_hf: /home/yichun/workspace/llama-2-7b-sep-hf/tokenizer.model
+    ckpt_dir_hf_sep: D:/workspace/llama-2-7b-chat-hf-sep
+    tokenizer_path_hf_sep: D:/workspace/llama-2-7b-chat-hf-sep/tokenizer.model
 
+communication:
+    server_ip: test-service.nrp-nautilus.io
+    server_port: 80
+    client_ip: 10.147.17.35
+    client_port: 8000

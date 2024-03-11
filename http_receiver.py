@@ -11,6 +11,14 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--config', default='config_server.yaml')
 args = parser.parse_args()
 
+incoming_queue = []
+
+def get_queue_data():
+    if len(incoming_queue > 0):
+        return incoming_queue[0]
+    else:
+        return []
+
 class S(BaseHTTPRequestHandler):
     def _set_headers(self):
         self.send_response(200)
@@ -30,7 +38,11 @@ class S(BaseHTTPRequestHandler):
         self._set_headers()
         print('length: ', content_length)
         print(post_data)
-        print(pickle.loads(post_data))
+
+        decrypt_data = pickle.loads(post_data)
+        print(decrypt_data)
+
+        incoming_queue.append(decrypt_data)
 
         # Process the received data here:
         self.send_response(200)

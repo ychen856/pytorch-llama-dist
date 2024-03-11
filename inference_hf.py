@@ -19,7 +19,7 @@ from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCa
 
 import sys
 
-from eval_sep_hf import eval_ppl_sep_hf
+from eval import eval_ppl_sep_hf
 from layerwrapper import WrappedGPT
 from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
     LlamaForCausalLM_linear
