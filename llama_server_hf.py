@@ -127,11 +127,8 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 def task1_data_receiving(args):
     http_receiver.run(port=args.server_port)
 
-def task2_computation(models, start_idx, end_idx):
-    inputs = None
-    ids = None
-    mask = None
-
+def task2_computation(models, start_idx, end_idx, device):
+    models.to(device)
     while 1:
         data = http_receiver.get_queue_data()
 
@@ -142,7 +139,6 @@ def task2_computation(models, start_idx, end_idx):
 
             break
 
-    lm_logits = None
 
     if (start_idx != 0 and end_idx == 34):
         print('server device:')
@@ -193,7 +189,7 @@ if __name__ == '__main__':
 
     # Create and start threads
     thread1 = threading.Thread(target=task1_data_receiving, args=[args])
-    thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx])
+    thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, device])
 
     thread1.start()
     thread2.start()
