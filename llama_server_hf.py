@@ -116,11 +116,11 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
             models[j].to(device)
 
-    for i in range(0, len(models)):
+    '''for i in range(0, len(models)):
         model = models[i]
         for name, param in model.named_parameters():
             if param.requires_grad:
-                print(name, param.data)
+                print(name, param.data)'''
 
     return models
 
@@ -135,26 +135,29 @@ def task2_computation(models, start_idx, end_idx, device):
         data = http_receiver.get_queue_data()
 
         if len(data) > 0:
-            inputs = (data[0].last_hidden_state).clone().detach()
+            inputs = data[0].last_hidden_state
+            ids = data[1]
+            mask = data[2]
+            '''inputs = (data[0].last_hidden_state).clone().detach()
             ids = data[1].clone().detach()
-            mask = data[2].clone().detach()
+            mask = data[2].clone().detach()'''
 
             break
 
     print('inputs: ', inputs)
     print('ids: ', ids)
     print('mask: ', mask)
-    inputs.to(device)
+    '''inputs.to(device)
     ids.to(device)
-    mask.to(device)
+    mask.to(device)'''
     if (start_idx != 0 and end_idx == 34):
         print('server device:')
         for k in range(start_idx, len(models) - 2):
             k = k - start_idx
             out, ids, mask = models[k](inputs, position_ids=ids, attention_mask=mask)
 
-        lm_logits = models[33](out.last_hidden_state)
-        lm_logits = models[34](lm_logits)
+        lm_logits = models[33 - start_idx](out.last_hidden_state)
+        lm_logits = models[34 - start_idx](lm_logits)
     else:
         print('single device:')
         # Forward pass through the model
