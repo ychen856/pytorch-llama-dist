@@ -128,15 +128,15 @@ def task1_data_receiving(args):
     http_receiver.run(port=args.server_port)
 
 def task2_computation(models, start_idx, end_idx, device):
-    for i in range (0, len(models)):
-        models[i].to(device)
+    #for i in range (0, len(models)):
+    #    models[i].to(device)
     while 1:
         data = http_receiver.get_queue_data()
 
         if len(data) > 0:
-            inputs = data[0]
-            ids = data[1]
-            mask = data[2]
+            inputs = torch.tensor(data[0]).to(device)
+            ids = torch.tensor(data[1]).to(device)
+            mask = torch.tensor(data[2]).to(device)
 
             break
 
