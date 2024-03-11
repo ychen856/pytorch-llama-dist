@@ -48,14 +48,15 @@ class S(BaseHTTPRequestHandler):
         incoming_queue.append(decrypt_data)
 
         # Process the received data here:
-        '''self.send_response(200)
+        self.send_response(200)
         self.end_headers()
 
         newx = pickle.dumps('Data received successfully!')
-        self.wfile.write(newx)'''
+        self.wfile.write(newx)
+        newx2 = pickle.dumps('second phase!!')
+        self.wfile.write(newx2)
 
-
-        self.return_message()
+        #self.return_message()
 
     def return_message(self):
         while 1:
