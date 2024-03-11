@@ -43,7 +43,6 @@ class S(BaseHTTPRequestHandler):
         print(decrypt_data)
 
         incoming_queue.append(decrypt_data)
-        print('queue: ', incoming_queue)
 
         # Process the received data here:
         self.send_response(200)

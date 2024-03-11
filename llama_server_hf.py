@@ -134,9 +134,9 @@ def task2_computation(models, start_idx, end_idx, device):
         data = http_receiver.get_queue_data()
 
         if len(data) > 0:
-            inputs = torch.tensor(data[0].last_hidden_state).to(device)
-            ids = torch.tensor(data[1]).to(device)
-            mask = torch.tensor(data[2]).to(device)
+            inputs = torch.tensor(data[0].last_hidden_state).to(device).long()
+            ids = torch.tensor(data[1]).to(device).long()
+            mask = torch.tensor(data[2]).to(device).long()
 
             break
 
