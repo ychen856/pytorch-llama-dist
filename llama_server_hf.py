@@ -128,7 +128,8 @@ def task1_data_receiving(args):
     http_receiver.run(port=args.server_port)
 
 def task2_computation(models, start_idx, end_idx, device):
-    models.to(device)
+    for i in range (0, len(models)):
+        models[i].to(device)
     while 1:
         data = http_receiver.get_queue_data()
 
