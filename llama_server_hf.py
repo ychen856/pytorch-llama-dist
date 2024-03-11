@@ -82,6 +82,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
     models = []
     for i in range(start_idx, end_idx + 1):
         print('i: ', i)
+        i = i - start_idx
         if i == 0:
             models.append(LlamaForCausalLM_emb(config))
             models[i].load_state_dict(checkpoint_list[i], strict=True)
@@ -137,6 +138,7 @@ def task2_computation(models, start_idx, end_idx):
     if (start_idx != 0 and end_idx == 34):
         print('server device:')
         for k in range(start_idx, len(models) - 2):
+            k = k - start_idx
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
         lm_logits = models[33](out.last_hidden_state)
@@ -173,7 +175,6 @@ if __name__ == '__main__':
     device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-
 
 
     #model = get_llm(args.ckpt_dir_hf, 'llm_weights')
