@@ -22,6 +22,9 @@ def get_queue_data():
 def set_outgoing_queue(outputs):
     outgoing_queue.append(outputs)
 
+def pop_incoming_queue():
+    incoming_queue.pop(0)
+
 class S(BaseHTTPRequestHandler):
     def _set_headers(self):
         self.send_response(200)
@@ -60,6 +63,7 @@ class S(BaseHTTPRequestHandler):
         while 1:
             if len(outgoing_queue) > 0:
                 break
+        outgoing_queue.pop(0)
         # Process the received data here:
         self.send_response(200)
         self.end_headers()

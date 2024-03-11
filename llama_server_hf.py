@@ -140,6 +140,7 @@ def task2_computation(models, start_idx, end_idx, device):
 
             break
 
+    http_receiver.pop_incoming_queue()
     if (start_idx != 0 and end_idx == 34):
         print('server device:')
         for k in range(start_idx, len(models) - 2):
