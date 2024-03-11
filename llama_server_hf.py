@@ -183,7 +183,7 @@ if __name__ == '__main__':
     print("loading success")
 
     # Create and start threads
-    thread1 = threading.Thread(target=task1_data_receiving, args=(args))
+    thread1 = threading.Thread(target=task1_data_receiving, args=[args])
     thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx])
 
     thread1.start()
