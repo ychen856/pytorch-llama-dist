@@ -237,7 +237,7 @@ if __name__ == '__main__':
 
     print("loading success")
 
-    ppl = eval_ppl_sep_hf(models, tokenizer, 0, 34, device)
+    ppl = eval_ppl_sep_hf(models, tokenizer, device)
     print(f"ppl on wikitext {ppl}")
 
 

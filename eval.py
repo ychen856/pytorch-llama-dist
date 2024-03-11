@@ -223,6 +223,7 @@ def eval_ppl_wikitext_sep_hf(models, testenc, bs=1, device=None):
         lm_logits = models[33](out.last_hidden_state)
         lm_logits = models[34](lm_logits)
 
+        print('logits: ', lm_logits)
         # Shift logits and labels for next token prediction
         shift_logits = lm_logits[:, :-1, :].contiguous()
         shift_labels = inputs[:, 1:]
