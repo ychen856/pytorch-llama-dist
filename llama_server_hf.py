@@ -82,7 +82,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
     models = []
     for i in range(start_idx, end_idx + 1):
         print('i: ', i)
-        j = i - start_idx
+        j = i - (start_idx - 1)
         if i == 0:
             models.append(LlamaForCausalLM_emb(config))
             models[j].load_state_dict(checkpoint_list[i], strict=True)
