@@ -63,7 +63,7 @@ class S(BaseHTTPRequestHandler):
         while 1:
             if len(outgoing_queue) > 0:
                 break
-        outgoing_queue.pop(0)
+
         # Process the received data here:
         self.send_response(200)
         self.end_headers()
@@ -71,6 +71,7 @@ class S(BaseHTTPRequestHandler):
         newx = pickle.dumps(outgoing_queue[0])
         print('len server reponse: ', len(newx))
         self.wfile.write(newx)
+        outgoing_queue.pop(0)
 
 def run(server_class=HTTPServer, handler_class=S, server_ip='', port=80):
     #server_address = ('localhost', port)
