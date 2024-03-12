@@ -68,7 +68,7 @@ def send_data(server_ip, server_port, text):
 
     #print('resp: ', resp.readlines())
     resp_str = resp.readlines()[4]
-    resp_str = resp_str.replace('\', b\'', '')
+    resp_str = resp_str.replace(b', b', b'')
     #print('len resp: ', len(resp.readlines()[4]))
     print('resp 4: ', resp.readlines()[4])
     print('resp 44: ', resp_str)
