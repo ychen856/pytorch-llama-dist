@@ -65,13 +65,12 @@ def send_data(server_ip, server_port, text):
     start_time2 = time.time()
     resp = conn.getresponse()
 
+    resp_data = resp.readlines()
+    resp_str = b''
+    for i in range(5, len(resp_data)):
+        resp_str = resp_str + resp_data[i]
 
-    #print('resp: ', resp.readlines())
-    resp_str = resp.readlines()[4]
-    resp_str = resp_str.replace(b', b', b'')
-    #print('len resp: ', len(resp.readlines()[4]))
-    print('resp 4: ', resp.readlines()[4])
-    print('resp 44: ', resp_str)
+
     resp_message = pickle.loads(resp_str)
     returning_queue.append(resp_message)
     print('resp: ', resp_message)
