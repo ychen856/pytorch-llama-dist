@@ -141,6 +141,7 @@ def task2_computation(models, start_idx, end_idx, device):
             break
 
     http_receiver.pop_incoming_queue()
+    start_time = time.time()
     if (start_idx != 0 and end_idx == 34):
         print('server device:')
         for k in range(start_idx, len(models) - 2):
@@ -152,7 +153,7 @@ def task2_computation(models, start_idx, end_idx, device):
         lm_logits = models[33 - start_idx](out.last_hidden_state)
         #print('lm 33: ', lm_logits)
         lm_logits = models[34 - start_idx](lm_logits)
-        #print('lm_logits: ', lm_logits)
+        print('lm_logits: ', lm_logits)
 
     else:
         print('single device:')
@@ -165,10 +166,11 @@ def task2_computation(models, start_idx, end_idx, device):
         lm_logits = models[33](out.last_hidden_state)
         lm_logits = models[34](lm_logits)
 
-
+    end_time = time.time()
+    print('server computation time: ', end_time - start_time)
     print('computation finished!!')
+
     #http_receiver.set_outgoing_queue('helloooooooo')
-    print('array length: ', len(lm_logits))
     http_receiver.set_outgoing_queue(lm_logits)
     print('data store!!')
 

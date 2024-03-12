@@ -2,6 +2,8 @@ import http.client
 import os.path
 import pickle
 import argparse
+import time
+
 import yaml
 import http_receiver
 
@@ -41,6 +43,7 @@ def pop_incoming_queue():
     returning_queue.pop(0)
 
 def send_data(server_ip, server_port, text):
+    start_time = time.time()
     newx = pickle.dumps(text)
     total_size = len(newx)
 
@@ -55,14 +58,21 @@ def send_data(server_ip, server_port, text):
     print(text)
     #print(newx)
     conn.send(newx)
+    end_time = time.time()
+    print('client sending time: ', end_time - start_time)
+
+
+    start_time2 = time.time()
     resp = conn.getresponse()
 
-
-    print('resp: ', resp.readlines())
+    #print('resp: ', resp.readlines())
     #print('len resp: ', len(resp.readlines()[4]))
-    #resp_message =  pickle.loads(resp.readlines()[4])
-    #returning_queue.append(resp_message)
-    #print('resp: ', resp_message)
+    resp_message =  pickle.loads(resp.readlines()[4])
+    returning_queue.append(resp_message)
+    print('resp: ', resp_message)
+    end_time2 = time.time()
+    print('client receiving time: ', end_time2 - start_time2)
+    print('rrt: ', end_time2 - start_time)
 
 
 

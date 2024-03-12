@@ -150,13 +150,15 @@ def task2_computation(models, test_loader, bs, start_idx, end_idx, device):
         inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
         inputs = inputs.reshape(j - i, seqlen)
 
-
+        start_time = time.time()
         if (start_idx == 0 and end_idx < 33):
             print('edge device:')
             # Forward pass through the model
             out, ids, mask = models[0](inputs)
             for k in range(1, len(models)):
                 out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+            end_time = time.time()
+            print('client computation time: ', end_time - start_time)
 
             http_sender.send_data(args.server_ip, args.server_port, [out, ids, mask])
 

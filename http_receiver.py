@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import pickle
 import argparse
@@ -39,6 +39,7 @@ class S(BaseHTTPRequestHandler):
 
     def do_POST(self):
         print('receive POST:')
+        start_time = time.time()
         content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length)
         self._set_headers()
@@ -49,7 +50,8 @@ class S(BaseHTTPRequestHandler):
         print(decrypt_data)
 
         incoming_queue.append(decrypt_data)
-
+        end_time = time.time()
+        print('server receiving time: ', end_time - start_time)
         # Process the received data here:
         '''self.send_response(200)
         self.end_headers()
@@ -64,18 +66,18 @@ class S(BaseHTTPRequestHandler):
             if len(outgoing_queue) > 0:
                 break
 
+        start_time = time.time()
         # Process the received data here:
         self.send_response(200)
         self.send_header('Content-type', 'application/octet-stream')
         self.end_headers()
 
         newx = pickle.dumps(outgoing_queue[0])
-        print('newx: ', newx)
-        print('len server reponse: ', len(newx))
         self.wfile.write(newx)
         outgoing_queue.pop(0)
+        end_time = time.time()
+        print('server sending time: ', end_time - start_time)
         print('end response')
-
 def run(server_class=HTTPServer, handler_class=S, server_ip='', port=80):
     #server_address = ('localhost', port)
     server_address = (server_ip, port)
