@@ -143,7 +143,7 @@ def task2_computation(models, start_idx, end_idx, device):
     http_receiver.pop_incoming_queue()
     if (start_idx != 0 and end_idx == 34):
         print('server device:')
-        for k in range(start_idx, end_idx + 1):
+        for k in range(start_idx, 33 - start_idx):
             k = k - start_idx
             out, ids, mask = models[k](inputs, position_ids=ids, attention_mask=mask)
             #print(k)
