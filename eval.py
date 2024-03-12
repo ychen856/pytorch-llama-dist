@@ -216,13 +216,13 @@ def eval_ppl_wikitext_sep_hf(models, testenc, bs=1, device=None):
 
         # Forward pass through the model
         out, ids, mask = models[0](inputs)
-        print('out: ', out)
+        #print('out: ', out)
         for k in range (1, len(models) - 2):
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-            print(k);
-            print('out: ', out)
+            #print(k);
+            #print('out: ', out)
         lm_logits = models[33](out.last_hidden_state)
-        print('logit 33: ', lm_logits)
+        #print('logit 33: ', lm_logits)
         lm_logits = models[34](lm_logits)
 
         print('logits: ', lm_logits)

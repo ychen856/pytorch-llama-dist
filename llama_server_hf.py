@@ -140,20 +140,19 @@ def task2_computation(models, start_idx, end_idx, device):
 
             break
 
-    print('len: ', len(models))
     http_receiver.pop_incoming_queue()
     if (start_idx != 0 and end_idx == 34):
         print('server device:')
         for k in range(start_idx, end_idx + 1):
             k = k - start_idx
             out, ids, mask = models[k](inputs, position_ids=ids, attention_mask=mask)
-            print(k)
-            print('out: ', out)
+            #print(k)
+            #print('out: ', out)
 
         lm_logits = models[33 - start_idx](out.last_hidden_state)
-        print('lm 33: ', lm_logits)
+        #print('lm 33: ', lm_logits)
         lm_logits = models[34 - start_idx](lm_logits)
-        print('lm_logits: ', lm_logits)
+        #print('lm_logits: ', lm_logits)
 
     else:
         print('single device:')
@@ -168,8 +167,9 @@ def task2_computation(models, start_idx, end_idx, device):
 
 
     print('computation finished!!')
-    http_receiver.set_outgoing_queue('helloooooooo')
-    #http_receiver.set_outgoing_queue(lm_logits)
+    #http_receiver.set_outgoing_queue('helloooooooo')
+    print('array length: ', len(lm_logits))
+    http_receiver.set_outgoing_queue(lm_logits)
     print('data store!!')
 
 if __name__ == '__main__':
