@@ -146,8 +146,11 @@ def task2_computation(models, start_idx, end_idx, device):
         for k in range(start_idx, len(models) - 2):
             k = k - start_idx
             out, ids, mask = models[k](inputs, position_ids=ids, attention_mask=mask)
+            print(k)
+            print('out: ', out)
 
         lm_logits = models[33 - start_idx](out.last_hidden_state)
+        print('lm 33: ', lm_logits)
         lm_logits = models[34 - start_idx](lm_logits)
         print('lm_logits: ', lm_logits)
 
@@ -164,7 +167,7 @@ def task2_computation(models, start_idx, end_idx, device):
 
 
     print('computation finished!!')
-    #http_receiver.set_outgoing_queue('helloooooooo')
+    http_receiver.set_outgoing_queue('helloooooooo')
     #http_receiver.set_outgoing_queue(lm_logits)
     print('data store!!')
 
