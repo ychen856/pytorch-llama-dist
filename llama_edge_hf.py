@@ -54,7 +54,7 @@ def get_llm2(model, cache_dir="llm_weights"):
     return model
 
 
-def load_model(checkpoints_dir, start_idx, end_idx, device):
+def load_model2(checkpoints_dir, start_idx, end_idx, device):
     config, kwargs = AutoConfig.from_pretrained(
         args.ckpt_dir_hf,
         return_unused_kwargs=True
