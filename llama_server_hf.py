@@ -160,7 +160,7 @@ def task2_computation(models, start_idx, end_idx, device):
     else:
         print('single device:')
         # Forward pass through the model
-        out, ids, mask = models[0](inputs)
+        out, ids, mask = models[0](out)
 
         for k in range(1, len(models) - 2):
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
