@@ -55,7 +55,7 @@ def get_llm(model, cache_dir="llm_weights"):
     return model
 
 
-def load_model(checkpoints_dir, start_idx, end_idx, device):
+def load_model2(checkpoints_dir, start_idx, end_idx, device):
     config, kwargs = AutoConfig.from_pretrained(
         args.ckpt_dir_hf,
         return_unused_kwargs=True
@@ -126,6 +126,74 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
     return models
 
+
+def load_model(checkpoints_dir, start_idx, end_idx, device):
+    config, kwargs = AutoConfig.from_pretrained(
+        args.ckpt_dir_hf,
+        return_unused_kwargs=True
+    )
+    print('config: ', config)
+
+    checkpoint_list = []
+    checkpoints = sorted(Path(checkpoints_dir).glob("*.pth"))
+    assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
+
+    for checkpoint in checkpoints:
+        ckpt_path = checkpoint
+        print(f'Loading checkpoint "{ckpt_path}"')
+
+        checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
+
+
+    if device == "cuda":
+        torch.set_default_tensor_type(torch.cuda.HalfTensor)
+    else:
+        torch.set_default_tensor_type(torch.BFloat16Tensor)
+
+    models = []
+    for i in range(start_idx, end_idx + 1):
+        if i == 0:
+            models.append(LlamaForCausalLM_emb(config))
+            models[i].load_state_dict(checkpoint_list[i], strict=True)
+            models[0].model.embed_tokens.weight = nn.Parameter(checkpoint_list[0]['model.embed_tokens.weight'])
+            models[0].to(device)
+        elif i == 33:
+            models.append((LlamaForCausalLM_norm(config)))
+            models[i].load_state_dict(checkpoint_list[i], strict=True)
+            models[33].model.norm.weight = nn.Parameter(checkpoint_list[33]['model.norm.weight'])
+            models[33].to(device)
+
+        elif i == 34:
+            models.append((LlamaForCausalLM_linear(config)))
+            models[i].load_state_dict(checkpoint_list[i], strict=True)
+            models[34].lm_head.weight = nn.Parameter(checkpoint_list[34]['lm_head.weight'])
+            models[34].to(device)
+        else:
+            models.append(LlamaForCausalLM_layer_0(config))
+            models[i].load_state_dict(checkpoint_list[i], strict=True)
+            models[i].model.layers.self_attn.q_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.q_proj.weight'])
+            models[i].model.layers.self_attn.k_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.k_proj.weight'])
+            models[i].model.layers.self_attn.v_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.v_proj.weight'])
+            models[i].model.layers.self_attn.o_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.o_proj.weight'])
+
+            models[i].model.layers.mlp.gate_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.mlp.gate_proj.weight'])
+            models[i].model.layers.mlp.up_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.mlp.up_proj.weight'])
+            models[i].model.layers.mlp.down_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.mlp.down_proj.weight'])
+
+            models[i].model.layers.input_layernorm.weight = nn.Parameter(checkpoint_list[i]['model.layers.input_layernorm.weight'])
+            models[i].model.layers.post_attention_layernorm.weight = nn.Parameter(checkpoint_list[i]['model.layers.post_attention_layernorm.weight'])
+
+            models[i].to(device)
+
+    '''for i in range(0, len(models)):
+        model = models[i]
+        for name, param in model.named_parameters():
+            if param.requires_grad:
+                print(name, param.data)'''
+
+    return models
+
+
 def task1_data_receiving(args):
     http_receiver.run(port=args.server_port)
 
@@ -145,7 +213,6 @@ def task2_computation(models, start_idx, end_idx, device):
     if (start_idx != 0 and end_idx == 34):
         print('server device:')
         for k in range(start_idx, 33):
-            print('k: ', k)
             k = k - start_idx
             out, ids, mask = models[k](inputs, position_ids=ids, attention_mask=mask)
             #print(k)
@@ -171,8 +238,6 @@ def task2_computation(models, start_idx, end_idx, device):
     print('server computation time: ', end_time - start_time)
     print('computation finished!!')
 
-    #http_receiver.set_outgoing_queue('helloooooooo')
-    #http_receiver.set_outgoing_queue(torch.tensor([[1., -1.], [1., -1.]]))
     http_receiver.set_outgoing_queue(lm_logits)
     print('data store!!')
 
