@@ -136,20 +136,20 @@ def task2_computation(models, start_idx, end_idx, device):
         data = http_receiver.get_queue_data()
 
         if len(data) > 0:
-            out = data[0].last_hidden_state.to(device)
+            inputs = data[0].last_hidden_state.to(device)
             ids = data[1].to(device)
             mask = data[2].to(device)
 
             break
-    print('out: ', out)
+    print('out: ', inputs)
     print('ids: ', ids)
     print('mask: ', mask)
     http_receiver.pop_incoming_queue()
     start_time = time.time()
     if (start_idx != 0 and end_idx == 34):
         print('server device:')
-
-        for k in range(start_idx, 33):
+        out, ids, mask = models[0](inputs, position_ids=ids, attention_mask=mask)
+        for k in range(start_idx + 1, 33):
             k = k - start_idx
             out, ids, mask = models[k](out, position_ids=ids, attention_mask=mask)
             #print(k)
@@ -163,7 +163,7 @@ def task2_computation(models, start_idx, end_idx, device):
     else:
         print('single device:')
         # Forward pass through the model
-        out, ids, mask = models[0](out)
+        out, ids, mask = models[0](inputs)
 
         for k in range(1, len(models) - 2):
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
