@@ -145,6 +145,7 @@ def task2_computation(models, start_idx, end_idx, device):
     if (start_idx != 0 and end_idx == 34):
         print('server device:')
         for k in range(start_idx, 33):
+            print('k: ', k)
             k = k - start_idx
             out, ids, mask = models[k](inputs, position_ids=ids, attention_mask=mask)
             #print(k)
