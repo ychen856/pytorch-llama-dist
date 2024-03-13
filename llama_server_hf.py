@@ -170,6 +170,7 @@ def task2_computation(models, start_idx, end_idx, device):
         lm_logits = models[33](out.last_hidden_state)
         lm_logits = models[34](lm_logits)
 
+    print('output shape: ', lm_logits.shape)
     end_time = time.time()
     print('server computation time: ', end_time - start_time)
     print('computation finished!!')
