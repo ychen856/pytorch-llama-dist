@@ -207,9 +207,11 @@ def task3_summerizing(models, test_loader, bs, device):
             lm_logits = http_sender.get_queue_data()
 
             if len(lm_logits) > 0:
+                http_sender.pop_incoming_queue()
                 break
 
-        http_sender.pop_incoming_queue()
+        print('start summarizing...')
+
         # Shift logits and labels for next token prediction
         shift_logits = lm_logits[:, :-1, :].contiguous()
         shift_labels = inputs[:, 1:]
