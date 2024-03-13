@@ -179,6 +179,7 @@ def task2_computation(models, test_loader, bs, start_idx, end_idx, device):
 
             lm_logits = models[33](out.last_hidden_state)
             lm_logits = models[34](lm_logits)
+    print('YAY')
 
 def task3_summerizing(models, test_loader, bs, device):
     seqlen = 1024
@@ -187,7 +188,7 @@ def task3_summerizing(models, test_loader, bs, device):
 
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
-
+    nsamples = 1
     # List to store negative log likelihoods
     nlls = []
     print(f"nsamples {nsamples}")
@@ -215,25 +216,26 @@ def task3_summerizing(models, test_loader, bs, device):
         # Shift logits and labels for next token prediction
         shift_logits = lm_logits[:, :-1, :].contiguous()
         shift_labels = inputs[:, 1:]
-
+        print('ff')
         # Compute loss
         loss_fct = nn.CrossEntropyLoss()
         loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
-
+        print('fff')
         # Calculate negative log likelihood
         neg_log_likelihood = loss.float() * seqlen * (j - i)
 
         # Append to list of negative log likelihoods
         nlls.append(neg_log_likelihood)
-
+        print('ffff')
         sys.stdout.flush()
+        print('in for', i)
 
     print('begin calcualte ppl')
     # Compute perplexity
     ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
     # Empty CUDA cache to save memory
     torch.cuda.empty_cache()
-    print('ppl: ', ppl)
+    print('ppl: ', ppl.item())
 
 
 if __name__ == '__main__':
