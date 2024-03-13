@@ -148,6 +148,7 @@ def task2_computation(models, start_idx, end_idx, device):
         print('server device:')
         for k in range(start_idx, 33):
             k = k - start_idx
+            print('k: ', k)
             out, ids, mask = models[k](out, position_ids=ids, attention_mask=mask)
             #print(k)
             #print('out: ', out)
