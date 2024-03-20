@@ -209,9 +209,7 @@ if __name__ == '__main__':
 
     print("loading success")
 
-    task1_data_receiving(args)
-    task2_computation(models, start_idx, end_idx, device)
-    '''# Create and start threads
+    # Create and start threads
     thread1 = threading.Thread(target=task1_data_receiving, args=[args])
     thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, device])
 
@@ -222,7 +220,7 @@ if __name__ == '__main__':
     thread1.join()
     thread2.join()
 
-    print("Both tasks completed!")'''
+    print("Both tasks completed!")
 
     '''models = get_llm2(args.ckpt_dir_sep, 0, 34, device, 'llm_weights')
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
