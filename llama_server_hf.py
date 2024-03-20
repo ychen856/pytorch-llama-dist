@@ -141,21 +141,12 @@ def task2_computation(models, start_idx, end_idx, device):
             mask = data[2]
 
             break
-    print('out: ', out)
-    print('ids: ', ids)
-    print('mask: ', mask)
+
     http_receiver.pop_incoming_queue()
     start_time = time.time()
     if (start_idx != 0 and end_idx == 34):
         print('server device:')
-
-        out.last_hidden_state.to(device)
-        ids.to(device)
-        mask.to(device)
-        out, ids, mask = models[0](out, position_ids=ids, attention_mask=mask)
-
-        for k in range(start_idx + 1, 33):
-        #for k in range(start_idx, 33):
+        for k in range(start_idx, 33):
             k = k - start_idx
             start_time_sub = time.time()
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
@@ -218,7 +209,9 @@ if __name__ == '__main__':
 
     print("loading success")
 
-    # Create and start threads
+    task1_data_receiving(args)
+    task2_computation(models, start_idx, end_idx, device)
+    '''# Create and start threads
     thread1 = threading.Thread(target=task1_data_receiving, args=[args])
     thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, device])
 
@@ -229,7 +222,7 @@ if __name__ == '__main__':
     thread1.join()
     thread2.join()
 
-    print("Both tasks completed!")
+    print("Both tasks completed!")'''
 
     '''models = get_llm2(args.ckpt_dir_sep, 0, 34, device, 'llm_weights')
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
