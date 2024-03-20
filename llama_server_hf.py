@@ -136,9 +136,9 @@ def task2_computation(models, start_idx, end_idx, device):
         data = http_receiver.get_queue_data()
 
         if len(data) > 0:
-            out = data[0]
-            ids = data[1]
-            mask = data[2]
+            out = data[0].to(device)
+            ids = data[1].to(device)
+            mask = data[2].to(device)
 
             break
     print('out: ', out)
