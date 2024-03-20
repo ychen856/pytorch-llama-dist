@@ -148,12 +148,19 @@ def task2_computation(models, start_idx, end_idx, device):
     start_time = time.time()
     if (start_idx != 0 and end_idx == 34):
         print('server device:')
-        for k in range(start_idx, 33):
+
+        out.last_hidden_state.to(device)
+        ids.to(device)
+        mask.to(device)
+        out, ids, mask = models[0](out, position_ids=ids, attention_mask=mask)
+
+        for k in range(start_idx + 1, 33):
+        #for k in range(start_idx, 33):
             k = k - start_idx
             start_time_sub = time.time()
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
             end_time_sub = time.time()
-            print(start_idx, end_time_sub - start_time_sub)
+            print(k, end_time_sub - start_time_sub)
             #print(k)
             #print('out: ', out)
         start_time_sub = time.time()
