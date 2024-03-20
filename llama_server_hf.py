@@ -134,7 +134,6 @@ def task1_data_receiving(args):
 def task2_computation(models, start_idx, end_idx, device):
     while 1:
         data = http_receiver.get_queue_data()
-
         if len(data) > 0:
             out = data[0]
             ids = data[1]
@@ -144,7 +143,28 @@ def task2_computation(models, start_idx, end_idx, device):
 
     http_receiver.pop_incoming_queue()
     start_time = time.time()
-    if (start_idx != 0 and end_idx == 34):
+
+    for k in range(start_idx, 33):
+        k = k - start_idx
+        start_time_sub = time.time()
+        out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+        end_time_sub = time.time()
+        print(k, end_time_sub - start_time_sub)
+        # print(k)
+        # print('out: ', out)
+
+    start_time_sub = time.time()
+    lm_logits = models[33 - start_idx](out.last_hidden_state)
+    end_time_sub = time.time()
+    print('33:', end_time_sub - start_time_sub)
+
+    start_time_sub = time.time()
+    lm_logits = models[34 - start_idx](lm_logits)
+    end_time_sub = time.time()
+    print('34: ', end_time_sub - start_time_sub)
+    
+    print('lm_logits: ', lm_logits)
+    '''if (start_idx != 0 and end_idx == 34):
         print('server device:')
         for k in range(start_idx, 33):
             k = k - start_idx
@@ -173,7 +193,7 @@ def task2_computation(models, start_idx, end_idx, device):
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
         lm_logits = models[33](out.last_hidden_state)
-        lm_logits = models[34](lm_logits)
+        lm_logits = models[34](lm_logits)'''
 
     print('output shape: ', lm_logits.shape)
     end_time = time.time()
