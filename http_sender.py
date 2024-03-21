@@ -7,6 +7,8 @@ import time
 import yaml
 import http_receiver
 
+from queue import Queue
+
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
 parser.add_argument('--config', default='config_server.yaml')
@@ -31,13 +33,18 @@ print(newx)
 conn.send(newx)
 resp = conn.getresponse()'''
 
-returning_queue = []
+#returning_queue = []
+returning_queue = Queue()
 
 def get_queue_data():
-    if len(returning_queue) > 0:
+    '''if len(returning_queue) > 0:
         return returning_queue[0]
     else:
-        return []
+        return []'''
+    while not returning_queue.empty():
+        return returning_queue.get()
+
+    return []
 
 def pop_incoming_queue():
     returning_queue.pop(0)

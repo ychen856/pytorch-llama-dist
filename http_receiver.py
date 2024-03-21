@@ -12,15 +12,20 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--config', default='config_server.yaml')
 args = parser.parse_args()
 
-incoming_queue = []
+#incoming_queue = []
 #outgoing_queue = []
+incoming_queue = Queue()
 outgoing_queue = Queue()
 
 def get_queue_data():
-    if len(incoming_queue) > 0:
+    '''if len(incoming_queue) > 0:
         return incoming_queue[0]
     else:
-        return []
+        return []'''
+    while not incoming_queue.empty():
+        return incoming_queue.get()
+
+    return []
 
 def set_outgoing_queue(outputs):
     #outgoing_queue.append(outputs)
@@ -76,10 +81,10 @@ class S(BaseHTTPRequestHandler):
             self.send_header('Content-type', 'application/octet-stream')
             self.end_headers()
 
-            newx = pickle.dumps(outgoing_queue[0])
+            newx = pickle.dumps(outgoing_queue.get())
             #print('sent data: ', newx)
             self.wfile.write(newx)
-            outgoing_queue.pop(0)
+            #outgoing_queue.pop(0)
             end_time = time.time()
             print('server sending time: ', end_time - start_time)
             print('end response')

@@ -132,16 +132,22 @@ def task1_data_receiving(args):
     http_receiver.run(port=args.server_port)
 
 def task2_computation(models, start_idx, end_idx, device):
-    while 1:
+    '''while 1:
         data = http_receiver.get_queue_data()
         if len(data) > 0:
             out = data[0]
             ids = data[1]
             mask = data[2]
 
-            break
+            break'''
 
-    http_receiver.pop_incoming_queue()
+
+    data = http_receiver.get_queue_data()
+    out = data[0]
+    ids = data[1]
+    mask = data[2]
+
+    #http_receiver.pop_incoming_queue()
     start_time = time.time()
 
     for k in range(start_idx, 33):
@@ -162,7 +168,7 @@ def task2_computation(models, start_idx, end_idx, device):
     lm_logits = models[34 - start_idx](lm_logits)
     end_time_sub = time.time()
     print('34: ', end_time_sub - start_time_sub)
-    
+
     print('lm_logits: ', lm_logits)
     '''if (start_idx != 0 and end_idx == 34):
         print('server device:')
