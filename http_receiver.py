@@ -57,7 +57,8 @@ class S(BaseHTTPRequestHandler):
         decrypt_data = pickle.loads(post_data)
         print(decrypt_data)
 
-        incoming_queue.append(decrypt_data)
+        incoming_queue.put(decrypt_data)
+        #incoming_queue.append(decrypt_data)
         end_time = time.time()
         print('server receiving time: ', end_time - start_time)
         '''# Process the received data here:
