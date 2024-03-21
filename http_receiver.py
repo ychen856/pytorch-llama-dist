@@ -5,6 +5,7 @@ import pickle
 import argparse
 import yaml
 import http_sender
+from queue import Queue
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
@@ -12,7 +13,9 @@ parser.add_argument('--config', default='config_server.yaml')
 args = parser.parse_args()
 
 incoming_queue = []
-outgoing_queue = []
+#outgoing_queue = []
+outgoing_queue = Queue()
+
 def get_queue_data():
     if len(incoming_queue) > 0:
         return incoming_queue[0]
@@ -20,8 +23,8 @@ def get_queue_data():
         return []
 
 def set_outgoing_queue(outputs):
-    outgoing_queue.append(outputs)
-
+    #outgoing_queue.append(outputs)
+    outgoing_queue.put(outputs)
 def pop_incoming_queue():
     incoming_queue.pop(0)
 
@@ -62,9 +65,17 @@ class S(BaseHTTPRequestHandler):
         self.return_message()
 
     def return_message(self):
-        while 1:
+        '''while 1:
             if len(outgoing_queue) > 0:
-                break
+                break'''
+        while not outgoing_queue.empty():
+            # Process the received data here:
+            self.send_response(200)
+            self.end_headers()
+
+            newx = pickle.dumps('Data received successfully!')
+            self.wfile.write(newx)
+            outgoing_queue.pop(0)
 
         '''start_time = time.time()
         # Process the received data here:
