@@ -42,7 +42,7 @@ def get_queue_data():
     else:
         return []'''
     while returning_queue.empty():
-        time.sleep(0.5)
+        time.sleep(1.5)
 
     return returning_queue.get()
 

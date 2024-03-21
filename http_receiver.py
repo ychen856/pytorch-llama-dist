@@ -23,7 +23,7 @@ def get_queue_data():
     else:
         return []'''
     while incoming_queue.empty():
-        time.sleep(0.5)
+        time.sleep(1.5)
 
     return incoming_queue.get()
 
@@ -81,7 +81,7 @@ class S(BaseHTTPRequestHandler):
                 break'''
 
         while outgoing_queue.empty():
-            time.sleep(0.5)
+            time.sleep(1.5)
 
         # Process the received data here:
         start_time = time.time()

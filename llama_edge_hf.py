@@ -268,15 +268,15 @@ if __name__ == '__main__':
     # Create and start threads
     #thread1 = threading.Thread(target=task1_data_receiving, args=[args])
     thread2 = threading.Thread(target=task2_computation, args=[models, test_loader, bs, start_idx, end_idx, device])
-    thread3 = threading.Thread(target=task3_summerizing, args=[models, test_loader, bs, device])
+    #thread3 = threading.Thread(target=task3_summerizing, args=[models, test_loader, bs, device])
     #thread1.start()
     thread2.start()
-    thread3.start()
+    #thread3.start()
 
     # Wait for both threads to finish (optional)
     #thread1.join()
     thread2.join()
-    thread3.join()
+    #thread3.join()
 
     print("Both tasks completed!")
 
