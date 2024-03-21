@@ -155,10 +155,19 @@ def task2_computation(models, test_loader, bs, start_idx, end_idx, device):
         start_time = time.time()
         if (start_idx == 0 and end_idx < 33):
             print('edge device:')
+            start_time_sub = time.time()
             # Forward pass through the model
             out, ids, mask = models[0](inputs)
+            end_time_sub = time.time()
+            print('0: ', end_time_sub - start_time_sub)
             for k in range(1, len(models)):
+                start_time_sub = time.time()
+                print('start time: ', start_time_sub)
                 out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+                end_time_sub = time.time()
+                print('end time: ', end_time_sub)
+                print(k, end_time_sub - start_time_sub)
+
             end_time = time.time()
             print('client computation time: ', end_time - start_time)
 
@@ -219,17 +228,14 @@ def task3_summerizing(models, test_loader, bs, device):
         # Shift logits and labels for next token prediction
         shift_logits = lm_logits[:, :-1, :].contiguous()
         shift_labels = inputs[:, 1:]
-        print('ff')
         # Compute loss
         loss_fct = nn.CrossEntropyLoss()
         loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
-        print('fff')
         # Calculate negative log likelihood
         neg_log_likelihood = loss.float() * seqlen * (j - i)
 
         # Append to list of negative log likelihoods
         nlls.append(neg_log_likelihood)
-        print('ffff')
         sys.stdout.flush()
         print('in for', i)
 
@@ -253,7 +259,7 @@ if __name__ == '__main__':
 
 
     start_idx = 0
-    end_idx = 3
+    end_idx = 4
     #allow_cuda = False
     #device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
     device = torch.device("cuda")
@@ -268,15 +274,15 @@ if __name__ == '__main__':
     # Create and start threads
     #thread1 = threading.Thread(target=task1_data_receiving, args=[args])
     thread2 = threading.Thread(target=task2_computation, args=[models, test_loader, bs, start_idx, end_idx, device])
-    #thread3 = threading.Thread(target=task3_summerizing, args=[models, test_loader, bs, device])
+    thread3 = threading.Thread(target=task3_summerizing, args=[models, test_loader, bs, device])
     #thread1.start()
     thread2.start()
-    #thread3.start()
+    thread3.start()
 
     # Wait for both threads to finish (optional)
     #thread1.join()
     thread2.join()
-    #thread3.join()
+    thread3.join()
 
     print("Both tasks completed!")
 
