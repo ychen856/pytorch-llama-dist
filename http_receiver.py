@@ -71,24 +71,27 @@ class S(BaseHTTPRequestHandler):
         self.return_message()
 
     def return_message(self):
-        '''while 1:
-            if len(outgoing_queue) > 0:
-                break'''
-        while not outgoing_queue.empty():
-            # Process the received data here:
-            start_time = time.time()
-            # Process the received data here:
-            self.send_response(200)
-            self.send_header('Content-type', 'application/octet-stream')
-            self.end_headers()
+        while 1:
+            while not outgoing_queue.empty():
+                outgoing_data = outgoing_queue.get()
+            if len(outgoing_data) > 0:
+                break
 
-            newx = pickle.dumps(outgoing_queue.get())
-            #print('sent data: ', newx)
-            self.wfile.write(newx)
-            #outgoing_queue.pop(0)
-            end_time = time.time()
-            print('server sending time: ', end_time - start_time)
-            print('end response')
+
+        # Process the received data here:
+        start_time = time.time()
+        # Process the received data here:
+        self.send_response(200)
+        self.send_header('Content-type', 'application/octet-stream')
+        self.end_headers()
+
+        newx = pickle.dumps(outgoing_data)
+        #print('sent data: ', newx)
+        self.wfile.write(newx)
+        #outgoing_queue.pop(0)
+        end_time = time.time()
+        print('server sending time: ', end_time - start_time)
+        print('end response')
 
         '''# Process the received data here:
         self.send_response(200)
