@@ -206,13 +206,12 @@ def task3_summerizing(models, test_loader, bs, device):
         inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
         inputs = inputs.reshape(j - i, seqlen)
 
-        '''while 1:
+        while 1:
             lm_logits = http_sender.get_queue_data()
 
             if len(lm_logits) > 0:
-                http_sender.pop_incoming_queue()
-                break'''
-        lm_logits = http_sender.get_queue_data()
+                #http_sender.pop_incoming_queue()
+                break
 
         print('start summarizing...')
 
