@@ -132,15 +132,18 @@ def task1_data_receiving(args):
     http_receiver.run(port=args.server_port)
 
 def task2_computation(models, start_idx, end_idx, device):
-    while 1:
+    ''' while 1:
         data = http_receiver.get_queue_data()
         if len(data) > 0:
             out = data[0]
             ids = data[1]
             mask = data[2]
 
-            break
-
+            break'''
+    data = http_receiver.get_queue_data()
+    out = data[0]
+    ids = data[1]
+    mask = data[2]
     #http_receiver.pop_incoming_queue()
     start_time = time.time()
 

@@ -41,6 +41,9 @@ def get_queue_data():
         return returning_queue[0]
     else:
         return []'''
+    while returning_queue.empty():
+        time.sleep(0.5)
+
     return returning_queue.get()
 
 
