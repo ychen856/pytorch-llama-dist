@@ -41,10 +41,8 @@ def get_queue_data():
         return returning_queue[0]
     else:
         return []'''
-    while not returning_queue.empty():
-        return returning_queue.get()
+    return returning_queue.get()
 
-    return []
 
 def pop_incoming_queue():
     returning_queue.pop(0)

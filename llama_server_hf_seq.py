@@ -145,7 +145,7 @@ def task2_computation(models, start_idx, end_idx, device):
 
             break
 
-    http_receiver.pop_incoming_queue()
+    #http_receiver.pop_incoming_queue()
     start_time = time.time()
 
     for k in range(start_idx, 33):
