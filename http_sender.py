@@ -79,7 +79,8 @@ def send_data(server_ip, server_port, text):
 
 
     resp_message = pickle.loads(resp_str)
-    returning_queue.append(resp_message)
+    #returning_queue.append(resp_message)
+    returning_queue.put(resp_message)
     print('resp: ', resp_message)
     end_time2 = time.time()
     print('client receiving time: ', end_time2 - start_time2)

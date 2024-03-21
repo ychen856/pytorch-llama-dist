@@ -71,10 +71,11 @@ class S(BaseHTTPRequestHandler):
         self.return_message()
 
     def return_message(self):
-        outgoing_data = None
+        outgoing_data = []
         while 1:
             while not outgoing_queue.empty():
                 outgoing_data = outgoing_queue.get()
+
             if len(outgoing_data) > 0:
                 break
 
