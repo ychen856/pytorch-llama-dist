@@ -71,6 +71,7 @@ class S(BaseHTTPRequestHandler):
         self.return_message()
 
     def return_message(self):
+        outgoing_data = None
         while 1:
             while not outgoing_queue.empty():
                 outgoing_data = outgoing_queue.get()
