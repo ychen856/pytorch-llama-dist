@@ -22,10 +22,8 @@ def get_queue_data():
         return incoming_queue[0]
     else:
         return []'''
-    while not incoming_queue.empty():
-        return incoming_queue.get()
+    return incoming_queue.get()
 
-    return []
 
 def set_outgoing_queue(outputs):
     #outgoing_queue.append(outputs)
@@ -71,14 +69,16 @@ class S(BaseHTTPRequestHandler):
         self.return_message()
 
     def return_message(self):
-        outgoing_data = []
+        '''outgoing_data = []
         while 1:
             while not outgoing_queue.empty():
                 outgoing_data = outgoing_queue.get()
 
             if len(outgoing_data) > 0:
-                break
+                break'''
 
+        while outgoing_queue.empty():
+            time.sleep(0.5)
 
         # Process the received data here:
         start_time = time.time()
@@ -87,7 +87,7 @@ class S(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'application/octet-stream')
         self.end_headers()
 
-        newx = pickle.dumps(outgoing_data)
+        newx = pickle.dumps(outgoing_queue.get())
         #print('sent data: ', newx)
         self.wfile.write(newx)
         #outgoing_queue.pop(0)
