@@ -52,21 +52,21 @@ class S(BaseHTTPRequestHandler):
         incoming_queue.append(decrypt_data)
         end_time = time.time()
         print('server receiving time: ', end_time - start_time)
-        # Process the received data here:
+        '''# Process the received data here:
         self.send_response(200)
         self.end_headers()
 
         newx = pickle.dumps('Data received successfully!')
-        self.wfile.write(newx)
+        self.wfile.write(newx)'''
 
-        #self.return_message()
+        self.return_message()
 
     def return_message(self):
         while 1:
             if len(outgoing_queue) > 0:
                 break
 
-        start_time = time.time()
+        '''start_time = time.time()
         # Process the received data here:
         self.send_response(200)
         self.send_header('Content-type', 'application/octet-stream')
@@ -78,7 +78,14 @@ class S(BaseHTTPRequestHandler):
         outgoing_queue.pop(0)
         end_time = time.time()
         print('server sending time: ', end_time - start_time)
-        print('end response')
+        print('end response')'''
+        # Process the received data here:
+        self.send_response(200)
+        self.end_headers()
+
+        newx = pickle.dumps('Data received successfully!')
+        self.wfile.write(newx)
+
 def run(server_class=HTTPServer, handler_class=S, server_ip='', port=80):
     #server_address = ('localhost', port)
     server_address = (server_ip, port)
