@@ -212,6 +212,7 @@ def eval_ppl_wikitext_sep_hf(models, testenc, bs=1, device=None):
 
         # Prepare inputs and move to device
         inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
+        print('input: ', inputs)
         inputs = inputs.reshape(j - i, seqlen)
 
         start_time = time.time()
@@ -242,6 +243,8 @@ def eval_ppl_wikitext_sep_hf(models, testenc, bs=1, device=None):
         shift_logits = lm_logits[:, :-1, :].contiguous()
         shift_labels = inputs[:, 1:]
 
+        print('generated output: ', lm_logits)
+        
 
         # Compute loss
         loss_fct = nn.CrossEntropyLoss()
