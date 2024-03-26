@@ -244,7 +244,9 @@ def eval_ppl_wikitext_sep_hf(models, testenc, bs=1, device=None):
         shift_labels = inputs[:, 1:]
 
         print('generated output: ', lm_logits)
-        
+        print('shift logits: ', shift_labels)
+        print('shift lables: ', shift_labels)
+
 
         # Compute loss
         loss_fct = nn.CrossEntropyLoss()
