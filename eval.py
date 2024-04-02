@@ -215,6 +215,7 @@ def eval_ppl_wikitext_sep_hf(models, testenc, bs=1, device=None):
         print('input: ', inputs)
         inputs = inputs.reshape(j - i, seqlen)
         print('inputs: ', inputs)
+        print('inputs: ', inputs.shape)
 
         start_time = time.time()
         # Forward pass through the model
