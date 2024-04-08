@@ -129,7 +129,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 def task1_data_receiving(args):
     print('T1 do nothing!')
 
-def task2_computation(models, start_idx, end_idx, device):
+def task2_computation(models, start_idx, end_idx, tokenizer, device):
     print('T2 computaton...')
     dataset = "wikitext2_hf"
     bs = 1
@@ -224,7 +224,7 @@ if __name__ == '__main__':
     thread2.join()'''
 
     p1 = mp.Process(target=task1_data_receiving, args=(args,))  # func1 is used to run neural net
-    p2 = mp.Process(target=task2_computation, args=(models, start_idx, end_idx, device))  # func2 is used for some img-processing
+    p2 = mp.Process(target=task2_computation, args=(models, start_idx, end_idx, tokenizer, device))  # func2 is used for some img-processing
     p1.start()
     p2.start()
     p1.join()
