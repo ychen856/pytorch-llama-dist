@@ -15,9 +15,6 @@ args = parser.parse_args()
 
 #incoming_queue = []
 #outgoing_queue = []
-m = multiprocessing.Manager()
-incoming_queue = m.Queue()
-outgoing_queue = m.Queue()
 
 #incoming_queue = Queue()
 #outgoing_queue = Queue()
@@ -129,6 +126,9 @@ if __name__ == "__main__":
     print('port: ', args.server_port)
     run(port=args.server_port)
 
+    m = multiprocessing.Manager()
+    incoming_queue = m.Queue()
+    outgoing_queue = m.Queue()
 
 
 '''if __name__ == "__main__":
