@@ -15,7 +15,8 @@ args = parser.parse_args()
 
 #incoming_queue = []
 #outgoing_queue = []
-
+global incoming_queue
+global outgoing_queue
 #incoming_queue = Queue()
 #outgoing_queue = Queue()
 
@@ -36,6 +37,7 @@ def set_outgoing_queue(outputs):
     outgoing_queue.put(outputs)
 def pop_incoming_queue():
     incoming_queue.pop(0)
+
 
 class S(BaseHTTPRequestHandler):
     def _set_headers(self):
@@ -127,8 +129,6 @@ if __name__ == "__main__":
     run(port=args.server_port)
 
     m = multiprocessing.Manager()
-    global incoming_queue
-    global outgoing_queue
 
     incoming_queue = m.Queue()
     outgoing_queue = m.Queue()
