@@ -127,6 +127,9 @@ if __name__ == "__main__":
     run(port=args.server_port)
 
     m = multiprocessing.Manager()
+    global incoming_queue
+    global outgoing_queue
+
     incoming_queue = m.Queue()
     outgoing_queue = m.Queue()
 

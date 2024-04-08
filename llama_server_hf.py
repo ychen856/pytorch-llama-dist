@@ -42,7 +42,6 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--config', default='config_server.yaml')
 args = parser.parse_args()
 
-incoming_queue = []
 
 def get_llm(model, cache_dir="llm_weights"):
     model = AutoModelForCausalLM.from_pretrained(
