@@ -14,7 +14,7 @@ import argparse
 import http_sender
 from data import get_loaders
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
-
+from multiprocessing import Pool
 import sys
 
 from eval_sep_hf import get_eval_data
@@ -187,6 +187,18 @@ def task2_computation(models, start_idx, end_idx, device):
         print('logits: ', lm_logits)
 
 
+
+def square(x):
+    return x * x
+
+def cube(y):
+    return y * y * y
+
+pool = Pool(processes=20)
+
+result_squares = pool.map_async(f, range(10))
+result_cubes = pool.map_async(g, range(10))
+
 if __name__ == '__main__':
     with open(args.config) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
@@ -207,26 +219,27 @@ if __name__ == '__main__':
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
 
-
-    #model = get_llm(args.ckpt_dir_hf, 'llm_weights')
-    #tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-
     print("loading success")
 
-    # Create and start threads
+    '''# Create and start threads
     thread1 = threading.Thread(target=task1_data_receiving, args=[args])
     thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, device])
 
-    #thread1.start()
+    thread1.start()
     thread2.start()
 
     # Wait for both threads to finish (optional)
-    #thread1.join()
-    thread2.join()
+    thread1.join()
+    thread2.join()'''
 
-    print("Both tasks completed!")
+    with Pool() as pool:
+        # issue multiple tasks each with multiple arguments
+        # async_results = [pool.apply_async(task, args=(i, i * 2, i * 3)) for i in range(10)]
+        # async_results2 = [pool.apply_async(task2, args=(i, i * 2, i * 3)) for i in range(10)]
 
-    '''models = get_llm2(args.ckpt_dir_sep, 0, 34, device, 'llm_weights')
-    tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-    ppl = eval_ppl_sep_hf(models, tokenizer, device)
-    print(f"ppl on wikitext {ppl}")'''
+        async_results = [pool.apply_async(task1_data_receiving, args=(args))]
+        async_results2 = [pool.apply_async(task2_computation, args=(models, start_idx, end_idx, device))]
+
+        # retrieve the return value results
+        results = [ar.get() for ar in async_results]
+        results2 = [ar.get() for ar in async_results2]
