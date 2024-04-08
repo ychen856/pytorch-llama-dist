@@ -187,18 +187,6 @@ def task2_computation(models, start_idx, end_idx, device):
         print('logits: ', lm_logits)
 
 
-
-def square(x):
-    return x * x
-
-def cube(y):
-    return y * y * y
-
-pool = Pool(processes=20)
-
-result_squares = pool.map_async(f, range(10))
-result_cubes = pool.map_async(g, range(10))
-
 if __name__ == '__main__':
     with open(args.config) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
