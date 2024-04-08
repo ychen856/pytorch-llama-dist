@@ -16,6 +16,7 @@ from data import get_loaders
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
 from multiprocessing import Pool
 from multiprocessing import set_start_method
+import multiprocessing as mp
 import sys
 
 from eval_sep_hf import get_eval_data
@@ -222,7 +223,14 @@ if __name__ == '__main__':
     thread1.join()
     thread2.join()'''
 
-    with Pool() as pool:
+    p1 = mp.Process(target=task1_data_receiving, args=(args))  # func1 is used to run neural net
+    p2 = mp.Process(target=task2_computation, args=(models, start_idx, end_idx, device))  # func2 is used for some img-processing
+    p1.start()
+    p2.start()
+    p1.join()
+    p2.join()
+
+    '''with Pool() as pool:
         # issue multiple tasks each with multiple arguments
         # async_results = [pool.apply_async(task, args=(i, i * 2, i * 3)) for i in range(10)]
         # async_results2 = [pool.apply_async(task2, args=(i, i * 2, i * 3)) for i in range(10)]
@@ -232,4 +240,4 @@ if __name__ == '__main__':
 
         # retrieve the return value results
         results = [ar.get() for ar in async_results]
-        results2 = [ar.get() for ar in async_results2]
+        results2 = [ar.get() for ar in async_results2]'''
