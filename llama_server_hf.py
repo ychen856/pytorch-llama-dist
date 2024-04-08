@@ -19,7 +19,7 @@ import http_receiver
 from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
 
-from multiprocessing import set_start_method
+from multiprocessing import set_start_method, Manager
 import multiprocessing as mp
 import sys
 
@@ -129,10 +129,10 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
 
 
-def task1_data_receiving(args, http_receiver):
-    http_receiver.run(port=args.server_port)
+def task1_data_receiving(args, incoming_queue, outgoing_queue):
+    http_receiver.run(incoming_queue, outgoing_queue, port=args.server_port)
 
-def task2_computation(models, start_idx, end_idx, device, http_receiver):
+def task2_computation(models, start_idx, end_idx, device, incoming_queue, outgoing_queue):
     ''' while 1:
         data = http_receiver.get_queue_data()
         if len(data) > 0:
@@ -244,14 +244,17 @@ if __name__ == '__main__':
     # Wait for both threads to finish (optional)
     thread1.join()
     thread2.join()'''
+    with Manager() as manager:
+        incoming_queue = manager.Queue()
+        outgoing_queue = manager.Queue()
 
-    p1 = mp.Process(target=task1_data_receiving, args=(args, http_receiver))  # func1 is used to run neural net
-    p2 = mp.Process(target=task2_computation,
-                    args=(models, start_idx, end_idx, device, http_receiver))  # func2 is used for some img-processing
-    p1.start()
-    p2.start()
-    p1.join()
-    p2.join()
+        p1 = mp.Process(target=task1_data_receiving, args=(args, incoming_queue, outgoing_queue))  # func1 is used to run neural net
+        p2 = mp.Process(target=task2_computation,
+                    args=(models, start_idx, end_idx, device, incoming_queue, outgoing_queue))  # func2 is used for some img-processing
+        p1.start()
+        p2.start()
+        p1.join()
+        p2.join()
 
     print("Both tasks completed!")
 
