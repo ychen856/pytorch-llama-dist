@@ -15,6 +15,7 @@ import http_sender
 from data import get_loaders
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
 from multiprocessing import Pool
+from multiprocessing import set_start_method
 import sys
 
 from eval_sep_hf import get_eval_data
@@ -188,6 +189,7 @@ def task2_computation(models, start_idx, end_idx, device):
 
 
 if __name__ == '__main__':
+    set_start_method('spawn')
     with open(args.config) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
     for key in config:
