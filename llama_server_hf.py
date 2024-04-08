@@ -209,7 +209,7 @@ def task2_computation(models, start_idx, end_idx, device):
     print('data store!!')
 
 if __name__ == '__main__':
-    set_start_method('spawn')
+    #set_start_method('spawn')
     with open(args.config) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
     for key in config:
