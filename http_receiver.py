@@ -23,6 +23,7 @@ def get_queue_data():
     else:
         return []'''
     while incoming_queue.empty():
+        print('hi')
         time.sleep(1.5)
 
     return incoming_queue.get()
