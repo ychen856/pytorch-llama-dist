@@ -19,6 +19,8 @@ import http_receiver
 from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
 
+from multiprocessing import set_start_method
+import multiprocessing as mp
 import sys
 
 from eval_sep_hf import get_eval_data
@@ -207,6 +209,7 @@ def task2_computation(models, start_idx, end_idx, device):
     print('data store!!')
 
 if __name__ == '__main__':
+    set_start_method('spawn')
     with open(args.config) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
     for key in config:
@@ -232,7 +235,7 @@ if __name__ == '__main__':
 
     print("loading success")
 
-    # Create and start threads
+    '''# Create and start threads
     thread1 = threading.Thread(target=task1_data_receiving, args=[args])
     thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, device])
 
@@ -241,7 +244,15 @@ if __name__ == '__main__':
 
     # Wait for both threads to finish (optional)
     thread1.join()
-    thread2.join()
+    thread2.join()'''
+
+    p1 = mp.Process(target=task1_data_receiving, args=(args,))  # func1 is used to run neural net
+    p2 = mp.Process(target=task2_computation,
+                    args=(models, start_idx, end_idx, device))  # func2 is used for some img-processing
+    p1.start()
+    p2.start()
+    p1.join()
+    p2.join()
 
     print("Both tasks completed!")
 
