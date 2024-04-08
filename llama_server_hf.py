@@ -129,10 +129,10 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
 
 
-def task1_data_receiving(args):
+def task1_data_receiving(args, http_receiver):
     http_receiver.run(port=args.server_port)
 
-def task2_computation(models, start_idx, end_idx, device):
+def task2_computation(models, start_idx, end_idx, device, http_receiver):
     ''' while 1:
         data = http_receiver.get_queue_data()
         if len(data) > 0:
@@ -245,9 +245,9 @@ if __name__ == '__main__':
     thread1.join()
     thread2.join()'''
 
-    p1 = mp.Process(target=task1_data_receiving, args=(args,))  # func1 is used to run neural net
+    p1 = mp.Process(target=task1_data_receiving, args=(args, http_receiver))  # func1 is used to run neural net
     p2 = mp.Process(target=task2_computation,
-                    args=(models, start_idx, end_idx, device))  # func2 is used for some img-processing
+                    args=(models, start_idx, end_idx, device, http_receiver))  # func2 is used for some img-processing
     p1.start()
     p2.start()
     p1.join()

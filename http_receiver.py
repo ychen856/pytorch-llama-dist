@@ -15,10 +15,9 @@ args = parser.parse_args()
 
 #incoming_queue = []
 #outgoing_queue = []
-global incoming_queue
-global outgoing_queue
-#incoming_queue = Queue()
-#outgoing_queue = Queue()
+
+incoming_queue = Queue()
+outgoing_queue = Queue()
 
 def get_queue_data():
     '''if len(incoming_queue) > 0:
@@ -127,11 +126,6 @@ if __name__ == "__main__":
 
     print('port: ', args.server_port)
     run(port=args.server_port)
-
-    m = multiprocessing.Manager()
-
-    incoming_queue = m.Queue()
-    outgoing_queue = m.Queue()
 
 
 '''if __name__ == "__main__":
