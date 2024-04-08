@@ -6,6 +6,7 @@ import argparse
 import yaml
 import http_sender
 from queue import Queue
+import multiprocessing
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
@@ -14,8 +15,12 @@ args = parser.parse_args()
 
 #incoming_queue = []
 #outgoing_queue = []
-incoming_queue = Queue()
-outgoing_queue = Queue()
+m = multiprocessing.Manager()
+incoming_queue = m.Queue()
+outgoing_queue = m.Queue()
+
+#incoming_queue = Queue()
+#outgoing_queue = Queue()
 
 def get_queue_data():
     '''if len(incoming_queue) > 0:
