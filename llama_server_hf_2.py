@@ -23,7 +23,6 @@ from model_dist import Transformer_emb, Transformer_b0, Transformer_b1, Transfor
     Transformer_b28, Transformer_b29, Transformer_b30, Transformer_b31, Transformer_norm, Transformer_linear
 from prune_all import prepare_calibration_input_opt, prepare_calibration_input, find_layers, check_outlier_mean, \
     return_given_alpha, check_sparsity
-from test import HTTPRequestHandler
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
