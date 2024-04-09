@@ -223,11 +223,11 @@ if __name__ == '__main__':
     thread1.join()
     thread2.join()'''
 
-    p1 = mp.Process(target=task1_data_receiving, args=(args,))  # func1 is used to run neural net
+    #p1 = mp.Process(target=task1_data_receiving, args=(args,))  # func1 is used to run neural net
     p2 = mp.Process(target=task2_computation, args=(models, start_idx, end_idx, tokenizer, device))  # func2 is used for some img-processing
-    p1.start()
+    #p1.start()
     p2.start()
-    p1.join()
+    #p1.join()
     p2.join()
 
     '''with Pool() as pool:
