@@ -1,30 +1,17 @@
 # this code is used for seperating the weights into small pieces and store them into seperated .pt files. One time usage.
-import threading
-from typing import Optional
-
-import numpy as np
 import torch
 import time
 from pathlib import Path
-import json
-from sentencepiece import SentencePieceProcessor
-from tqdm import tqdm
 import argparse
 
-import http_sender
-from data import get_loaders
-import torch.nn as nn
-import safetensors
+import pickle
 import http_receiver
-from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
 
-from multiprocessing import set_start_method, Manager
-import multiprocessing as mp
-import sys
+from multiprocessing import set_start_method
+import multiprocessing
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
-from eval_sep_hf import get_eval_data
-from layerwrapper import WrappedGPT
 from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
     LlamaForCausalLM_linear
 import yaml
@@ -36,6 +23,7 @@ from model_dist import Transformer_emb, Transformer_b0, Transformer_b1, Transfor
     Transformer_b28, Transformer_b29, Transformer_b30, Transformer_b31, Transformer_norm, Transformer_linear
 from prune_all import prepare_calibration_input_opt, prepare_calibration_input, find_layers, check_outlier_mean, \
     return_given_alpha, check_sparsity
+from test import HTTPRequestHandler
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
@@ -129,10 +117,74 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
 
 
-def task1_data_receiving(args):
-    http_receiver.run(port=args.server_port)
+# HTTP Server class to receive messages
+class HTTPRequestHandler(BaseHTTPRequestHandler):
 
-def task2_computation(models, start_idx, end_idx, device):
+    def _set_response(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/octet-stream')
+        self.end_headers()
+
+    def do_POST(self):
+        print('receive POST:')
+        start_time = time.time()
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length)
+        self._set_headers()
+        print('length: ', content_length)
+        # print(post_data)
+
+        decrypt_data = pickle.loads(post_data)
+        print(decrypt_data)
+
+        incoming_queue.put(decrypt_data)
+        # incoming_queue.append(decrypt_data)
+        end_time = time.time()
+        print('server receiving time: ', end_time - start_time)
+        '''# Process the received data here:
+        self.send_response(200)
+        self.end_headers()
+
+        newx = pickle.dumps('Data received successfully!')
+        self.wfile.write(newx)'''
+
+        self.return_message()
+
+    def return_message(self):
+        '''outgoing_data = []
+        while 1:
+            while not outgoing_queue.empty():
+                outgoing_data = outgoing_queue.get()
+
+            if len(outgoing_data) > 0:
+                break'''
+
+        while outgoing_queue.empty():
+            time.sleep(1.5)
+
+        # Process the received data here:
+        start_time = time.time()
+        # Process the received data here:
+        self.send_response(200)
+        self.send_header('Content-type', 'application/octet-stream')
+        self.end_headers()
+
+        newx = pickle.dumps(outgoing_queue.get())
+        #print('sent data: ', newx)
+        self.wfile.write(newx)
+        #outgoing_queue.pop(0)
+        end_time = time.time()
+        print('server sending time: ', end_time - start_time)
+        print('end response')
+
+        '''# Process the received data here:
+        self.send_response(200)
+        self.end_headers()
+
+        newx = pickle.dumps('Data received successfully!')
+        self.wfile.write(newx)'''
+
+def task2_computation(models, start_idx, end_idx, device, queue):
     ''' while 1:
         data = http_receiver.get_queue_data()
         if len(data) > 0:
@@ -141,7 +193,7 @@ def task2_computation(models, start_idx, end_idx, device):
             mask = data[2]
 
             break'''
-    data = http_receiver.get_queue_data()
+    data = queue.get()
     out = data[0]
     ids = data[1]
     mask = data[2]
@@ -168,36 +220,6 @@ def task2_computation(models, start_idx, end_idx, device):
     print('34: ', end_time_sub - start_time_sub)
 
     print('lm_logits: ', lm_logits)
-    '''if (start_idx != 0 and end_idx == 34):
-        print('server device:')
-        for k in range(start_idx, 33):
-            k = k - start_idx
-            start_time_sub = time.time()
-            out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-            end_time_sub = time.time()
-            print(k, end_time_sub - start_time_sub)
-            #print(k)
-            #print('out: ', out)
-        start_time_sub = time.time()
-        lm_logits = models[33 - start_idx](out.last_hidden_state)
-        end_time_sub = time.time()
-        print('33:', end_time_sub - start_time_sub)
-        start_time_sub = time.time()
-        lm_logits = models[34 - start_idx](lm_logits)
-        end_time_sub = time.time()
-        print('34: ', end_time_sub - start_time_sub)
-        print('lm_logits: ', lm_logits)
-
-    else:
-        print('single device:')
-        # Forward pass through the model
-        out, ids, mask = models[0](out)
-
-        for k in range(1, len(models) - 2):
-            out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-
-        lm_logits = models[33](out.last_hidden_state)
-        lm_logits = models[34](lm_logits)'''
 
     print('output shape: ', lm_logits.shape)
     end_time = time.time()
@@ -234,21 +256,21 @@ if __name__ == '__main__':
 
     print("loading success")
 
-    # Create and start threads
-    thread1 = threading.Thread(target=task1_data_receiving, args=[args])
-    thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, device])
+    # Create a multiprocessing queue
+    incoming_queue = multiprocessing.Queue()
+    outgoing_queue = multiprocessing.Queue()
 
-    thread1.start()
-    thread2.start()
+    # Create the computation process
+    computation_process = multiprocessing.Process(target=task2_computation, args=(models, start_idx, end_idx, device, incoming_queue,))
+    computation_process.start()
 
-    # Wait for both threads to finish (optional)
-    thread1.join()
-    thread2.join()
+    # Create the HTTP server process
+    http_server_process = HTTPServer(('', args.server_port), HTTPRequestHandler)
 
+    print('HTTP Server running on port 8080')
 
-    print("Both tasks completed!")
-
-    '''models = get_llm2(args.ckpt_dir_sep, 0, 34, device, 'llm_weights')
-    tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-    ppl = eval_ppl_sep_hf(models, tokenizer, device)
-    print(f"ppl on wikitext {ppl}")'''
+    try:
+        http_server_process.serve_forever()
+    except KeyboardInterrupt:
+        http_server_process.server_close()
+        computation_process.terminate()

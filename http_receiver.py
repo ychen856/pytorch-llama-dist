@@ -109,9 +109,7 @@ class S(BaseHTTPRequestHandler):
         newx = pickle.dumps('Data received successfully!')
         self.wfile.write(newx)'''
 
-def run(incoming_queue, outgoing_queue, server_class=HTTPServer, handler_class=S, server_ip='', port=80):
-    incoming_queue = incoming_queue
-    outgoing_queue = outgoing_queue
+def run(server_class=HTTPServer, handler_class=S, server_ip='', port=80):
     #server_address = ('localhost', port)
     server_address = (server_ip, port)
     httpd = server_class(server_address, handler_class)
