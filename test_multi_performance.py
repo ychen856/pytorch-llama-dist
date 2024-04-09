@@ -214,7 +214,7 @@ if __name__ == '__main__':
 
     # Create and start threads
     #thread1 = threading.Thread(target=task1_data_receiving, args=[args])
-    thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, device])
+    thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, tokenizer, device])
 
     #thread1.start()
     thread2.start()
