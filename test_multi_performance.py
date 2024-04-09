@@ -212,23 +212,23 @@ if __name__ == '__main__':
 
     print("loading success")
 
-    '''# Create and start threads
-    thread1 = threading.Thread(target=task1_data_receiving, args=[args])
+    # Create and start threads
+    #thread1 = threading.Thread(target=task1_data_receiving, args=[args])
     thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, device])
 
-    thread1.start()
+    #thread1.start()
     thread2.start()
 
     # Wait for both threads to finish (optional)
-    thread1.join()
-    thread2.join()'''
+    #thread1.join()
+    thread2.join()
 
-    #p1 = mp.Process(target=task1_data_receiving, args=(args,))  # func1 is used to run neural net
+    '''#p1 = mp.Process(target=task1_data_receiving, args=(args,))  # func1 is used to run neural net
     p2 = mp.Process(target=task2_computation, args=(models, start_idx, end_idx, tokenizer, device))  # func2 is used for some img-processing
     #p1.start()
     p2.start()
     #p1.join()
-    p2.join()
+    p2.join()'''
 
     '''with Pool() as pool:
         # issue multiple tasks each with multiple arguments
