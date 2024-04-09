@@ -129,7 +129,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         start_time = time.time()
         content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length)
-        self._set_headers()
+        self._set_response()
         print('length: ', content_length)
         # print(post_data)
 
