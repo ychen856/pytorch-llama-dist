@@ -1,5 +1,6 @@
 # this code is used for seperating the weights into small pieces and store them into seperated .pt files. One time usage.
 import threading
+from functools import partial
 from typing import Optional
 
 import numpy as np
@@ -129,7 +130,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 def task1_data_receiving(args):
     print('T1 do nothing!')
 
-def task2_computation(models, start_idx, end_idx, tokenizer, device):
+def task2_computation(models, start_idx, end_idx, tokenizer, device, temp):
     print('T2 computaton...')
     dataset = "wikitext2_hf"
     bs = 1
@@ -246,8 +247,8 @@ if __name__ == '__main__':
     p = mp.Pool(initializer=init_worker, initargs=(memorizedPaths,
                                                    filepaths,
                                                    cutoff))
-
-    for _ in p.imap_unordered(task2_computation, [(models, start_idx, end_idx, tokenizer, device)], chunksize=500):
+    func = partial(task2_computation, models, start_idx, end_idx, tokenizer, device)
+    for _ in p.imap_unordered(func, [], chunksize=500):
         pass
     p.close()
     p.join()
