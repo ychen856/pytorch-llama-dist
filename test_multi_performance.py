@@ -238,9 +238,19 @@ if __name__ == '__main__':
     #p1.join()
     p2.join()'''
 
-    pool = mp.Pool(processes=1)
-    results = pool.apply(task2_computation, args=(models, start_idx, end_idx, tokenizer, device,))
-    print(results)
+    m = mp.Manager()
+    memorizedPaths = m.dict()
+    filepaths = m.dict()
+    cutoff = 1  ##
+    # use all available CPUs
+    p = mp.Pool(initializer=init_worker, initargs=(memorizedPaths,
+                                                   filepaths,
+                                                   cutoff))
+
+    for _ in p.imap_unordered(task2_computation, [(models, start_idx, end_idx, tokenizer, device)], chunksize=500):
+        pass
+    p.close()
+    p.join()
 
     '''with Pool() as pool:
         # issue multiple tasks each with multiple arguments
