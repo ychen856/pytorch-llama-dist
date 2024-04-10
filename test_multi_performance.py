@@ -188,6 +188,14 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device):
         print('34: ', end_time - start_time)
         print('logits: ', lm_logits)
 
+def init_worker(mps, fps, cut):
+    global memorizedPaths, filepaths, cutoff
+    global DG
+
+    print("process initializing", mp.current_process())
+    memorizedPaths, filepaths, cutoff = mps, fps, cut
+    DG = 1##nx.read_gml("KeggComplete.gml", relabel = True)
+
 
 if __name__ == '__main__':
     set_start_method('spawn')
@@ -223,12 +231,26 @@ if __name__ == '__main__':
     thread1.join()
     thread2.join()'''
 
-    #p1 = mp.Process(target=task1_data_receiving, args=(args,))  # func1 is used to run neural net
+    '''#p1 = mp.Process(target=task1_data_receiving, args=(args,))  # func1 is used to run neural net
     p2 = mp.Process(target=task2_computation, args=(models, start_idx, end_idx, tokenizer, device))  # func2 is used for some img-processing
     #p1.start()
     p2.start()
     #p1.join()
-    p2.join()
+    p2.join()'''
+
+    m = mp.Manager()
+    memorizedPaths = m.dict()
+    filepaths = m.dict()
+    cutoff = 1  ##
+    # use all available CPUs
+    p = mp.Pool(initializer=init_worker, initargs=(memorizedPaths,
+                                                   filepaths,
+                                                   cutoff))
+
+    for _ in p.imap_unordered(task2_computation, (models, start_idx, end_idx, tokenizer, device), chunksize=500):
+        pass
+    p.close()
+    p.join()
 
     '''with Pool() as pool:
         # issue multiple tasks each with multiple arguments
