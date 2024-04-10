@@ -119,11 +119,11 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
             models[j].to(device)
 
-    for i in range(0, len(models)):
+    '''for i in range(0, len(models)):
         model = models[i]
         for name, param in model.named_parameters():
             if param.requires_grad:
-                print(name, param.data)
+                print(name, param.data)'''
 
     return models
 
@@ -238,11 +238,11 @@ if __name__ == '__main__':
     thread1 = threading.Thread(target=task1_data_receiving, args=[args])
     thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, device])
 
-    thread1.start()
+    #thread1.start()
     thread2.start()
 
     # Wait for both threads to finish (optional)
-    thread1.join()
+    #thread1.join()
     thread2.join()
 
 
