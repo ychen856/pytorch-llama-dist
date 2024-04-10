@@ -106,11 +106,11 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
             models[j].to(device)
 
-    for i in range(0, len(models)):
+    '''for i in range(0, len(models)):
         model = models[i]
         for name, param in model.named_parameters():
             if param.requires_grad:
-                print(name, param.data)
+                print(name, param.data)'''
 
     return models
 
