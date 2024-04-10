@@ -238,7 +238,7 @@ if __name__ == '__main__':
     #p1.join()
     p2.join()'''
 
-    pool = mp.Pool(processes=None)
+    pool = mp.Pool(processes=1)
     results = pool.apply(task2_computation, args=(models, start_idx, end_idx, tokenizer, device,))
     print(results)
 
