@@ -127,7 +127,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 async def handle_post(request):
     print('hi')
     data = await request.read()
-    print('data')
+    print('data: ', data)
     # Add received data to the queue
     decrypt_data = pickle.loads(data)
     data_queue.append(decrypt_data)
