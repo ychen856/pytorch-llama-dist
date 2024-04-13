@@ -279,7 +279,7 @@ if __name__ == '__main__':
     print('HTTP Server running on port 8080')
 
     try:
-        await http_server_process.serve_forever()
+        http_server_process.serve_forever()
     except KeyboardInterrupt:
         http_server_process.server_close()
 
