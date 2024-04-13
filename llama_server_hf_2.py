@@ -1,28 +1,44 @@
+import asyncio
+import aiohttp
+from aiohttp import web
+import json
+from collections import deque
+
 # this code is used for seperating the weights into small pieces and store them into seperated .pt files. One time usage.
+import threading
+from typing import Optional
+
+import numpy as np
 import torch
 import time
 from pathlib import Path
+import json
+from sentencepiece import SentencePieceProcessor
+from tqdm import tqdm
 import argparse
 
-import pickle
+import http_sender
+from data import get_loaders
+import torch.nn as nn
+import safetensors
 import http_receiver
+from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
 
-from multiprocessing import set_start_method
-import multiprocessing
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from multiprocessing import set_start_method, Manager
 
+import pickle
+
+from eval_sep_hf import get_eval_data
+from layerwrapper import WrappedGPT
 from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
     LlamaForCausalLM_linear
 import yaml
-from model import ModelArgs, Transformer
-from model_dist import Transformer_emb, Transformer_b0, Transformer_b1, Transformer_b2, Transformer_b3, \
-    Transformer_b4, Transformer_b5, Transformer_b6, Transformer_b7, Transformer_b8, Transformer_b9, Transformer_b10, Transformer_b11, \
-    Transformer_b12, Transformer_b13, Transformer_b14, Transformer_b15, Transformer_b16, Transformer_b17, Transformer_b18, Transformer_b19, \
-    Transformer_b20, Transformer_b21, Transformer_b22, Transformer_b23, Transformer_b24, Transformer_b25, Transformer_b26, Transformer_b27, \
-    Transformer_b28, Transformer_b29, Transformer_b30, Transformer_b31, Transformer_norm, Transformer_linear
-from prune_all import prepare_calibration_input_opt, prepare_calibration_input, find_layers, check_outlier_mean, \
-    return_given_alpha, check_sparsity
+
+# Global deque to store data from HTTP requests
+data_queue = deque()
+outgoing_queue = deque()
+
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
@@ -92,17 +108,6 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
         else:
             models.append(LlamaForCausalLM_layer_0(config))
             models[j].load_state_dict(checkpoint_list[i], strict=True)
-            '''models[i].model.layers.self_attn.q_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.q_proj.weight'])
-            models[i].model.layers.self_attn.k_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.k_proj.weight'])
-            models[i].model.layers.self_attn.v_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.v_proj.weight'])
-            models[i].model.layers.self_attn.o_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.o_proj.weight'])
-
-            models[i].model.layers.mlp.gate_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.mlp.gate_proj.weight'])
-            models[i].model.layers.mlp.up_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.mlp.up_proj.weight'])
-            models[i].model.layers.mlp.down_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.mlp.down_proj.weight'])
-
-            models[i].model.layers.input_layernorm.weight = nn.Parameter(checkpoint_list[i]['model.layers.input_layernorm.weight'])
-            models[i].model.layers.post_attention_layernorm.weight = nn.Parameter(checkpoint_list[i]['model.layers.post_attention_layernorm.weight'])'''
 
             models[j].to(device)
 
@@ -115,118 +120,63 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
     return models
 
 
+# Function to handle HTTP POST requests
+async def handle_post(request):
+    data = await request.read()
 
-# HTTP Server class to receive messages
-class HTTPRequestHandler(BaseHTTPRequestHandler):
+    # Add received data to the queue
+    decrypt_data = pickle.loads(data)
+    data_queue.append(data)
 
-    def _set_response(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'application/octet-stream')
-        self.end_headers()
+    return web.json_response({'status': 'received'})
 
-    def do_POST(self):
-        print('receive POST:')
-        start_time = time.time()
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length)
-        self._set_response()
-        print('length: ', content_length)
-        # print(post_data)
 
-        decrypt_data = pickle.loads(post_data)
-        print(decrypt_data)
+# Function to perform computation
+async def compute_data(models, start_idx, end_idx, device):
+    while True:
+        if data_queue:
+            data = data_queue.popleft()
 
-        incoming_queue.put(decrypt_data)
-        # incoming_queue.append(decrypt_data)
-        end_time = time.time()
-        print('server receiving time: ', end_time - start_time)
-        '''# Process the received data here:
-        self.send_response(200)
-        self.end_headers()
-
-        newx = pickle.dumps('Data received successfully!')
-        self.wfile.write(newx)'''
-
-        self.return_message()
-
-    def return_message(self):
-        '''outgoing_data = []
-        while 1:
-            while not outgoing_queue.empty():
-                outgoing_data = outgoing_queue.get()
-
-            if len(outgoing_data) > 0:
-                break'''
-
-        while outgoing_queue.empty():
-            time.sleep(1.5)
-
-        # Process the received data here:
-        start_time = time.time()
-        # Process the received data here:
-        self.send_response(200)
-        self.send_header('Content-type', 'application/octet-stream')
-        self.end_headers()
-
-        newx = pickle.dumps(outgoing_queue.get())
-        #print('sent data: ', newx)
-        self.wfile.write(newx)
-        #outgoing_queue.pop(0)
-        end_time = time.time()
-        print('server sending time: ', end_time - start_time)
-        print('end response')
-
-        '''# Process the received data here:
-        self.send_response(200)
-        self.end_headers()
-
-        newx = pickle.dumps('Data received successfully!')
-        self.wfile.write(newx)'''
-
-def task2_computation(models, start_idx, end_idx, device, queue):
-    ''' while 1:
-        data = http_receiver.get_queue_data()
-        if len(data) > 0:
+            # Perform computation
             out = data[0]
             ids = data[1]
             mask = data[2]
+            # http_receiver.pop_incoming_queue()
+            start_time = time.time()
 
-            break'''
-    data = queue.get()
-    out = data[0]
-    ids = data[1]
-    mask = data[2]
-    #http_receiver.pop_incoming_queue()
-    start_time = time.time()
+            for k in range(start_idx, 33):
+                k = k - start_idx
+                start_time_sub = time.time()
+                out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+                end_time_sub = time.time()
+                print(k, end_time_sub - start_time_sub)
+                # print(k)
+                # print('out: ', out)
 
-    for k in range(start_idx, 33):
-        k = k - start_idx
-        start_time_sub = time.time()
-        out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-        end_time_sub = time.time()
-        print(k, end_time_sub - start_time_sub)
-        # print(k)
-        # print('out: ', out)
+            start_time_sub = time.time()
+            lm_logits = models[33 - start_idx](out.last_hidden_state)
+            end_time_sub = time.time()
+            print('33:', end_time_sub - start_time_sub)
 
-    start_time_sub = time.time()
-    lm_logits = models[33 - start_idx](out.last_hidden_state)
-    end_time_sub = time.time()
-    print('33:', end_time_sub - start_time_sub)
+            start_time_sub = time.time()
+            lm_logits = models[34 - start_idx](lm_logits)
+            end_time_sub = time.time()
+            print('34: ', end_time_sub - start_time_sub)
 
-    start_time_sub = time.time()
-    lm_logits = models[34 - start_idx](lm_logits)
-    end_time_sub = time.time()
-    print('34: ', end_time_sub - start_time_sub)
+            print('lm_logits: ', lm_logits)
 
-    print('lm_logits: ', lm_logits)
 
-    print('output shape: ', lm_logits.shape)
-    end_time = time.time()
-    print('server computation time: ', end_time - start_time)
-    print('computation finished!!')
+            print('output shape: ', lm_logits.shape)
+            end_time = time.time()
+            print('server computation time: ', end_time - start_time)
+            print('computation finished!!')
 
-    http_receiver.set_outgoing_queue(lm_logits)
-    print('data store!!')
+            outgoing_queue.append(lm_logits)
+            print('data store!!')
+
+        # Sleep for a short duration to avoid high CPU usage
+        await asyncio.sleep(0.01)
+
 
 if __name__ == '__main__':
     set_start_method('spawn')
@@ -239,37 +189,22 @@ if __name__ == '__main__':
     print('config type: ', args.config)
     torch.manual_seed(0)
 
-
-
     start_idx = 5
     end_idx = 34
-    #allow_cuda = False
-    #device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
+    # allow_cuda = False
+    # device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
     device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
 
+    # Create an aiohttp web application
+    app = web.Application()
 
-    #model = get_llm(args.ckpt_dir_hf, 'llm_weights')
-    #tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
+    # Add a route for handling POST requests
+    app.router.add_post('/', handle_post)
 
-    print("loading success")
+    # Start the aiohttp web server
+    web.run_app(app, port=args.server_port)
 
-    # Create a multiprocessing queue
-    incoming_queue = multiprocessing.Queue()
-    outgoing_queue = multiprocessing.Queue()
-
-    # Create the computation process
-    computation_process = multiprocessing.Process(target=task2_computation, args=(models, start_idx, end_idx, device, incoming_queue,))
-    computation_process.start()
-
-    # Create the HTTP server process
-    http_server_process = HTTPServer(('', args.server_port), HTTPRequestHandler)
-
-    print('HTTP Server running on port 8080')
-
-    try:
-        http_server_process.serve_forever()
-    except KeyboardInterrupt:
-        http_server_process.server_close()
-        computation_process.terminate()
+    # Start the computation coroutine
+    asyncio.run(compute_data(models, start_idx, end_idx, device))
