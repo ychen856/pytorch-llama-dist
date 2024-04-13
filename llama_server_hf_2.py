@@ -1,4 +1,6 @@
 import asyncio
+from http.server import HTTPServer
+
 import aiohttp
 from aiohttp import web
 import json
@@ -34,6 +36,8 @@ from layerwrapper import WrappedGPT
 from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
     LlamaForCausalLM_linear
 import yaml
+
+from test import HTTPRequestHandler
 
 # Global deque to store data from HTTP requests
 data_queue = deque()
@@ -122,9 +126,9 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
 # Function to handle HTTP POST requests
 async def handle_post(request):
-    print('request: ', request)
+    print('hi')
     data = await request.read()
-
+    print('data')
     # Add received data to the queue
     decrypt_data = pickle.loads(data)
     data_queue.append(decrypt_data)
@@ -198,14 +202,24 @@ if __name__ == '__main__':
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
 
-    # Create an aiohttp web application
+    '''# Create an aiohttp web application
     app = web.Application()
 
     # Add a route for handling POST requests
     app.router.add_post('', handle_post)
 
     # Start the aiohttp web server
-    web.run_app(app, port=args.server_port)
+    web.run_app(app, port=args.server_port)'''
+
+    # Create the HTTP server process
+    http_server_process = HTTPServer(('', args.server_port), HTTPRequestHandler)
+
+    print('HTTP Server running on port 8080')
+
+    try:
+        http_server_process.serve_forever()
+    except KeyboardInterrupt:
+        http_server_process.server_close()
 
     # Start the computation coroutine
     asyncio.run(compute_data(models, start_idx, end_idx, device))
