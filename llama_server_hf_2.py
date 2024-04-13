@@ -202,7 +202,7 @@ if __name__ == '__main__':
     app = web.Application()
 
     # Add a route for handling POST requests
-    app.router.add_post('/', handle_post)
+    app.router.add_post('', handle_post)
 
     # Start the aiohttp web server
     web.run_app(app, port=args.server_port)
