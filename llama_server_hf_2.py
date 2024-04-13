@@ -30,14 +30,13 @@ from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCa
 from multiprocessing import set_start_method, Manager
 
 import pickle
-
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from eval_sep_hf import get_eval_data
 from layerwrapper import WrappedGPT
 from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
     LlamaForCausalLM_linear
 import yaml
 
-from test import HTTPRequestHandler
 
 # Global deque to store data from HTTP requests
 data_queue = deque()
@@ -135,6 +134,69 @@ async def handle_post(request):
 
     return web.json_response({'status': 'received'})
 
+# HTTP Server class to receive messages
+class HTTPRequestHandler(BaseHTTPRequestHandler):
+
+    def _set_response(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/octet-stream')
+        self.end_headers()
+
+    def do_POST(self):
+        print('receive POST:')
+        start_time = time.time()
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length)
+        self._set_response()
+        print('length: ', content_length)
+        # print(post_data)
+
+        decrypt_data = pickle.loads(post_data)
+        print(decrypt_data)
+
+        data_queue.append(decrypt_data)
+        # incoming_queue.append(decrypt_data)
+        end_time = time.time()
+        print('server receiving time: ', end_time - start_time)
+        '''# Process the received data here:
+        self.send_response(200)
+        self.end_headers()
+        newx = pickle.dumps('Data received successfully!')
+        self.wfile.write(newx)'''
+
+        self.return_message()
+
+    def return_message(self):
+        '''outgoing_data = []
+        while 1:
+            while not outgoing_queue.empty():
+                outgoing_data = outgoing_queue.get()
+            if len(outgoing_data) > 0:
+                break'''
+
+        while outgoing_queue.empty():
+            time.sleep(1.5)
+
+        # Process the received data here:
+        start_time = time.time()
+        # Process the received data here:
+        self.send_response(200)
+        self.send_header('Content-type', 'application/octet-stream')
+        self.end_headers()
+
+        newx = pickle.dumps(outgoing_queue.get())
+        #print('sent data: ', newx)
+        self.wfile.write(newx)
+        #outgoing_queue.pop(0)
+        end_time = time.time()
+        print('server sending time: ', end_time - start_time)
+        print('end response')
+
+        '''# Process the received data here:
+        self.send_response(200)
+        self.end_headers()
+        newx = pickle.dumps('Data received successfully!')
+        self.wfile.write(newx)'''
 
 # Function to perform computation
 async def compute_data(models, start_idx, end_idx, device):
@@ -217,7 +279,7 @@ if __name__ == '__main__':
     print('HTTP Server running on port 8080')
 
     try:
-        http_server_process.serve_forever()
+        await http_server_process.serve_forever()
     except KeyboardInterrupt:
         http_server_process.server_close()
 
