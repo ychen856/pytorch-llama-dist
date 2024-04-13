@@ -122,6 +122,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
 # Function to handle HTTP POST requests
 async def handle_post(request):
+    print('request: ', request)
     data = await request.read()
 
     # Add received data to the queue
