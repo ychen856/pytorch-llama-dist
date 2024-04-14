@@ -159,13 +159,11 @@ def process_data(models, start_idx, end_idx, device):
     while True:
         if not data_queue.empty():
             data = data_queue.get()
+            print('data: ', data)
             out = data[0]
             ids = data[1]
             mask = data[2]
             # http_receiver.pop_incoming_queue()
-            out.to(device)
-            ids.to(device)
-            mask.to(device)
             start_time = time.time()
 
             for k in range(start_idx, 33):
