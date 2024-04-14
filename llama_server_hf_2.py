@@ -39,7 +39,7 @@ import yaml
 
 
 # Global deque to store data from HTTP requests
-data_queue = deque()
+data_queue = asyncio.Queue()
 outgoing_queue = deque()
 
 
@@ -131,7 +131,7 @@ async def handle_post(request):
     print('data: ', data)
     # Add received data to the queue
     decrypt_data = pickle.loads(data)
-    data_queue.append(decrypt_data)
+    data_queue.put(decrypt_data)
 
     return web.json_response({'status': 'received'})
 
@@ -139,9 +139,11 @@ async def handle_post(request):
 # Function to perform computation
 async def compute_data(models, start_idx, end_idx, device):
     while True:
-        if data_queue:
+        print('hi')
+        time.sleep(5)
+        if not data_queue.empty():
+            data = await data_queue.get()
             print('hii')
-            data = data_queue.popleft()
 
             # Perform computation
             out = data[0]
