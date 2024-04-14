@@ -140,6 +140,7 @@ async def handle_post(request):
 async def compute_data(models, start_idx, end_idx, device):
     while True:
         if data_queue:
+            print('hii')
             data = data_queue.popleft()
 
             # Perform computation
