@@ -169,6 +169,7 @@ def process_data(models, start_idx, end_idx, device):
             for k in range(start_idx, 33):
                 k = k - start_idx
                 start_time_sub = time.time()
+                print(next(models[k].parameters()).device)
                 out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
                 end_time_sub = time.time()
                 print(k, end_time_sub - start_time_sub)
