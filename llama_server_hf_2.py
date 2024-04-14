@@ -132,7 +132,7 @@ async def handle_post(request):
     # Add received data to the queue
     decrypt_data = pickle.loads(data)
     data_queue.put(decrypt_data)
-
+    print('finished http!')
     return web.json_response({'status': 'received'})
 
 
