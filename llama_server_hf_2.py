@@ -39,7 +39,7 @@ import yaml
 
 
 # Global deque to store data from HTTP requests
-data_queue = asyncio.Queue()
+data_queue = deque()
 outgoing_queue = deque()
 
 
@@ -131,19 +131,18 @@ async def handle_post(request):
     print('data: ', data)
     # Add received data to the queue
     decrypt_data = pickle.loads(data)
-    data_queue.put(decrypt_data)
-    print('finished http!')
+    data_queue.append(decrypt_data)
+
     return web.json_response({'status': 'received'})
 
 
 # Function to perform computation
 async def compute_data(models, start_idx, end_idx, device):
     while True:
-        print('hi')
-        time.sleep(5)
-        if not data_queue.empty():
-            data = await data_queue.get()
-            print('hii')
+        time.sleep(2)
+        print('hii')
+        if data_queue:
+            data = data_queue.popleft()
 
             # Perform computation
             out = data[0]
@@ -186,6 +185,21 @@ async def compute_data(models, start_idx, end_idx, device):
         await asyncio.sleep(0.01)
 
 
+async def main():
+    # Create an application and add route for handling HTTP requests
+    app = web.Application()
+    app.router.add_post('/', handle_post)
+
+    # Start the data processor coroutine
+    data_processor_task = asyncio.create_task(compute_data(models, start_idx, end_idx, device))
+
+    # Run the web server
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, 'localhost', args.server_port)
+    await site.start()
+
+
 if __name__ == '__main__':
     set_start_method('spawn')
     with open(args.config) as f:
@@ -205,7 +219,7 @@ if __name__ == '__main__':
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
 
-    # Create an aiohttp web application
+    '''# Create an aiohttp web application
     app = web.Application()
 
     # Add a route for handling POST requests
@@ -216,4 +230,5 @@ if __name__ == '__main__':
 
 
     # Start the computation coroutine
-    asyncio.run(compute_data(models, start_idx, end_idx, device))
+    asyncio.run(compute_data(models, start_idx, end_idx, device))'''
+    asyncio.run(main())
