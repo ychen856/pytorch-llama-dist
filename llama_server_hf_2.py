@@ -185,21 +185,6 @@ async def compute_data(models, start_idx, end_idx, device):
         await asyncio.sleep(0.01)
 
 
-async def main():
-    # Create an application and add route for handling HTTP requests
-    app = web.Application()
-    app.router.add_post('/', handle_post)
-
-    # Start the data processor coroutine
-    data_processor_task = asyncio.create_task(compute_data(models, start_idx, end_idx, device))
-
-    # Run the web server
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, 'localhost', args.server_port)
-    await site.start()
-
-
 if __name__ == '__main__':
     set_start_method('spawn')
     with open(args.config) as f:
@@ -219,7 +204,10 @@ if __name__ == '__main__':
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
 
-    '''# Create an aiohttp web application
+    # Start the computation coroutine
+    asyncio.run(compute_data(models, start_idx, end_idx, device))
+
+    # Create an aiohttp web application
     app = web.Application()
 
     # Add a route for handling POST requests
@@ -229,6 +217,7 @@ if __name__ == '__main__':
     web.run_app(app, port=args.server_port)
 
 
-    # Start the computation coroutine
-    asyncio.run(compute_data(models, start_idx, end_idx, device))'''
-    asyncio.run(main())
+
+
+
+
