@@ -87,6 +87,9 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
         else:
             models.append(LlamaForCausalLM_layer_0(config))
             models[j].load_state_dict(checkpoint_list[i], strict=True)
+            models[j].to(device)
+
+        print(next(models[j].parameters()).device)
 
     return models
 
