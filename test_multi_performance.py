@@ -25,6 +25,8 @@ from layerwrapper import WrappedGPT
 from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
     LlamaForCausalLM_linear
 import yaml
+
+from time import sleep
 from model import ModelArgs, Transformer
 from model_dist import Transformer_emb, Transformer_b0, Transformer_b1, Transformer_b2, Transformer_b3, \
     Transformer_b4, Transformer_b5, Transformer_b6, Transformer_b7, Transformer_b8, Transformer_b9, Transformer_b10, Transformer_b11, \
@@ -129,6 +131,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
 def task1_data_receiving(args):
     print('T1 do nothing!')
+    sleep(5)
 
 def task2_computation(models, start_idx, end_idx, tokenizer, device, temp):
     print('T2 computaton...')
