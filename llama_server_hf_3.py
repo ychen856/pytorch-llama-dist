@@ -170,10 +170,9 @@ async def handle_request(request):
 
 start_idx = 0
 end_idx = 34
-device = torch.device("cuda")
-models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
-tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-
+device = None
+models = None
+tokenizer = None
 # Main function to setup and run the web server
 async def main():
     with open(args.config) as f:
@@ -187,8 +186,16 @@ async def main():
 
     global start_idx
     global end_idx
+    global device
+    global models
+    global tokenizer
+
     start_idx = 5
     end_idx = 34
+
+    device = torch.device("cuda")
+    models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
+    tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
 
     '''device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
