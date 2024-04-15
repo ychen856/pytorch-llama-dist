@@ -1,28 +1,21 @@
-import queue
-import threading
-# this code is used for seperating the weights into small pieces and store them into seperated .pt files. One time usage.
-import threading
+import asyncio
+import aiohttp
+from aiohttp import web
 import torch
-import time
-from pathlib import Path
-import argparse
-import pickle
-import http_receiver
-from safetensors.torch import save_file
-from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
-from http.server import BaseHTTPRequestHandler, HTTPServer
+import torch.nn as nn
 from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
     LlamaForCausalLM_linear
 import yaml
+import argparse
+from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
+
+import time
+from pathlib import Path
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
 parser.add_argument('--config', default='config_server.yaml')
 args = parser.parse_args()
-
-# Create a queue to store HTTP request data
-data_queue = queue.Queue()
-outgoing_queue = queue.Queue()
 
 
 def get_llm(model, cache_dir="llm_weights"):
@@ -87,128 +80,102 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
         else:
             models.append(LlamaForCausalLM_layer_0(config))
             models[j].load_state_dict(checkpoint_list[i], strict=True)
+
             models[j].to(device)
 
-        print(next(models[j].parameters()).device)
+    '''for i in range(0, len(models)):
+        model = models[i]
+        for name, param in model.named_parameters():
+            if param.requires_grad:
+                print(name, param.data)'''
 
     return models
 
-# HTTP Server class to receive messages
-class HTTPRequestHandler(BaseHTTPRequestHandler):
+'''# Define a simple MLP model for demonstration
+class MLP(nn.Module):
+    def __init__(self, input_dim, hidden_dim, output_dim):
+        super(MLP, self).__init__()
+        self.fc1 = nn.Linear(input_dim, hidden_dim)
+        self.fc2 = nn.Linear(hidden_dim, output_dim)
 
-    def _set_response(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'application/octet-stream')
-        self.end_headers()
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
 
-    def do_POST(self):
-        print('receive POST:')
+
+# Load the pretrained model
+model = MLP(input_dim=10, hidden_dim=20, output_dim=1)  # Replace with your actual model
+#model.load_state_dict(torch.load('model.pth'))  # Load your pretrained model
+model.eval()'''
+
+
+# Function to handle incoming HTTP POST requests
+async def handle_request(request):
+    global model
+    data = await request.content.read()
+    #inputs = torch.tensor(data['inputs'], dtype=torch.float32)
+
+    # Move inputs and model to GPU
+    #inputs = inputs.cuda()
+    #model = model.cuda()
+
+    # Perform inference
+    with torch.no_grad():
+        #outputs = model(inputs)
+        out = data[0]
+        ids = data[1]
+        mask = data[2]
+        # http_receiver.pop_incoming_queue()
         start_time = time.time()
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length)
-        self._set_response()
-        print('length: ', content_length)
-        # print(post_data)
 
-        decrypt_data = pickle.loads(post_data)
-        print(decrypt_data)
-
-        data_queue.put(decrypt_data)
-        # incoming_queue.append(decrypt_data)
-        end_time = time.time()
-        print('server receiving time: ', end_time - start_time)
-        '''# Process the received data here:
-        self.send_response(200)
-        self.end_headers()
-        newx = pickle.dumps('Data received successfully!')
-        self.wfile.write(newx)'''
-
-        self.return_message()
-
-    def return_message(self):
-        '''outgoing_data = []
-        while 1:
-            while not outgoing_queue.empty():
-                outgoing_data = outgoing_queue.get()
-            if len(outgoing_data) > 0:
-                break'''
-
-        while data_queue.empty():
-            time.sleep(1.5)
-
-        # Process the received data here:
-        start_time = time.time()
-        # Process the received data here:
-        self.send_response(200)
-        self.send_header('Content-type', 'application/octet-stream')
-        self.end_headers()
-
-        newx = pickle.dumps(outgoing_queue.get())
-        #print('sent data: ', newx)
-        self.wfile.write(newx)
-        #outgoing_queue.pop(0)
-        end_time = time.time()
-        print('server sending time: ', end_time - start_time)
-        print('end response')
-
-        '''# Process the received data here:
-        self.send_response(200)
-        self.end_headers()
-        newx = pickle.dumps('Data received successfully!')
-        self.wfile.write(newx)'''
-
-# Function to process data from the queue
-def process_data(models, start_idx, end_idx, device):
-    while True:
-        if not data_queue.empty():
-            data = data_queue.get()
-            print('data: ', data)
-            out = data[0]
-            ids = data[1]
-            mask = data[2]
-            # http_receiver.pop_incoming_queue()
-            start_time = time.time()
-
-            for k in range(start_idx, 33):
-                k = k - start_idx
-                start_time_sub = time.time()
-                print(next(models[k].parameters()).device)
-                out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-                end_time_sub = time.time()
-                print(k, end_time_sub - start_time_sub)
-                # print(k)
-                # print('out: ', out)
-
+        for k in range(start_idx, 33):
+            k = k - start_idx
             start_time_sub = time.time()
-            lm_logits = models[33 - start_idx](out.last_hidden_state)
+            out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
             end_time_sub = time.time()
-            print('33:', end_time_sub - start_time_sub)
+            print(k, end_time_sub - start_time_sub)
+            # print(k)
+            # print('out: ', out)
 
-            start_time_sub = time.time()
-            lm_logits = models[34 - start_idx](lm_logits)
-            end_time_sub = time.time()
-            print('34: ', end_time_sub - start_time_sub)
+        start_time_sub = time.time()
+        lm_logits = models[33 - start_idx](out.last_hidden_state)
+        end_time_sub = time.time()
+        print('33:', end_time_sub - start_time_sub)
 
-            print('lm_logits: ', lm_logits)
+        start_time_sub = time.time()
+        lm_logits = models[34 - start_idx](lm_logits)
+        end_time_sub = time.time()
+        print('34: ', end_time_sub - start_time_sub)
 
-
-            print('output shape: ', lm_logits.shape)
-            end_time = time.time()
-            print('server computation time: ', end_time - start_time)
-            print('computation finished!!')
-
-            outgoing_queue.put(lm_logits)
-            print('data store!!')
-
-# Placeholder function for computation
-def compute(data):
-    # Replace this with your actual computation logic
-    # For demonstration, let's just return the length of the data
-    return len(data)
+        print('lm_logits: ', lm_logits)
 
 
+        print('output shape: ', lm_logits.shape)
+        end_time = time.time()
+        print('server computation time: ', end_time - start_time)
+        print('computation finished!!')
 
-if __name__ == '__main__':
+        #http_receiver.set_outgoing_queue(lm_logits)
+        print('data store!!')
+
+    # Move outputs back to CPU
+    #outputs = outputs.cpu().numpy().tolist()
+
+    #print(f"Inputs: {data['inputs']}")
+    #print(f"Outputs: {outputs}")
+
+    return web.json_response({'outputs': lm_logits})
+
+
+start_idx = 0
+end_idx = 34
+device = torch.device("cuda")
+models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
+tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
+
+# Main function to setup and run the web server
+async def main():
     with open(args.config) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
     for key in config:
@@ -218,33 +185,34 @@ if __name__ == '__main__':
     print('config type: ', args.config)
     torch.manual_seed(0)
 
-
-
+    global start_idx
+    global end_idx
     start_idx = 5
     end_idx = 34
-    #allow_cuda = False
-    #device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
-    device = torch.device("cuda")
+
+    '''device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
-    tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
+    tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)'''
+
+    # model = get_llm(args.ckpt_dir_hf, 'llm_weights')
+    # tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
+
+    print("loading success")
+
+    # Create an application and add route for handling HTTP POST requests
+    app = web.Application()
+    app.router.add_post('/', handle_request)
+
+    # Run the web server
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '', args.server_port)
+    print("Server started on http://localhost:8080")
+    await site.start()
+
+    await asyncio.Future()
 
 
-    #model = get_llm(args.ckpt_dir_hf, 'llm_weights')
-    #tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-
-    data_processor_thread = threading.Thread(target=process_data, args=[models, start_idx, end_idx, device])
-    data_processor_thread.start()
-
-    # Create the HTTP server process
-    http_server_process = HTTPServer(('', args.server_port), HTTPRequestHandler)
-
-    print('HTTP Server running on port 8080')
-
-    try:
-        http_server_process.serve_forever()
-    except KeyboardInterrupt:
-        http_server_process.server_close()
-        data_processor_thread.terminate()
-
-    # Wait for the data processor thread to finish (this won't happen in this example)
-    data_processor_thread.join()
+# Run the main coroutine
+if __name__ == "__main__":
+    asyncio.run(main())
