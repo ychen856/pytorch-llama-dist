@@ -133,7 +133,7 @@ def task1_data_receiving(args):
     print('T1 do nothing!')
     sleep(5)
 
-def task2_computation(models, start_idx, end_idx, tokenizer, device, temp):
+def task2_computation(models, start_idx, end_idx, tokenizer, device):
     print('T2 computaton...')
     dataset = "wikitext2_hf"
     bs = 1
