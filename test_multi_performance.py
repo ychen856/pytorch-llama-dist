@@ -131,7 +131,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
 def task1_data_receiving(args):
     print('T1 do nothing!')
-    sleep(5)
+    sleep(10)
 
 def task2_computation(models, start_idx, end_idx, tokenizer, device):
     print('T2 computaton...')
