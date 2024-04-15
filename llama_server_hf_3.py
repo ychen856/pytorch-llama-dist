@@ -8,7 +8,7 @@ from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_la
 import yaml
 import argparse
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
-
+import pickle
 import time
 from pathlib import Path
 
@@ -114,6 +114,7 @@ model.eval()'''
 async def handle_request(request):
     global model
     data = await request.content.read()
+    data = pickle.loads(data)
     #inputs = torch.tensor(data['inputs'], dtype=torch.float32)
 
     # Move inputs and model to GPU
