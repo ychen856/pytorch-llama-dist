@@ -51,13 +51,12 @@ if __name__ == '__main__':
     # t1.join()
     # t2.join()
 
+    cpu_bound(num)
     # cpu_bound(num)
-    # cpu_bound(num)
-    t1 = Thread(target=cpu_bound, args=(num,))
+    '''t1 = Thread(target=cpu_bound, args=(num,))
     t2 = Thread(target=cpu_bound, args=(num,))
     t1.start()
     t2.start()
     t1.join()
-    t2.join()
-
+    t2.join()'''
     print(f'The time taken={time.time() - start}')
