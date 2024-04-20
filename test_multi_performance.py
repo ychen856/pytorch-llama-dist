@@ -186,18 +186,20 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, inputs):
     print(f'{pid} with thread {curr_thread}, with process: {curr_process} Started')
     print('T2 computaton...')
 
-    #start_time = time.time()
+    start_time = time.time()
     # Forward pass through the model
     out, ids, mask = models[0](inputs)
-    #end_time = time.time()
-    #print('0: ', end_time - start_time)
+    end_time = time.time()
+    print('0: ', end_time - start_time)
     # print('out: ', out)
     for k in range(1, len(models) - 2):
-        #start_time = time.time()
+        start_time = time.time()
         out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-        #end_time = time.time()
-        #print(k, end_time - start_time)
+        end_time = time.time()
+        print(k, end_time - start_time)
         # print('out: ', out)
+
+    print('out: ', out)
 
     '''start_time = time.time()
     lm_logits = models[33](out.last_hidden_state)
