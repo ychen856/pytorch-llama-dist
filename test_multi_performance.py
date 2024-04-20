@@ -3,6 +3,7 @@ import threading
 from functools import partial
 from typing import Optional
 
+import os
 import numpy as np
 import torch
 import time
@@ -18,6 +19,9 @@ from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCa
 from multiprocessing import Pool
 from multiprocessing import set_start_method
 import multiprocessing as mp
+
+from multiprocessing import current_process
+from threading import current_thread, Thread
 import sys
 
 from eval_sep_hf import get_eval_data
@@ -167,10 +171,18 @@ def get_dataset():
 
 
 def task1_data_receiving(args):
+    pid = os.getpid()
+    curr_thread = current_thread().name
+    curr_process = current_process().name
+    print(f'{pid} with thread {curr_thread}, with process: {curr_process} Started')
     print('T1 do nothing!')
     sleep(10)
 
 def task2_computation(models, start_idx, end_idx, tokenizer, device, inputs):
+    pid = os.getpid()
+    curr_thread = current_thread().name
+    curr_process = current_process().name
+    print(f'{pid} with thread {curr_thread}, with process: {curr_process} Started')
     print('T2 computaton...')
 
     start_time = time.time()
@@ -228,9 +240,10 @@ if __name__ == '__main__':
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
 
-    print("loading success")
+
 
     inputs = get_dataset()
+    print("loading success")
     # Create and start threads
     #thread1 = threading.Thread(target=task1_data_receiving, args=[args])
     thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, tokenizer, device, inputs])
