@@ -198,7 +198,7 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, inputs):
         print(k, end_time - start_time)
         # print('out: ', out)
 
-    start_time = time.time()
+    '''start_time = time.time()
     lm_logits = models[33](out.last_hidden_state)
     end_time = time.time()
     print('33: ', end_time - start_time)
@@ -208,7 +208,7 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, inputs):
     lm_logits = models[34](lm_logits)
     end_time = time.time()
     print('34: ', end_time - start_time)
-    print('logits: ', lm_logits)
+    print('logits: ', lm_logits)'''
 
 def init_worker(mps, fps, cut):
     global memorizedPaths, filepaths, cutoff
