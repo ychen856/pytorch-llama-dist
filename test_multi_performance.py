@@ -258,6 +258,18 @@ if __name__ == '__main__':
     thread2.join()
     print('total_time: ', time.time() - start_time)
 
+    start_time = time.time()
+    # task2_computation(models, start_idx, end_idx, tokenizer, device, inputs)
+    thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, tokenizer, device, inputs])
+
+    # thread1.start()
+    thread2.start()
+
+    # Wait for both threads to finish (optional)
+    # thread1.join()
+    thread2.join()
+    print('total_time: ', time.time() - start_time)
+
     '''p1 = mp.Process(target=task1_data_receiving, args=(args,))  # func1 is used to run neural net
     p2 = mp.Process(target=task2_computation, args=(models, start_idx, end_idx, tokenizer, device, inputs))  # func2 is used for some img-processing
     p1.start()
