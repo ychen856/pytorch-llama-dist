@@ -127,14 +127,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
     return models
 
-
-
-def task1_data_receiving(args):
-    print('T1 do nothing!')
-    sleep(10)
-
-def task2_computation(models, start_idx, end_idx, tokenizer, device):
-    print('T2 computaton...')
+def get_dataset():
     dataset = "wikitext2_hf"
     bs = 1
     seqlen = 1024
@@ -152,6 +145,7 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device):
     # List to store negative log likelihoods
     nlls = []
     print(f"nsamples {nsamples}")
+
     # Loop through each batch
     for i in range(0, nsamples, bs):
         if i % 50 == 0:
@@ -167,30 +161,42 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device):
         print('inputs: ', inputs)
         print('inputs: ', inputs.shape)
 
+        return inputs
+
+    return None
+
+
+def task1_data_receiving(args):
+    print('T1 do nothing!')
+    sleep(10)
+
+def task2_computation(models, start_idx, end_idx, tokenizer, device, inputs):
+    print('T2 computaton...')
+
+    start_time = time.time()
+    # Forward pass through the model
+    out, ids, mask = models[0](inputs)
+    end_time = time.time()
+    print('0: ', end_time - start_time)
+    # print('out: ', out)
+    for k in range(1, len(models) - 2):
         start_time = time.time()
-        # Forward pass through the model
-        out, ids, mask = models[0](inputs)
+        out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
         end_time = time.time()
-        print('0: ', end_time - start_time)
+        print(k, end_time - start_time)
         # print('out: ', out)
-        for k in range(1, len(models) - 2):
-            start_time = time.time()
-            out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-            end_time = time.time()
-            print(k, end_time - start_time)
-            # print('out: ', out)
 
-        start_time = time.time()
-        lm_logits = models[33](out.last_hidden_state)
-        end_time = time.time()
-        print('33: ', end_time - start_time)
-        # print('logit 33: ', lm_logits)
+    start_time = time.time()
+    lm_logits = models[33](out.last_hidden_state)
+    end_time = time.time()
+    print('33: ', end_time - start_time)
+    # print('logit 33: ', lm_logits)
 
-        start_time = time.time()
-        lm_logits = models[34](lm_logits)
-        end_time = time.time()
-        print('34: ', end_time - start_time)
-        print('logits: ', lm_logits)
+    start_time = time.time()
+    lm_logits = models[34](lm_logits)
+    end_time = time.time()
+    print('34: ', end_time - start_time)
+    print('logits: ', lm_logits)
 
 def init_worker(mps, fps, cut):
     global memorizedPaths, filepaths, cutoff
@@ -224,16 +230,17 @@ if __name__ == '__main__':
 
     print("loading success")
 
-    '''# Create and start threads
+    inputs = get_dataset()
+    # Create and start threads
     thread1 = threading.Thread(target=task1_data_receiving, args=[args])
-    thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, tokenizer, device])
+    thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, tokenizer, device, inputs])
 
     thread1.start()
     thread2.start()
 
     # Wait for both threads to finish (optional)
     thread1.join()
-    thread2.join()'''
+    thread2.join()
 
     '''p1 = mp.Process(target=task1_data_receiving, args=(args,))  # func1 is used to run neural net
     p2 = mp.Process(target=task2_computation, args=(models, start_idx, end_idx, tokenizer, device))  # func2 is used for some img-processing
@@ -242,7 +249,7 @@ if __name__ == '__main__':
     p1.join()
     p2.join()'''
 
-    m = mp.Manager()
+    '''m = mp.Manager()
     memorizedPaths = m.dict()
     filepaths = m.dict()
     cutoff = 1  ##
@@ -254,7 +261,7 @@ if __name__ == '__main__':
     for _ in p.imap_unordered(func, [], chunksize=500):
         pass
     p.close()
-    p.join()
+    p.join()'''
 
     '''with Pool() as pool:
         # issue multiple tasks each with multiple arguments
