@@ -150,6 +150,7 @@ def get_dataset():
     nlls = []
     print(f"nsamples {nsamples}")
 
+    input_list = []
     # Loop through each batch
     for i in range(0, nsamples, bs):
         if i % 50 == 0:
@@ -164,10 +165,10 @@ def get_dataset():
         inputs = inputs.reshape(j - i, seqlen)
         print('inputs: ', inputs)
         print('inputs: ', inputs.shape)
+        input_list.append(inputs)
 
-        return inputs
 
-    return None
+    return input_list
 
 
 def task1_data_receiving(args):
@@ -248,7 +249,7 @@ if __name__ == '__main__':
     #thread1 = threading.Thread(target=task1_data_receiving, args=[args])
     start_time = time.time()
     #task2_computation(models, start_idx, end_idx, tokenizer, device, inputs)
-    thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, tokenizer, device, inputs])
+    thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, tokenizer, device, inputs[0]])
 
     #thread1.start()
     thread2.start()
@@ -260,7 +261,7 @@ if __name__ == '__main__':
 
     start_time = time.time()
     # task2_computation(models, start_idx, end_idx, tokenizer, device, inputs)
-    thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, tokenizer, device, inputs])
+    thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, tokenizer, device, inputs[1]])
 
     # thread1.start()
     thread2.start()
