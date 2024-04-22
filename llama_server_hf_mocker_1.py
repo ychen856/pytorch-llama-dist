@@ -243,7 +243,7 @@ if __name__ == '__main__':
 
 
     start_idx = 0
-    end_idx = 20
+    end_idx = 34
     #allow_cuda = False
     #device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
     device = torch.device("cuda")
