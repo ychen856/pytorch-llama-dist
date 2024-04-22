@@ -188,11 +188,13 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
     print(f'{pid} with thread {curr_thread}, with process: {curr_process} Started')
     print('T2 computaton...')
     while(1):
+        print('start time: ', time.time())
         start_time_0 = time.time()
         while incoming_queue.empty():
             time.sleep(0.5)
 
         input = incoming_queue.get()
+        print('start compute time: ', time.time())
         start_time = time.time()
         # Forward pass through the model
         out, ids, mask = models[0](input)
@@ -206,7 +208,7 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
             print(k, end_time - start_time)
             # print('out: ', out)
         print('out: ', out)
-
+        print('end compute time: ', time.time())
         '''start_time = time.time()
         lm_logits = models[33](out.last_hidden_state)
         end_time = time.time()

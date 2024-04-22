@@ -112,6 +112,7 @@ model.eval()'''
 
 # Function to handle incoming HTTP POST requests
 async def handle_request(request):
+    print('start time: ', time.time())
     global model
     data = await request.content.read()
     data = pickle.loads(data)
@@ -121,6 +122,7 @@ async def handle_request(request):
     #inputs = inputs.cuda()
     #model = model.cuda()
 
+    print('start compute time: ', time.time())
     # Perform inference
     with torch.no_grad():
         #outputs = model(inputs)
@@ -144,6 +146,7 @@ async def handle_request(request):
             # print(k)
             # print('out: ', out)
         print('out: ', out)
+        print('end compute time: ', time.time())
         '''start_time_sub = time.time()
         lm_logits = models[33 - start_idx](out.last_hidden_state)
         end_time_sub = time.time()
