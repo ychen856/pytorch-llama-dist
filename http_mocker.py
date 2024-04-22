@@ -130,7 +130,7 @@ def get_dataset(tokenizer):
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
 
-    nsamples = 5
+    nsamples = 6
     # List to store negative log likelihoods
     nlls = []
     print(f"nsamples {nsamples}")
