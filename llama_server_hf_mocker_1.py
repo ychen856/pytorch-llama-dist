@@ -188,6 +188,7 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
     print(f'{pid} with thread {curr_thread}, with process: {curr_process} Started')
     print('T2 computaton...')
     while(1):
+        start_time_0 = time.time()
         while incoming_queue.empty():
             time.sleep(0.5)
 
@@ -220,6 +221,8 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
 
         if is_dummy:
             break
+
+        print('round time: ', time.time() - start_time_0)
 
 def init_worker(mps, fps, cut):
     global memorizedPaths, filepaths, cutoff
