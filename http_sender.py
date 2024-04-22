@@ -4,6 +4,7 @@ import pickle
 import argparse
 import time
 
+import torch
 import yaml
 import http_receiver
 
@@ -51,6 +52,9 @@ def pop_incoming_queue():
     returning_queue.pop(0)
 
 def send_data(server_ip, server_port, text):
+    #text = 'fodge'
+    #text = [torch.rand(4, 1, 4096), torch.rand(4, 1, 4096), torch.rand(4, 1, 4096)]
+    #text = text[0]
     start_time = time.time()
     newx = pickle.dumps(text)
     total_size = len(newx)
@@ -58,11 +62,13 @@ def send_data(server_ip, server_port, text):
     conn = http.client.HTTPConnection(server_ip, server_port)
     conn.connect()
 
-    conn.putrequest('POST', '/upload/')
+    #conn.putrequest('POST', '/upload/')
+    conn.putrequest('POST', '/')
     conn.putheader('Content-Type', 'application/octet-stream')
     conn.putheader('Content-Length', str(total_size))
     conn.endheaders()
 
+    print(total_size)
     print(text)
     #print(newx)
     conn.send(newx)
@@ -70,7 +76,7 @@ def send_data(server_ip, server_port, text):
     print('client sending time: ', end_time - start_time)
 
 
-    start_time2 = time.time()
+    '''start_time2 = time.time()
     resp = conn.getresponse()
 
     resp_data = resp.readlines()
@@ -85,7 +91,7 @@ def send_data(server_ip, server_port, text):
     print('resp: ', resp_message)
     end_time2 = time.time()
     print('client receiving time: ', end_time2 - start_time2)
-    print('rrt: ', end_time2 - start_time)
+    print('rrt: ', end_time2 - start_time)'''
 
 
 
