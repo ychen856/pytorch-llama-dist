@@ -241,6 +241,6 @@ if __name__ == '__main__':
 
     inputs = get_dataset(tokenizer)
 
-    for i in range(0, 5):
+    for i in range(0, 6):
         http_sender.send_data('localhost', args.server_port, inputs[i])
         sleep(5)
