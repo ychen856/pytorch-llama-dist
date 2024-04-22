@@ -204,8 +204,9 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
             end_time = time.time()
             print(k, end_time - start_time)
             # print('out: ', out)
+        print('out: ', out)
 
-        start_time = time.time()
+        '''start_time = time.time()
         lm_logits = models[33](out.last_hidden_state)
         end_time = time.time()
         print('33: ', end_time - start_time)
@@ -215,7 +216,7 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
         lm_logits = models[34](lm_logits)
         end_time = time.time()
         print('34: ', end_time - start_time)
-        print('logits: ', lm_logits)
+        print('logits: ', lm_logits)'''
 
         if is_dummy:
             break
@@ -243,7 +244,7 @@ if __name__ == '__main__':
 
 
     start_idx = 0
-    end_idx = 34
+    end_idx = 10
     #allow_cuda = False
     #device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
     device = torch.device("cuda")
@@ -257,24 +258,22 @@ if __name__ == '__main__':
     # Create and start threads
 
     incoming_queue.put(inputs[0])
-    '''thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, tokenizer, device, True])
+    thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, tokenizer, device, True])
 
     thread2.start()
-
-    # Wait for both threads to finish (optional)
-    thread2.join()'''
-
-    start_time = time.time()
-    # task2_computation(models, start_idx, end_idx, tokenizer, device, inputs)
-
-    thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, tokenizer, device, False])
-    thread1 = threading.Thread(target=task1_data_receiving, args=[args, inputs])
-
-    thread2.start()
-    thread1.start()
 
     # Wait for both threads to finish (optional)
     thread2.join()
-    thread1.join()
 
+    start_time = time.time()
+    # task2_computation(models, start_idx, end_idx, tokenizer, device, inputs)
+    thread1 = threading.Thread(target=task1_data_receiving, args=[args, inputs])
+    thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, tokenizer, device, False])
+
+    thread1.start()
+    thread2.start()
+
+    # Wait for both threads to finish (optional)
+    thread1.join()
+    thread2.join()
     print('total_time: ', time.time() - start_time)
