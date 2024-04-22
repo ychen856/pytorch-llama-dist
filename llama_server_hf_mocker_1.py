@@ -266,7 +266,7 @@ if __name__ == '__main__':
 
     start_time = time.time()
     # task2_computation(models, start_idx, end_idx, tokenizer, device, inputs)
-    thread1 = threading.Thread(target=task1_data_receiving, args=[args])
+    thread1 = threading.Thread(target=task1_data_receiving, args=[args, inputs])
     thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, tokenizer, device, False])
 
     thread1.start()
