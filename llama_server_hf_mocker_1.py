@@ -257,22 +257,24 @@ if __name__ == '__main__':
     # Create and start threads
 
     incoming_queue.put(inputs[0])
-    thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, tokenizer, device, True])
+    '''thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, tokenizer, device, True])
 
     thread2.start()
 
     # Wait for both threads to finish (optional)
-    thread2.join()
+    thread2.join()'''
 
     start_time = time.time()
     # task2_computation(models, start_idx, end_idx, tokenizer, device, inputs)
-    thread1 = threading.Thread(target=task1_data_receiving, args=[args, inputs])
-    thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, tokenizer, device, False])
 
-    thread1.start()
+    thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, tokenizer, device, False])
+    thread1 = threading.Thread(target=task1_data_receiving, args=[args, inputs])
+
     thread2.start()
+    thread1.start()
 
     # Wait for both threads to finish (optional)
-    thread1.join()
     thread2.join()
+    thread1.join()
+
     print('total_time: ', time.time() - start_time)
