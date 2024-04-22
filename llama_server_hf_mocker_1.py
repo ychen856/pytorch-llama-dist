@@ -179,7 +179,7 @@ def task1_data_receiving(args, inputs):
     print('T1 do nothing!')
     for i in range(0, 5):
         incoming_queue.put(inputs[i])
-        sleep(5)
+        sleep(0.1)
 
 def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=True):
     pid = os.getpid()
@@ -247,7 +247,7 @@ if __name__ == '__main__':
 
 
     start_idx = 0
-    end_idx = 10
+    end_idx = 20
     #allow_cuda = False
     #device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
     device = torch.device("cuda")
