@@ -179,7 +179,7 @@ def task1_data_receiving(args, inputs):
     print('T1 do nothing!')
     for i in range(0, 5):
         incoming_queue.put(inputs[i])
-        sleep(0.001)
+        sleep(5)
 
 def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=True):
     pid = os.getpid()
@@ -191,7 +191,7 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
         print('start time: ', time.time())
         start_time_0 = time.time()
         while incoming_queue.empty():
-            time.sleep(0.5)
+            time.sleep(0.00001)
 
         input = incoming_queue.get()
         print('start compute time: ', time.time())
