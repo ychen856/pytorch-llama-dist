@@ -109,8 +109,8 @@ class S(BaseHTTPRequestHandler):
         self.wfile.write(newx)'''
 
 def run(server_class=HTTPServer, handler_class=S, server_ip='', port=80):
-    #server_address = ('localhost', port)
-    server_address = (server_ip, port)
+    server_address = ('localhost', port)
+    #server_address = (server_ip, port)
     httpd = server_class(server_address, handler_class)
     print('Starting httpd...')
     httpd.serve_forever()
