@@ -30,6 +30,7 @@ from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_la
     LlamaForCausalLM_linear
 import yaml
 from queue import Queue
+import http_receiver
 from time import sleep
 from model import ModelArgs, Transformer
 from model_dist import Transformer_emb, Transformer_b0, Transformer_b1, Transformer_b2, Transformer_b3, \
@@ -175,11 +176,13 @@ def task1_data_receiving(args, inputs):
     pid = os.getpid()
     curr_thread = current_thread().name
     curr_process = current_process().name
-    print(f'{pid} with thread {curr_thread}, with process: {curr_process} Started')
+
+    http_receiver.run(port=args.server_port)
+    ''' print(f'{pid} with thread {curr_thread}, with process: {curr_process} Started')
     print('T1 do nothing!')
     for i in range(0, 5):
         sleep(0.1)
-        incoming_queue.put(inputs[i])
+        incoming_queue.put(inputs[i])'''
 
 def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=True):
     pid = os.getpid()
@@ -190,10 +193,11 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
     while(1):
         print('start time: ', time.time())
         start_time_0 = time.time()
-        while incoming_queue.empty():
+        '''while incoming_queue.empty():
             time.sleep(0.00001)
 
-        input = incoming_queue.get()
+        input = incoming_queue.get()'''
+        input = http_receiver.get_queue_data()
         print('start compute time: ', time.time())
         start_time = time.time()
         # Forward pass through the model

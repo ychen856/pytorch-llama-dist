@@ -26,7 +26,7 @@ def get_queue_data():
         return []'''
     while incoming_queue.empty():
         print('hi')
-        time.sleep(1.5)
+        time.sleep(0.005)
 
     return incoming_queue.get()
 
