@@ -4,7 +4,6 @@ from functools import partial
 from typing import Optional
 
 import os
-import numpy as np
 import torch
 import time
 from pathlib import Path
