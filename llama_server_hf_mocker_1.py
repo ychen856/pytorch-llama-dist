@@ -175,6 +175,8 @@ def task1_data_receiving(args, inputs):
     pid = os.getpid()
     curr_thread = current_thread().name
     curr_process = current_process().name
+    print(f'{pid} with thread {curr_thread}, with process: {curr_process} Started')
+    print('T1 do nothing!')
 
     http_receiver.run(port=args.server_port)
     incoming_queue.put(http_receiver.get_queue_data())
@@ -234,7 +236,7 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
         if is_dummy:
             break
 
-        print('round time: ', time.time() - start_time_0)
+    print('round time: ', time.time() - start_time_0)
 
 def init_worker(mps, fps, cut):
     global memorizedPaths, filepaths, cutoff
