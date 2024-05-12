@@ -196,7 +196,8 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
         print('start time: ', time.time())
         start_time_0 = time.time()
         while incoming_queue.empty():
-            time.sleep(0.00001)
+            print('wait...')
+            time.sleep(1)
 
         input = incoming_queue.get()
         #input = http_receiver.get_queue_data()
