@@ -178,7 +178,8 @@ def task1_data_receiving(args, inputs):
     print(f'{pid} with thread {curr_thread}, with process: {curr_process} Started')
     print('T1 do nothing!')
 
-    http_receiver.run(port=args.server_port)
+    while 1:
+        http_receiver.run(port=args.server_port)
     ''' print(f'{pid} with thread {curr_thread}, with process: {curr_process} Started')
     print('T1 do nothing!')
     for i in range(0, 5):
