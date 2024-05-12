@@ -179,9 +179,6 @@ def task1_data_receiving(args, inputs):
     print('T1 do nothing!')
 
     http_receiver.run(port=args.server_port)
-    data = http_receiver.get_queue_data()
-    print('dataaaaaaa')
-    incoming_queue.put(data)
     ''' print(f'{pid} with thread {curr_thread}, with process: {curr_process} Started')
     print('T1 do nothing!')
     for i in range(0, 5):
@@ -197,11 +194,15 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
     while(1):
         print('start time: ', time.time())
         start_time_0 = time.time()
-        while incoming_queue.empty():
-            print('wait...')
-            time.sleep(1)
+        if is_dummy:
+            while incoming_queue.empty():
+                print('wait...')
+                time.sleep(1)
 
-        input = incoming_queue.get()
+            input = incoming_queue.get()
+        else:
+            input = http_receiver.get_queue_data()
+
         #input = http_receiver.get_queue_data()
         print('start compute time: ', time.time())
         start_time = time.time()
