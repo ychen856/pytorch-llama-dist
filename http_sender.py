@@ -76,7 +76,7 @@ def send_data(server_ip, server_port, text):
     print('client sending time: ', end_time - start_time)
 
 
-    '''start_time2 = time.time()
+    start_time2 = time.time()
     resp = conn.getresponse()
 
     resp_data = resp.readlines()
@@ -91,7 +91,7 @@ def send_data(server_ip, server_port, text):
     print('resp: ', resp_message)
     end_time2 = time.time()
     print('client receiving time: ', end_time2 - start_time2)
-    print('rrt: ', end_time2 - start_time)'''
+    print('rrt: ', end_time2 - start_time)
 
 
 
