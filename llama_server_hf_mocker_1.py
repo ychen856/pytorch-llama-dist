@@ -259,14 +259,12 @@ if __name__ == '__main__':
 
 
     start_idx = 0
-    end_idx = 20
+    end_idx = 34
     #allow_cuda = False
     #device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
     device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-
-
 
     inputs = get_dataset(tokenizer)
     print("loading success")
