@@ -85,14 +85,14 @@ class S(BaseHTTPRequestHandler):
 
         while outgoing_queue.empty():
             time.sleep(1.5)
-        print('hehe')
         # Process the received data here:
         start_time = time.time()
         # Process the received data here:
         self.send_response(200)
         self.send_header('Content-type', 'application/octet-stream')
         self.end_headers()
-
+        print('outgoing queue:')
+        print(outgoing_queue.get())
         newx = pickle.dumps(outgoing_queue.get())
         #print('sent data: ', newx)
         self.wfile.write(newx)
