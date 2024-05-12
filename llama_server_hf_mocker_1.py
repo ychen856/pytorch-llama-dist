@@ -201,11 +201,17 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
         print('start compute time: ', time.time())
         start_time = time.time()
         # Forward pass through the model
-        out, ids, mask = models[0](input)
+        if incoming_queue == 0:
+            out, ids, mask = models[0](input)
+        else:
+            out = input[0]
+            ids = input[1]
+            mask = input[2]
+
         end_time = time.time()
         print('0: ', end_time - start_time)
         # print('out: ', out)
-        for k in range(1, len(models) - 2):
+        for k in range(start_idx, len(models) - 2):
             start_time = time.time()
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
             end_time = time.time()
@@ -275,6 +281,8 @@ if __name__ == '__main__':
     thread2.join()
 
     start_time = time.time()
+    start_idx = 5
+    end_idx = 34
     # task2_computation(models, start_idx, end_idx, tokenizer, device, inputs)
     thread1 = threading.Thread(target=task1_data_receiving, args=[args, inputs])
     thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, tokenizer, device, False])
