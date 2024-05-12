@@ -211,7 +211,7 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
         end_time = time.time()
         print('0: ', end_time - start_time)
         # print('out: ', out)
-        for k in range(start_idx, len(models) - 2):
+        for k in range(max(1, start_idx), len(models) - 2):
             start_time = time.time()
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
             end_time = time.time()
