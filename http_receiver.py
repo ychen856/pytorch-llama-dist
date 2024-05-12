@@ -83,7 +83,7 @@ class S(BaseHTTPRequestHandler):
             if len(outgoing_data) > 0:
                 break'''
 
-        while outgoing_queue.empty():
+        '''while outgoing_queue.empty():
             time.sleep(1.5)
 
         # Process the received data here:
@@ -99,14 +99,14 @@ class S(BaseHTTPRequestHandler):
         #outgoing_queue.pop(0)
         end_time = time.time()
         print('server sending time: ', end_time - start_time)
-        print('end response')
+        print('end response')'''
 
-        '''# Process the received data here:
+        # Process the received data here:
         self.send_response(200)
         self.end_headers()
 
         newx = pickle.dumps('Data received successfully!')
-        self.wfile.write(newx)'''
+        self.wfile.write(newx)
 
 def run(server_class=HTTPServer, handler_class=S, server_ip='', port=80):
     server_address = ('', port)
