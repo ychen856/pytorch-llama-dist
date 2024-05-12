@@ -65,14 +65,14 @@ class S(BaseHTTPRequestHandler):
         #incoming_queue.append(decrypt_data)
         end_time = time.time()
         print('server receiving time: ', end_time - start_time)
-        # Process the received data here:
+        '''# Process the received data here:
         self.send_response(200)
         self.end_headers()
 
         newx = pickle.dumps('Data received successfully!')
-        self.wfile.write(newx)
+        self.wfile.write(newx)'''
 
-        #self.return_message()
+        self.return_message()
 
     def return_message(self):
         '''outgoing_data = []
@@ -85,7 +85,7 @@ class S(BaseHTTPRequestHandler):
 
         while outgoing_queue.empty():
             time.sleep(1.5)
-
+        print('hehe')
         # Process the received data here:
         start_time = time.time()
         # Process the received data here:
