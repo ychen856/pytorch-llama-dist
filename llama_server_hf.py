@@ -105,17 +105,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
         else:
             models.append(LlamaForCausalLM_layer_0(config))
             models[j].load_state_dict(checkpoint_list[i], strict=True)
-            '''models[i].model.layers.self_attn.q_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.q_proj.weight'])
-            models[i].model.layers.self_attn.k_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.k_proj.weight'])
-            models[i].model.layers.self_attn.v_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.v_proj.weight'])
-            models[i].model.layers.self_attn.o_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.o_proj.weight'])
 
-            models[i].model.layers.mlp.gate_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.mlp.gate_proj.weight'])
-            models[i].model.layers.mlp.up_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.mlp.up_proj.weight'])
-            models[i].model.layers.mlp.down_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.mlp.down_proj.weight'])
-
-            models[i].model.layers.input_layernorm.weight = nn.Parameter(checkpoint_list[i]['model.layers.input_layernorm.weight'])
-            models[i].model.layers.post_attention_layernorm.weight = nn.Parameter(checkpoint_list[i]['model.layers.post_attention_layernorm.weight'])'''
 
             models[j].to(device)
 
@@ -231,6 +221,12 @@ if __name__ == '__main__':
 
     #model = get_llm(args.ckpt_dir_hf, 'llm_weights')
     #tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
+
+    thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, device])
+    thread2.start()
+
+    # Wait for both threads to finish (optional)
+    thread2.join()
 
     print("loading success")
 
