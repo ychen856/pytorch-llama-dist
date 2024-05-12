@@ -94,7 +94,7 @@ class S(BaseHTTPRequestHandler):
         print('outgoing queue:')
         print(outgoing_queue.get())
         newx = pickle.dumps(outgoing_queue.get())
-        #print('sent data: ', newx)
+        print('sent data: ', newx)
         self.wfile.write(newx)
         #outgoing_queue.pop(0)
         end_time = time.time()
