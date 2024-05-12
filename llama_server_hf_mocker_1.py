@@ -179,7 +179,9 @@ def task1_data_receiving(args, inputs):
     print('T1 do nothing!')
 
     http_receiver.run(port=args.server_port)
-    incoming_queue.put(http_receiver.get_queue_data())
+    data = http_receiver.get_queue_data()
+    print('dataaaaaaa')
+    incoming_queue.put(data)
     ''' print(f'{pid} with thread {curr_thread}, with process: {curr_process} Started')
     print('T1 do nothing!')
     for i in range(0, 5):
