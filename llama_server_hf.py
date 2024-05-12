@@ -222,11 +222,6 @@ if __name__ == '__main__':
     #model = get_llm(args.ckpt_dir_hf, 'llm_weights')
     #tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
 
-    thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, device])
-    thread2.start()
-
-    # Wait for both threads to finish (optional)
-    thread2.join()
 
     print("loading success")
 
@@ -239,6 +234,12 @@ if __name__ == '__main__':
 
     # Wait for both threads to finish (optional)
     thread1.join()
+    thread2.join()
+
+    thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, device])
+    thread2.start()
+
+    # Wait for both threads to finish (optional)
     thread2.join()
 
 
