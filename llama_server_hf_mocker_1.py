@@ -211,9 +211,10 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
         if start_idx == 0:
             out, ids, mask = models[0](input)
         else:
-            out = input[0]
-            ids = input[1]
-            mask = input[2]
+            start_idx = input[0]
+            out = input[1]
+            ids = input[2]
+            mask = input[3]
 
         end_time = time.time()
         print('0: ', end_time - start_time)
@@ -265,18 +266,20 @@ if __name__ == '__main__':
 
 
 
-    start_idx = 0
+    start_idx_buff = 0
     end_idx = 34
     #allow_cuda = False
     #device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
     device = torch.device("cuda")
-    models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
+    models = load_model(args.ckpt_dir_hf_sep, start_idx_buff, end_idx, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
 
     inputs = get_dataset(tokenizer)
     print("loading success")
     # Create and start threads
 
+    start_idx = 0
+    end_idx = 34
     incoming_queue.put(inputs[0])
     thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, tokenizer, device, True])
 
