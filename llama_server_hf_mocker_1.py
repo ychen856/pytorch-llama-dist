@@ -218,6 +218,8 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
 
         end_time = time.time()
         print('0: ', end_time - start_time)
+        print('start_idx: ', start_idx)
+        print('out: ', out)
         # print('out: ', out)
         for k in range(max(1, start_idx), len(models) - 2):
             start_time = time.time()
