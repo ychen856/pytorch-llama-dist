@@ -19,7 +19,7 @@ args = parser.parse_args()
 incoming_queue = Queue()
 outgoing_queue = Queue()
 
-def get_queue_data():
+def get_in_queue_data():
     '''if len(incoming_queue) > 0:
         return incoming_queue[0]
     else:
@@ -29,6 +29,15 @@ def get_queue_data():
 
     return incoming_queue.get()
 
+def get_out_queue_data():
+    '''if len(incoming_queue) > 0:
+        return incoming_queue[0]
+    else:
+        return []'''
+    while incoming_queue.empty():
+        time.sleep(0.005)
+
+    return outgoing_queue.get()
 
 def set_outgoing_queue(outputs):
     #outgoing_queue.append(outputs)
@@ -69,7 +78,7 @@ class S(BaseHTTPRequestHandler):
         self.send_response(200)
         self.end_headers()
 
-        newx = pickle.dumps('Data received successfully!')
+        newx = pickle.dumps([get_out_queue_data(), 'Data received successfully!'])
         self.wfile.write(newx)
 
         #self.return_message()
