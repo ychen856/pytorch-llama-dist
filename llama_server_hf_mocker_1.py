@@ -198,7 +198,7 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
         if is_dummy:
             while incoming_queue.empty():
                 print('wait...')
-                time.sleep(1)
+                time.sleep(0.01)
 
             input = incoming_queue.get()
         else:
