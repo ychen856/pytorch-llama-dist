@@ -230,7 +230,7 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
         print('out: ', out)
         print('end compute time: ', time.time())
         print('total computation time: ', total_comp_time)
-        http_receiver.set_outgoing_queue(total_comp_time)
+        http_receiver.set_outgoing_queue([start_idx, total_comp_time])
         '''start_time = time.time()
         lm_logits = models[33](out.last_hidden_state)
         end_time = time.time()
