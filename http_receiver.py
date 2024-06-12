@@ -25,7 +25,7 @@ def get_in_queue_data():
     else:
         return []'''
     while incoming_queue.empty():
-        time.sleep(0.005)
+        time.sleep(0.05)
 
     return incoming_queue.get()
 
