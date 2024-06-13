@@ -218,6 +218,19 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
             ids = input[2]
             mask = input[3]
 
+            zeros_row = torch.zeros((1, 1, out.last_hidden_state.size(2)))
+            out.last_hidden_state = torch.cat((zeros_row, out.last_hidden_state), dim=1)
+
+            zeros_tensor = torch.zeros_like(ids)
+            ids = torch.cat((zeros_tensor, ids), dim=1)
+
+            zeros_row = torch.zeros_like(mask[:, :, 0:1, :])
+            mask = torch.cat((zeros_row, mask), dim=3)
+
+        print('out: ', out.last_hidden_state)
+        print('ids: ', ids)
+        print('mask: ', mask)
+
         end_time = time.time()
         print('0: ', end_time - start_time)
         start_comp_time = time.time()
