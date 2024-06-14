@@ -68,7 +68,7 @@ class S(BaseHTTPRequestHandler):
         #print(post_data)
 
         decrypt_data = pickle.loads(post_data)
-        print(decrypt_data)
+        #print(decrypt_data)
 
         incoming_queue.put(decrypt_data)
         #incoming_queue.append(decrypt_data)

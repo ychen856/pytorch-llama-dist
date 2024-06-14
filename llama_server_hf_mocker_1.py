@@ -218,53 +218,70 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
             ids = input[2]
             mask = input[3]
 
-            zeros_row = torch.zeros((1, 1, out.last_hidden_state.size(2))).to(device)
-            out.last_hidden_state = torch.cat((zeros_row, out.last_hidden_state), dim=1)
+            for i in range(0, 1024):
+                if len(ids[0]) <= i or ids[0][i].item() != i:
+                    zeros_row = torch.zeros((1, 1, out.last_hidden_state.size(2))).to(device)
+                    out.last_hidden_state = torch.cat((out.last_hidden_state[:, :i, :], zeros_row, out.last_hidden_state[:, i:, :]), dim=1)
+                    #out.last_hidden_state = torch.cat((zeros_row, out.last_hidden_state), dim=1)
 
-            zeros_tensor = torch.zeros_like(ids).to(device)
-            ids = torch.cat((zeros_tensor, ids), dim=1)
+                    zeros_tensor = torch.tensor([[i]]).to(device)
+                    ids = torch.cat((ids[:, :i], zeros_tensor, ids[:, i:]), dim=1)
+                    #ids = torch.cat((zeros_tensor, ids), dim=1)
 
-            zeros_row = torch.zeros_like(mask[:, :, 0:1, :]).to(device)
-            mask = torch.cat((zeros_row, mask), dim=3)
+                    zeros_row = torch.zeros((1, 1, 1, mask.size(3))).to(device)
+                    mask = torch.cat((mask[:, :, :i , :], zeros_row, mask[:, :, i:, :]), dim=2)
+                    #mask = torch.cat((zeros_row, mask), dim=2)
 
-        print('out: ', out.last_hidden_state)
+
+        '''print('out: ', out.last_hidden_state)
         print('ids: ', ids)
-        print('mask: ', mask)
+        print('mask: ', mask)'''
 
         end_time = time.time()
-        print('0: ', end_time - start_time)
+        #print('0: ', end_time - start_time)
         start_comp_time = time.time()
         # print('out: ', out)
         for k in range(max(1, start_idx), len(models) - 2):
             start_time = time.time()
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
             end_time = time.time()
-            print(k, end_time - start_time)
+            #print(k, end_time - start_time)
             # print('out: ', out)
-        total_comp_time = time.time() - start_comp_time
+        '''total_comp_time = time.time() - start_comp_time
+
         print('out: ', out)
         print('end compute time: ', time.time())
-        print('total computation time: ', total_comp_time)
+        print('total computation time: ', total_comp_time)'''
+
+
         if is_dummy:
             break
 
-        http_receiver.set_outgoing_queue([start_idx, total_comp_time])
+
+        #http_receiver.set_outgoing_queue([start_idx, total_comp_time])
 
 
-        '''start_time = time.time()
+        start_time = time.time()
         lm_logits = models[33](out.last_hidden_state)
         end_time = time.time()
-        print('33: ', end_time - start_time)
+        #print('33: ', end_time - start_time)
         # print('logit 33: ', lm_logits)
 
         start_time = time.time()
         lm_logits = models[34](lm_logits)
         end_time = time.time()
-        print('34: ', end_time - start_time)
+        #print('34: ', end_time - start_time)
         print('logits: ', lm_logits)
         print('logit size: ', lm_logits.size())
 
-        shift_logits = lm_logits[:, :-1, :].contiguous()
+        total_comp_time = time.time() - start_comp_time
+
+        #print('out: ', out)
+        print('end compute time: ', time.time())
+        print('total computation time: ', total_comp_time)
+
+        http_receiver.set_outgoing_queue([start_idx, total_comp_time])
+        '''shift_logits = lm_logits[:, :-1, :].contiguous()
 
         print('shift logits: ', shift_logits)
 
