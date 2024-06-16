@@ -34,7 +34,7 @@ def get_out_queue_data():
         return incoming_queue[0]
     else:
         return []'''
-    while incoming_queue.empty():
+    while outgoing_queue.empty():
         time.sleep(0.005)
 
     return outgoing_queue.get()
