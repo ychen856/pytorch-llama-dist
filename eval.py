@@ -5,7 +5,7 @@ import torch.nn as nn
 import sys
 # Import get_loaders function from data module within the same directory
 from data import get_loaders
-from early_exit import early_exit_cuda
+from early_exit import early_exit_cuda_ppl_test
 
 def eval_ppl(model, tokenizer, device=torch.device("cuda:0")):
     allow_cuda = False
@@ -59,7 +59,10 @@ def eval_ppl_sep_hf(models, tokenizer, device=torch.device("cuda:0")):
 
     # Evaluate ppl in no grad context to avoid updating the model
     with torch.no_grad():
-        ppl = eval_ppl_wikitext_sep_hf(models, testloader, 1, device)
+        for i in range (1, 32):
+            ppl = eval_ppl_wikitext_sep_hf(models, testloader, i, 1, device)
+            print('i: ', i)
+            print('ppl: ', ppl)
     return ppl
 
 # Function to evaluate perplexity (ppl) specifically on the wikitext dataset
@@ -190,7 +193,7 @@ def eval_ppl_wikitext_hf(model, testenc, bs=1, device=None):
 
     return ppl.item()
 
-def eval_ppl_wikitext_sep_hf(models, testenc, bs=1, device=None):
+def eval_ppl_wikitext_sep_hf(models, testenc, splitting_point, bs=1, device=None):
     seqlen = 1024
     # Get input IDs
     testenc = testenc.input_ids
@@ -228,8 +231,9 @@ def eval_ppl_wikitext_sep_hf(models, testenc, bs=1, device=None):
             print('k: ', k)
             start_time = time.time()
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-            if k == 1:
-                out, ids, mask, pruned_data_idx_list, pruned_data_list = early_exit_cuda(models, out, ids, mask)
+            print('mask: ', mask)
+            if k == splitting_point:
+                out, ids, mask, pruned_data_idx_list, pruned_data_list = early_exit_cuda_ppl_test(models, out, ids, mask)
             end_time = time.time()
             print(k, end_time - start_time)
             #print('out: ', out)
