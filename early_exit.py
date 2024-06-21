@@ -135,7 +135,7 @@ def early_exit_cuda(models, out, ids, mask):
 
 
 def early_exit_cuda_ppl_test(models, out, ids, mask):
-    threshold = 0.7
+    threshold = 0.9
     temperature = 0.6
 
     '''print('ids shape: ', ids.shape)
@@ -162,8 +162,8 @@ def early_exit_cuda_ppl_test(models, out, ids, mask):
         # prob_max_list.append(torch.max(probs_sort[i]).item())
         # probs_sum = probs_sum + torch.max(probs_sort[i]).item()
         if torch.max(probs_sort[i]).item() >= threshold:
-            pruned_data_list.append(out.last_hidden_state)
-            pruned_data_idx_list.append(i)
+            pruned_data_list.append(out.last_hidden_state[0][i - idx_diff])
+            pruned_data_idx_list.append(i - idx_diff)
 
             # print('remove: ', i - idx_diff)
             ids = torch.cat((ids[:, :i - idx_diff], ids[:, i - idx_diff + 1:]), dim=1)
