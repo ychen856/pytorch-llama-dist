@@ -240,36 +240,23 @@ def load_model2(checkpoints_dir, start_idx, end_idx, device):
 
     models = []
     for i in range(start_idx, end_idx + 1):
+        print('i: ', i)
         if i == 0:
             models.append(LlamaForCausalLM_emb(config))
             models[i].load_state_dict(checkpoint_list[i], strict=True)
-            models[0].model.embed_tokens.weight = nn.Parameter(checkpoint_list[0]['model.embed_tokens.weight'])
             models[0].to(device)
         elif i == 33:
             models.append((LlamaForCausalLM_norm(config)))
             models[i].load_state_dict(checkpoint_list[i], strict=True)
-            models[33].model.norm.weight = nn.Parameter(checkpoint_list[33]['model.norm.weight'])
             models[33].to(device)
 
         elif i == 34:
             models.append((LlamaForCausalLM_linear(config)))
             models[i].load_state_dict(checkpoint_list[i], strict=True)
-            models[34].lm_head.weight = nn.Parameter(checkpoint_list[34]['lm_head.weight'])
             models[34].to(device)
         else:
             models.append(LlamaForCausalLM_layer_0(config))
             models[i].load_state_dict(checkpoint_list[i], strict=True)
-            models[i].model.layers.self_attn.q_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.q_proj.weight'])
-            models[i].model.layers.self_attn.k_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.k_proj.weight'])
-            models[i].model.layers.self_attn.v_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.v_proj.weight'])
-            models[i].model.layers.self_attn.o_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.o_proj.weight'])
-
-            models[i].model.layers.mlp.gate_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.mlp.gate_proj.weight'])
-            models[i].model.layers.mlp.up_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.mlp.up_proj.weight'])
-            models[i].model.layers.mlp.down_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.mlp.down_proj.weight'])
-
-            models[i].model.layers.input_layernorm.weight = nn.Parameter(checkpoint_list[i]['model.layers.input_layernorm.weight'])
-            models[i].model.layers.post_attention_layernorm.weight = nn.Parameter(checkpoint_list[i]['model.layers.post_attention_layernorm.weight'])
 
             models[i].to(device)
 
