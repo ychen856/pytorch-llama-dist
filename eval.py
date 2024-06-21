@@ -60,7 +60,7 @@ def eval_ppl_sep_hf(models, tokenizer, device=torch.device("cuda:0")):
 
     # Evaluate ppl in no grad context to avoid updating the model
     with torch.no_grad():
-        for i in range (1, 8):
+        for i in range (1, 10):
             ppl = eval_ppl_wikitext_sep_hf(models, testloader, tokenizer, i, 1, device)
             print('i: ', i)
             print('ppl: ', ppl)
@@ -219,6 +219,7 @@ def eval_ppl_wikitext_sep_hf(models, testenc, tokenizer, splitting_point, bs=1, 
         inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
         #print('input: ', inputs)
         inputs = inputs.reshape(j - i, seqlen)
+        print(tokenizer.batch_decode(inputs, skip_special_tokens=True, clean_up_tokenization_spaces=False))
         #print('inputs: ', inputs)
         #print('inputs: ', inputs.shape)
 
@@ -231,8 +232,8 @@ def eval_ppl_wikitext_sep_hf(models, testenc, tokenizer, splitting_point, bs=1, 
         for k in range (1, len(models) - 2):
             start_time = time.time()
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-            if k == splitting_point:
-                print('mask: ', mask)
+            print('mask: ', mask)
+            '''if k == splitting_point:
                 out, ids, mask, pruned_data_idx_list, pruned_data_list = early_exit_cuda_ppl_test(models, out, ids, mask)
 
                 for l in range(0, 1024):
@@ -255,7 +256,7 @@ def eval_ppl_wikitext_sep_hf(models, testenc, tokenizer, splitting_point, bs=1, 
 
         # recover data from the early exit
         for (idx, data) in zip(pruned_data_idx_list, pruned_data_list):
-            out.last_hidden_state[0][idx] = data
+            out.last_hidden_state[0][idx] = data'''
 
 
         start_time = time.time()
@@ -276,17 +277,20 @@ def eval_ppl_wikitext_sep_hf(models, testenc, tokenizer, splitting_point, bs=1, 
         #print('generated output: ', lm_logits)
         print('shift logits: ', shift_logits)
         print('shift lables: ', shift_labels)
-        text_logit = F.softmax(shift_logits.reshape(-1, shift_logits.size(-1))).argmax(dim=-1)
-        text_labels = F.softmax(shift_labels.reshape(-1, shift_labels.size(-1))).argmax(dim=-1)
-        reshaped_logit = text_logit.view(1, -1)
-        reshaped_labels = text_labels.view(1, -1)
-        print('text logits: ', tokenizer.batch_decode(reshaped_logit, skip_special_tokens=True, clean_up_tokenization_spaces=False))
-        print('text lables: ', tokenizer.batch_decode(reshaped_labels, skip_special_tokens=True, clean_up_tokenization_spaces=False))
 
 
         # Compute loss
         loss_fct = nn.CrossEntropyLoss()
         loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
+
+        text_logit = F.softmax(shift_logits.reshape(-1, shift_logits.size(-1))).argmax(dim=-1)
+        #text_labels = F.softmax(shift_labels.reshape(-1, shift_labels.size(-1))).argmax(dim=-1)
+        reshaped_logit = text_logit.view(1, -1)
+        #reshaped_labels = text_labels.view(1, -1)
+        print('text logits: ',
+              tokenizer.batch_decode(reshaped_logit, skip_special_tokens=True, clean_up_tokenization_spaces=False))
+        #print('text lables: ',
+        #      tokenizer.batch_decode(reshaped_labels, skip_special_tokens=True, clean_up_tokenization_spaces=False))
 
         # Calculate negative log likelihood
         neg_log_likelihood = loss.float() * seqlen * (j - i)
