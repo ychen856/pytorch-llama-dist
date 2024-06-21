@@ -157,11 +157,13 @@ def early_exit_cuda_ppl_test(models, out, ids, mask):
     pruned_data_list = []
     pruned_data_idx_list = []
     idx_diff = 0
+    early_count = 0
     for i in range(0, len(probs)):
         # print('i: ', i)
         # prob_max_list.append(torch.max(probs_sort[i]).item())
         # probs_sum = probs_sum + torch.max(probs_sort[i]).item()
         if torch.max(probs_sort[i]).item() >= threshold:
+            early_count = early_count + 1
             pruned_data_list.append(out.last_hidden_state[0][i - idx_diff])
             pruned_data_idx_list.append(i - idx_diff)
 
@@ -173,6 +175,7 @@ def early_exit_cuda_ppl_test(models, out, ids, mask):
 
             idx_diff = idx_diff + 1
 
+    print('early count: ', early_count)
     print('# rows droped: ', idx_diff)
     '''print('ids: ', ids)
     print('out: ', out.last_hidden_state)
