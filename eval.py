@@ -233,6 +233,7 @@ def eval_ppl_wikitext_sep_hf(models, testenc, tokenizer, splitting_point, bs=1, 
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
             if k == splitting_point:
                 out, ids, mask, pruned_data_idx_list, pruned_data_list = early_exit_cuda_ppl_test(models, out, ids, mask)
+                print('mask: ', mask)
                 for l in range(0, 1024):
                     if len(ids[0]) <= l or ids[0][l].item() != l:
                         zeros_row = torch.zeros((1, 1, out.last_hidden_state.size(2))).to(device)
