@@ -232,7 +232,7 @@ def eval_ppl_wikitext_sep_hf(models, testenc, tokenizer, splitting_point, bs=1, 
         for k in range (1, len(models) - 2):
             start_time = time.time()
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-            print('mask: ', mask)
+            #print('mask: ', mask)
             if k == splitting_point:
                 out, ids, mask, pruned_data_idx_list, pruned_data_list = early_exit_cuda_ppl_test(models, out, ids, mask)
 
