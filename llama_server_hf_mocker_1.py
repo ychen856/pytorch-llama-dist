@@ -195,6 +195,11 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
         else:
             input = http_receiver.get_in_queue_data()
 
+        start_idx = input[0]
+        out = input[1]
+        ids = input[2]
+        mask = input[3]
+
         #input = http_receiver.get_in_queue_data()
         print('start compute time: ', time.time())
         start_time = time.time()
@@ -202,10 +207,10 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
         if start_idx == 0:
             out, ids, mask = models[0](input)
         else:
-            start_idx = input[0]
+            '''start_idx = input[0]
             out = input[1]
             ids = input[2]
-            mask = input[3]
+            mask = input[3]'''
 
             for i in range(0, 1024):
                 if len(ids[0]) <= i or ids[0][i].item() != i:
