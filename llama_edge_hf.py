@@ -227,7 +227,7 @@ def task1_data_sending(args):
         timeout_count = 0
         while outgoing_queue.empty():
             timeout_count = timeout_count + 1
-            if input_queue.empty():  # if server idle
+            if not input_queue.empty():  # if server idle
                 outgoing_queue.put([0, input_queue.get(), None, None])
                 print('server idle!')
 
@@ -245,7 +245,7 @@ def task1_data_sending(args):
             print('server_side: ',  [start_idx, server_comp_time, rtt])'''
 
         data = outgoing_queue.get()
-        print('data: ', data)
+        #print('data: ', data)
         http_sender.send_data(args.server_ip, args.server_port, data, calculate_opt)
         #get_server_statistic_from_q()
 def task2_computation(models, test_loader, bs, start_idx, end_idx, end_idx_buff, max_layers, device):
@@ -263,6 +263,7 @@ def task2_computation(models, test_loader, bs, start_idx, end_idx, end_idx_buff,
         print('end idx: ', end_idx)
         print('end idx buffer: ', end_idx_buff)
 
+        inputs = input_queue.get()
         if input_count % 50 == 0:
             print(f"sample {input_count}")
 
