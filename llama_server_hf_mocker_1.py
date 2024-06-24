@@ -205,7 +205,8 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
         start_time = time.time()
         # Forward pass through the model
         if start_idx == 0:
-            out, ids, mask = models[0](input)
+            out, ids, mask = models[0](out)
+            #out, ids, mask = models[0](input)
         else:
             '''start_idx = input[0]
             out = input[1]
