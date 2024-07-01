@@ -6,10 +6,8 @@ import time
 
 import torch
 import yaml
-import http_receiver
 
 from queue import Queue
-from timeout import timeout
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
