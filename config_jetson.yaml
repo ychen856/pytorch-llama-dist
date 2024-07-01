@@ -45,13 +45,13 @@ llama_2_7b:
 llama_2_7b_hf:
   #ckpt_dir_hf: /home/yichun/workspace/llama-2-7b-chat-hf/
   #tokenizer_path_hf: /home/yichun/workspace/llama-2-7b-chat-hf/
-  ckpt_dir_hf: :~/ychen_storage/workspace/llama-2-7b-chat-hf-sep
-  tokenizer_path_hf: :~/ychen_storage/workspace/llama-2-7b-chat-hf-sep/tokenizer.model
+  ckpt_dir_hf: ~/ychen_storage/workspace/llama-2-7b-chat-hf-sep
+  tokenizer_path_hf: ~/ychen_storage/workspace/llama-2-7b-chat-hf-sep/tokenizer.model
 
 
 llama_2_7b_sep:
-    ckpt_dir_hf_sep: :~/ychen_storage/workspace/llama-2-7b-chat-hf-sep
-    tokenizer_path_hf_sep: :~/ychen_storage/workspace/llama-2-7b-chat-hf-sep/tokenizer.model
+    ckpt_dir_hf_sep: ~/ychen_storage/workspace/llama-2-7b-chat-hf-sep
+    tokenizer_path_hf_sep: ~/ychen_storage/workspace/llama-2-7b-chat-hf-sep/tokenizer.model
 
 communication:
     server_ip: test-service.nrp-nautilus.io
