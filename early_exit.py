@@ -135,7 +135,8 @@ def early_exit_cuda(models, out, ids, mask):
 
 
 def early_exit_cuda_ppl_test(models, out, ids, mask):
-    threshold = 0.9
+    threshold = 1
+    delta = 0
     temperature = 0.6
 
     '''print('ids shape: ', ids.shape)
@@ -154,29 +155,42 @@ def early_exit_cuda_ppl_test(models, out, ids, mask):
 
     # print('probs sort: ', probs_sort)
     # prob_max_list = []
-    pruned_data_list = []
-    pruned_data_idx_list = []
-    idx_diff = 0
-    early_count = 0
-    for i in range(0, len(probs)):
-        # print('i: ', i)
-        # prob_max_list.append(torch.max(probs_sort[i]).item())
-        # probs_sum = probs_sum + torch.max(probs_sort[i]).item()
-        if torch.max(probs_sort[i]).item() >= threshold:
-            early_count = early_count + 1
-            pruned_data_list.append(out.last_hidden_state[0][i - idx_diff])
-            pruned_data_idx_list.append(i - idx_diff)
+    while 1:
+        pruned_data_list = []
+        pruned_data_idx_list = []
+        idx_diff = 0
+        early_count = 0
 
-            # print('remove: ', i - idx_diff)
-            ids = torch.cat((ids[:, :i - idx_diff], ids[:, i - idx_diff + 1:]), dim=1)
-            out.last_hidden_state = torch.cat(
-                (out.last_hidden_state[:, :i - idx_diff, :], out.last_hidden_state[:, i - idx_diff + 1:, :]), dim=1)
-            #mask = torch.cat((mask[:, :, :i - idx_diff, :], mask[:, :, i - idx_diff + 1:, :]), dim=2)
 
-            idx_diff = idx_diff + 1
+        for i in range(0, len(probs)):
+            # print('i: ', i)
+            # prob_max_list.append(torch.max(probs_sort[i]).item())
+            # probs_sum = probs_sum + torch.max(probs_sort[i]).item()
+            if torch.max(probs_sort[i]).item() >= threshold:
+                early_count = early_count + 1
+                #pruned_data_list.append(out.last_hidden_state[0][i - idx_diff])
+                #pruned_data_idx_list.append(i - idx_diff)
 
-    print('early count: ', early_count)
-    print('# rows droped: ', idx_diff)
+                # print('remove: ', i - idx_diff)
+                #ids = torch.cat((ids[:, :i - idx_diff], ids[:, i - idx_diff + 1:]), dim=1)
+                #out.last_hidden_state = torch.cat(
+                #    (out.last_hidden_state[:, :i - idx_diff, :], out.last_hidden_state[:, i - idx_diff + 1:, :]), dim=1)
+                #mask = torch.cat((mask[:, :, :i - idx_diff, :], mask[:, :, i - idx_diff + 1:, :]), dim=2)
+
+                idx_diff = idx_diff + 1
+
+        print('early count: ', early_count)
+        print('# rows droped: ', idx_diff)
+        if early_count / 1024 > 0.23:
+            print('VVVVVVVVVVVVVVVVVVVV')
+            print('threshold: ', threshold)
+            break
+        if early_count / 1024 < 0.17:
+            threshold = threshold - 0.01
+        if early_count / 1024 < 0.23 and early_count / 1024 > 0.17:
+            print('FFFFFFFFFFFFFFFFFFFFF')
+            print('threshold: ', threshold)
+            break
     '''print('ids: ', ids)
     print('out: ', out.last_hidden_state)
     print('mask: ', mask)
