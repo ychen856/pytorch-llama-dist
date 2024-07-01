@@ -9,6 +9,7 @@ import yaml
 import http_receiver
 
 from queue import Queue
+from timeout import timeout
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
@@ -42,22 +43,28 @@ def get_queue_data():
         return returning_queue[0]
     else:
         return []'''
-    while returning_queue.empty():
-        time.sleep(1.5)
+    #while returning_queue.empty():
+    #    time.sleep(0.5)
+    data = []
+    while not returning_queue.empty():
+        data.append(returning_queue.get())
 
-    return returning_queue.get()
+    return data
 
 
 def pop_incoming_queue():
     returning_queue.pop(0)
 
-def send_data(server_ip, server_port, text):
+
+def send_data(server_ip, server_port, text, calculate_opt):
     #text = 'fodge'
     #text = [torch.rand(4, 1, 4096), torch.rand(4, 1, 4096), torch.rand(4, 1, 4096)]
     #text = text[0]
     start_time = time.time()
     newx = pickle.dumps(text)
     total_size = len(newx)
+
+    #start_time = time.time()
 
     conn = http.client.HTTPConnection(server_ip, server_port)
     conn.connect()
@@ -68,8 +75,7 @@ def send_data(server_ip, server_port, text):
     conn.putheader('Content-Length', str(total_size))
     conn.endheaders()
 
-    print(total_size)
-    print(text)
+    print('package size: ', total_size)
     #print(newx)
     conn.send(newx)
     end_time = time.time()
@@ -80,18 +86,33 @@ def send_data(server_ip, server_port, text):
     resp = conn.getresponse()
 
     resp_data = resp.readlines()
+    print('TTTTTTTTTTTTTTTT:', resp_data)
     resp_str = b''
-    for i in range(5, len(resp_data)):
+
+    for i in range(4, len(resp_data)):
         resp_str = resp_str + resp_data[i]
-
-
-    resp_message = pickle.loads(resp_str)
-    #returning_queue.append(resp_message)
-    returning_queue.put(resp_message)
-    print('resp: ', resp_message)
     end_time2 = time.time()
+    rtt = end_time2 - start_time
+
+    try:
+        resp_message = pickle.loads(resp_str)
+
+        resp_message = resp_message[0]
+        resp_message.append(rtt)
+        print('server side: ', resp_message)
+        calculate_opt.incoming_count = calculate_opt.incoming_count + 1
+        calculate_opt.server_comp_statistics = (resp_message[0], resp_message[2])
+        #returning_queue.put(resp_message)
+    except:
+        print('error')
+    #print('return message: ', resp_message[0])
+    #returning_queue.append(resp_message)
+
     print('client receiving time: ', end_time2 - start_time2)
     print('rrt: ', end_time2 - start_time)
+
+
+
 
 
 
