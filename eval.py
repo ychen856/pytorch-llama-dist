@@ -359,11 +359,8 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
 
         # Prepare inputs and move to device
         inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
-        #print('input: ', inputs)
         inputs = inputs.reshape(j - i, seqlen)
-        print(tokenizer.batch_decode(inputs, skip_special_tokens=True, clean_up_tokenization_spaces=False))
-        #print('inputs: ', inputs)
-        #print('inputs: ', inputs.shape)
+        #print(tokenizer.batch_decode(inputs, skip_special_tokens=True, clean_up_tokenization_spaces=False))
 
         start_time = time.time()
         # Forward pass through the model
@@ -429,8 +426,9 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
         #text_labels = F.softmax(shift_labels.reshape(-1, shift_labels.size(-1))).argmax(dim=-1)
         reshaped_logit = text_logit.view(1, -1)
         #reshaped_labels = text_labels.view(1, -1)
-        print('text logits: ',
-              tokenizer.batch_decode(reshaped_logit, skip_special_tokens=True, clean_up_tokenization_spaces=False))
+
+        #print('text logits: ',
+        #      tokenizer.batch_decode(reshaped_logit, skip_special_tokens=True, clean_up_tokenization_spaces=False))
         #print('text lables: ',
         #      tokenizer.batch_decode(reshaped_labels, skip_special_tokens=True, clean_up_tokenization_spaces=False))
 
