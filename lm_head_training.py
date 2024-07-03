@@ -179,6 +179,7 @@ if __name__ == '__main__':
     )
     progress_bar = tqdm(range(num_training_steps))
 
+    opt_ppl = np.inf
     models[-1].train()
     for epoch in range(num_epochs):
         nlls = []
@@ -219,23 +220,17 @@ if __name__ == '__main__':
 
         # Compute perplexity
         ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
+        if ppl.item() < opt_ppl:
+            opt_ppl = ppl.item()
+            torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.2.pth')
+
         print('ppl: ', ppl.item())
         # Empty CUDA cache to save memory
 
-    '''model_linear = LlamaForCausalLM_linear(config)
-    print('model linear: ')
-    for name, param in model_linear.named_parameters():
-        if param.requires_grad:
-            print(name, param.data)'''
-
-    print('model lm head: ')
-    for name, param in models[-1].named_parameters():
-        if param.requires_grad:
-            print(name, param.data)
 
 
 
-    #torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.2.pth')
+
 
 
 
