@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import sys
 # Import get_loaders function from data module within the same directory
 from data import get_loaders
-from early_exit import early_exit_cuda_ppl_test
+from early_exit import early_exit_cuda_ppl_test, early_exit_lm_cuda_ppl_test
 
 def eval_ppl(model, tokenizer, device=torch.device("cuda:0")):
     allow_cuda = False
@@ -65,6 +65,31 @@ def eval_ppl_sep_hf(models, tokenizer, device=torch.device("cuda:0")):
             print('i: ', i)
             print('ppl: ', ppl)
     return ppl
+
+def eval_lm_head_ppl_sep_hf(models, lm_models, tokenizer, device=torch.device("cuda:0")):
+    seqlen = 1024
+    # Set dataset
+    dataset = "wikitext2_hf"
+
+    # Print status
+    print(f"evaluating on {dataset}")
+
+    # Get the test loader
+    _, testloader = get_loaders(
+        dataset, seed=0, seqlen=seqlen, tokenizer=tokenizer
+    )
+
+    # Evaluate ppl in no grad context to avoid updating the model
+    with torch.no_grad():
+        '''for head_idx in range (1, 33):
+            ppl = eval_ppl_wikitext_sep_hf(models, testloader, tokenizer, head_idx, 1, device)
+            print('i: ', i)
+            print('ppl: ', ppl)'''
+        head_idx = 2
+        ppl = eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testloader, tokenizer, head_idx, 1, device)
+        print('ppl: ', ppl)
+    return ppl
+
 
 # Function to evaluate perplexity (ppl) specifically on the wikitext dataset
 def eval_ppl_wikitext(model, testenc, bs=1, device=None):
@@ -249,6 +274,123 @@ def eval_ppl_wikitext_sep_hf(models, testenc, tokenizer, splitting_point, bs=1, 
 
                         zeros_row = torch.zeros((1, 1, 1, mask.size(3))).to(device)
                         mask = torch.cat((mask[:, :, :l, :], zeros_row, mask[:, :, l:, :]), dim=2)'''
+
+            end_time = time.time()
+            #print(k, end_time - start_time)
+            #print('out: ', out)
+
+        # recover data from the early exit
+        '''for (idx, data) in zip(pruned_data_idx_list, pruned_data_list):
+            out.last_hidden_state[0][idx] = data'''
+
+
+        start_time = time.time()
+        lm_logits = models[33](out.last_hidden_state)
+        end_time = time.time()
+        #print('33: ', end_time - start_time)
+        #print('logit 33: ', lm_logits)
+
+        start_time = time.time()
+        lm_logits = models[34](lm_logits)
+        end_time = time.time()
+        #print('34: ', end_time - start_time)
+        #print('logits: ', lm_logits)
+        # Shift logits and labels for next token prediction
+        shift_logits = lm_logits[:, :-1, :].contiguous()
+        shift_labels = inputs[:, 1:]
+
+        #print('generated output: ', lm_logits)
+        print('shift logits: ', shift_logits)
+        print('shift lables: ', shift_labels)
+
+
+        # Compute loss
+        loss_fct = nn.CrossEntropyLoss()
+        loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
+
+        text_logit = F.softmax(shift_logits.reshape(-1, shift_logits.size(-1))).argmax(dim=-1)
+        #text_labels = F.softmax(shift_labels.reshape(-1, shift_labels.size(-1))).argmax(dim=-1)
+        reshaped_logit = text_logit.view(1, -1)
+        #reshaped_labels = text_labels.view(1, -1)
+        print('text logits: ',
+              tokenizer.batch_decode(reshaped_logit, skip_special_tokens=True, clean_up_tokenization_spaces=False))
+        #print('text lables: ',
+        #      tokenizer.batch_decode(reshaped_labels, skip_special_tokens=True, clean_up_tokenization_spaces=False))
+
+        # Calculate negative log likelihood
+        neg_log_likelihood = loss.float() * seqlen * (j - i)
+
+
+        # Append to list of negative log likelihoods
+        nlls.append(neg_log_likelihood)
+
+
+        sys.stdout.flush()
+
+    print('begin calcualte ppl')
+    # Compute perplexity
+    ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
+    # Empty CUDA cache to save memory
+    torch.cuda.empty_cache()
+
+    return ppl.item()
+
+
+def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, splitting_point, bs=1, device=None):
+    seqlen = 1024
+    # Get input IDs
+    testenc = testenc.input_ids
+
+    # Calculate number of samples
+    nsamples = testenc.numel() // seqlen
+
+    nsamples = 3
+    # List to store negative log likelihoods
+    nlls = []
+    print(f"nsamples {nsamples}")
+    # Loop through each batch
+    for i in range(0, nsamples, bs):
+        if i % 50 == 0:
+            print(f"sample {i}")
+
+        # Calculate end index
+        j = min(i + bs, nsamples)
+
+
+        # Prepare inputs and move to device
+        inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
+        #print('input: ', inputs)
+        inputs = inputs.reshape(j - i, seqlen)
+        print(tokenizer.batch_decode(inputs, skip_special_tokens=True, clean_up_tokenization_spaces=False))
+        #print('inputs: ', inputs)
+        #print('inputs: ', inputs.shape)
+
+        start_time = time.time()
+        # Forward pass through the model
+        out, ids, mask = models[0](inputs)
+        end_time = time.time()
+        #print('0: ', end_time - start_time)
+        #print('out: ', out)
+        for k in range (1, len(models) - 2):
+            start_time = time.time()
+            out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+            #print('mask: ', mask)
+            if k == splitting_point:
+                out, ids, mask, pruned_data_idx_list, pruned_data_list = early_exit_lm_cuda_ppl_test(models, lm_models, out, ids, mask)
+
+                for l in range(0, 1024):
+                    if len(ids[0]) <= l or ids[0][l].item() != l:
+                        zeros_row = torch.zeros((1, 1, out.last_hidden_state.size(2))).to(device)
+                        out.last_hidden_state = torch.cat(
+                            (out.last_hidden_state[:, :l, :], zeros_row, out.last_hidden_state[:, l:, :]), dim=1)
+                        # out.last_hidden_state = torch.cat((zeros_row, out.last_hidden_state), dim=1)
+
+                        zeros_tensor = torch.tensor([[l]]).to(device)
+                        ids = torch.cat((ids[:, :l], zeros_tensor, ids[:, l:]), dim=1)
+                        # ids = torch.cat((zeros_tensor, ids), dim=1)
+
+                        zeros_row = torch.zeros((1, 1, 1, mask.size(3))).to(device)
+                        mask = torch.cat((mask[:, :, :l, :], zeros_row, mask[:, :, l:, :]), dim=2)
 
             end_time = time.time()
             #print(k, end_time - start_time)
