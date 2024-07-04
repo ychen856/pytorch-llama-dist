@@ -95,18 +95,18 @@ if __name__ == '__main__':
     model2.cuda()
     print('model2: ', model2)'''
 
-    '''print(torch.cuda.memory_allocated())
+    print(torch.cuda.memory_allocated())
     for name, param in model2.named_parameters():
         if param.requires_grad:
-            print(name, param.data)'''
+            print(name, param.data)
 
     print("loading success")
 
     '''ppl = eval_ppl_hf(model, tokenizer, device)
     print(f"ppl on wikitext {ppl}")'''
 
-    ppl = eval_ppl_hf(model2, tokenizer, device)
-    print(f"ppl on wikitext {ppl}")
+    #ppl = eval_ppl_hf(model2, tokenizer, device)
+    #print(f"ppl on wikitext {ppl}")
 
     model_embbding = LlamaForCausalLM_emb(config)
     model_embbding.model.embed_tokens = model2.model.embed_tokens
