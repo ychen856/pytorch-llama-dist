@@ -258,8 +258,8 @@ def eval_ppl_wikitext_sep_hf(models, testenc, tokenizer, splitting_point, bs=1, 
         for k in range (1, len(models) - 2):
             start_time = time.time()
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-            '''print('mask: ', mask)
             if k == splitting_point:
+                break
                 out, ids, mask, pruned_data_idx_list, pruned_data_list = early_exit_cuda_ppl_test(models, out, ids, mask)
 
                 for l in range(0, 1024):
@@ -274,7 +274,7 @@ def eval_ppl_wikitext_sep_hf(models, testenc, tokenizer, splitting_point, bs=1, 
                         # ids = torch.cat((zeros_tensor, ids), dim=1)
 
                         #zeros_row = torch.zeros((1, 1, 1, mask.size(3))).to(device)
-                        #mask = torch.cat((mask[:, :, :l, :], zeros_row, mask[:, :, l:, :]), dim=2)'''
+                        #mask = torch.cat((mask[:, :, :l, :], zeros_row, mask[:, :, l:, :]), dim=2)
 
             end_time = time.time()
             #print(k, end_time - start_time)
@@ -286,13 +286,15 @@ def eval_ppl_wikitext_sep_hf(models, testenc, tokenizer, splitting_point, bs=1, 
 
 
         start_time = time.time()
-        lm_logits = models[33](out.last_hidden_state)
+        #lm_logits = models[33](out.last_hidden_state)
+        lm_logits = models[-1](out.last_hidden_state)
         end_time = time.time()
         #print('33: ', end_time - start_time)
         #print('logit 33: ', lm_logits)
 
         start_time = time.time()
-        lm_logits = models[34](lm_logits)
+        #lm_logits = models[34](lm_logits)
+        lm_logits = models[-1](lm_logits)
         print('logit size: ', lm_logits)
         end_time = time.time()
         #print('34: ', end_time - start_time)
@@ -314,8 +316,8 @@ def eval_ppl_wikitext_sep_hf(models, testenc, tokenizer, splitting_point, bs=1, 
         #text_labels = F.softmax(shift_labels.reshape(-1, shift_labels.size(-1))).argmax(dim=-1)
         reshaped_logit = text_logit.view(1, -1)
         #reshaped_labels = text_labels.view(1, -1)
-        print('text logits: ',
-              tokenizer.batch_decode(reshaped_logit, skip_special_tokens=True, clean_up_tokenization_spaces=False))
+        #print('text logits: ',
+        #      tokenizer.batch_decode(reshaped_logit, skip_special_tokens=True, clean_up_tokenization_spaces=False))
         #print('text lables: ',
         #      tokenizer.batch_decode(reshaped_labels, skip_special_tokens=True, clean_up_tokenization_spaces=False))
 

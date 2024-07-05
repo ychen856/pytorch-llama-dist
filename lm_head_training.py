@@ -228,7 +228,7 @@ if __name__ == '__main__':
         print('ppl: ', ppl.item())
         # Empty CUDA cache to save memory
 
-    ppl = eval_lm_head_ppl_sep_hf(models, tokenizer, device)
+    ppl = eval_ppl_sep_hf(models, tokenizer, device)
     print('eval ppl: ', ppl.itme())
 
 
