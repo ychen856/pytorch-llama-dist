@@ -211,6 +211,7 @@ def early_exit_lm_cuda_ppl_test(models, lm_models, out, ids, mask):
 
     logits_norm = models[-2](out.last_hidden_state.detach())
     logits_linear = lm_models[0](logits_norm.detach())
+    print('logit size: ', logits_linear.shape)
     probs = torch.softmax(logits_linear / temperature, dim=-1)
     probs_sort, probs_idx = torch.sort(probs, dim=-1, descending=True)
 

@@ -24,6 +24,7 @@ from transformers import get_scheduler
 from tqdm.auto import tqdm
 import sys
 
+from eval import eval_ppl_sep_hf
 from eval_sep_hf import get_eval_data
 from layerwrapper import WrappedGPT
 from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
@@ -226,6 +227,9 @@ if __name__ == '__main__':
 
         print('ppl: ', ppl.item())
         # Empty CUDA cache to save memory
+
+    ppl = eval_ppl_sep_hf(models, tokenizer, device)
+    print('eval ppl: ', ppl.itme())
 
 
 

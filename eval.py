@@ -60,10 +60,11 @@ def eval_ppl_sep_hf(models, tokenizer, device=torch.device("cuda:0")):
 
     # Evaluate ppl in no grad context to avoid updating the model
     with torch.no_grad():
-        for i in range (1, 33):
+        ppl = eval_ppl_wikitext_sep_hf(models, testloader, tokenizer, 2, 1, device)
+        '''for i in range (1, 33):
             ppl = eval_ppl_wikitext_sep_hf(models, testloader, tokenizer, i, 1, device)
             print('i: ', i)
-            print('ppl: ', ppl)
+            print('ppl: ', ppl)'''
     return ppl
 
 def eval_lm_head_ppl_sep_hf(models, lm_models, tokenizer, device=torch.device("cuda:0")):
@@ -257,7 +258,7 @@ def eval_ppl_wikitext_sep_hf(models, testenc, tokenizer, splitting_point, bs=1, 
         for k in range (1, len(models) - 2):
             start_time = time.time()
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-            print('mask: ', mask)
+            '''print('mask: ', mask)
             if k == splitting_point:
                 out, ids, mask, pruned_data_idx_list, pruned_data_list = early_exit_cuda_ppl_test(models, out, ids, mask)
 
@@ -273,7 +274,7 @@ def eval_ppl_wikitext_sep_hf(models, testenc, tokenizer, splitting_point, bs=1, 
                         # ids = torch.cat((zeros_tensor, ids), dim=1)
 
                         #zeros_row = torch.zeros((1, 1, 1, mask.size(3))).to(device)
-                        #mask = torch.cat((mask[:, :, :l, :], zeros_row, mask[:, :, l:, :]), dim=2)
+                        #mask = torch.cat((mask[:, :, :l, :], zeros_row, mask[:, :, l:, :]), dim=2)'''
 
             end_time = time.time()
             #print(k, end_time - start_time)
@@ -292,6 +293,7 @@ def eval_ppl_wikitext_sep_hf(models, testenc, tokenizer, splitting_point, bs=1, 
 
         start_time = time.time()
         lm_logits = models[34](lm_logits)
+        print('logit size: ', lm_logits)
         end_time = time.time()
         #print('34: ', end_time - start_time)
         #print('logits: ', lm_logits)
