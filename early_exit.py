@@ -104,7 +104,7 @@ def early_exit_cuda(models, out, ids, mask):
             ids = torch.cat((ids[:, :i - idx_diff], ids[:, i - idx_diff + 1:]), dim=1)
             out.last_hidden_state = torch.cat(
                 (out.last_hidden_state[:, :i - idx_diff, :], out.last_hidden_state[:, i - idx_diff + 1:, :]), dim=1)
-            mask = torch.cat((mask[:, :, :i - idx_diff, :], mask[:, :, i - idx_diff + 1:, :]), dim=2)
+            #mask = torch.cat((mask[:, :, :i - idx_diff, :], mask[:, :, i - idx_diff + 1:, :]), dim=2)
 
             idx_diff = idx_diff + 1
 
@@ -171,7 +171,7 @@ def early_exit_cuda_ppl_test(models, out, ids, mask):
             ids = torch.cat((ids[:, :i - idx_diff], ids[:, i - idx_diff + 1:]), dim=1)
             out.last_hidden_state = torch.cat(
                     (out.last_hidden_state[:, :i - idx_diff, :], out.last_hidden_state[:, i - idx_diff + 1:, :]), dim=1)
-            mask = torch.cat((mask[:, :, :i - idx_diff, :], mask[:, :, i - idx_diff + 1:, :]), dim=2)
+            #mask = torch.cat((mask[:, :, :i - idx_diff, :], mask[:, :, i - idx_diff + 1:, :]), dim=2)
 
             idx_diff = idx_diff + 1
 
@@ -236,7 +236,7 @@ def early_exit_lm_cuda_ppl_test(models, lm_models, out, ids, mask):
             ids = torch.cat((ids[:, :i - idx_diff], ids[:, i - idx_diff + 1:]), dim=1)
             out.last_hidden_state = torch.cat(
                     (out.last_hidden_state[:, :i - idx_diff, :], out.last_hidden_state[:, i - idx_diff + 1:, :]), dim=1)
-            mask = torch.cat((mask[:, :, :i - idx_diff, :], mask[:, :, i - idx_diff + 1:, :]), dim=2)
+            #mask = torch.cat((mask[:, :, :i - idx_diff, :], mask[:, :, i - idx_diff + 1:, :]), dim=2)
 
             idx_diff = idx_diff + 1
 
