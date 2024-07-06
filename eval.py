@@ -245,7 +245,7 @@ def eval_ppl_wikitext_sep_hf(models, testenc, tokenizer, splitting_point, bs=1, 
         inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
         #print('input: ', inputs)
         inputs = inputs.reshape(j - i, seqlen)
-        print(tokenizer.batch_decode(inputs, skip_special_tokens=True, clean_up_tokenization_spaces=False))
+        #print(tokenizer.batch_decode(inputs, skip_special_tokens=True, clean_up_tokenization_spaces=False))
         #print('inputs: ', inputs)
         #print('inputs: ', inputs.shape)
 
