@@ -286,7 +286,7 @@ def task2_computation(models, test_loader, bs, start_idx, end_idx, end_idx_buff,
             #if outgoing_queue.empty():  # if server idle
             print('I count: ', calculate_opt.incoming_count)
             print('O count: ', calculate_opt.outgoint_count)
-            if calculate_opt.incoming_count >= calculate_opt.outgoint_count and outgoing_queue <= 5:
+            if calculate_opt.incoming_count >= calculate_opt.outgoint_count and outgoing_queue.qsize() <= 5:
                 outgoing_queue.put([1, out, ids, mask])
                 end_time = time.time()
                 print('client computation time: ', end_time - start_time)
