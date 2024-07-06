@@ -168,11 +168,10 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
     checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))'''
 
     print('deivce: ', device)
-    if device == " cuda":
+    if device.type == 'cuda':
         print('hihihihi')
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
     if torch.cuda.is_available():
-        print('fjaoijfdioajofaj')
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
 
     else:
