@@ -172,6 +172,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
         print('hihihihi')
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
     else:
+        print('??????')
         torch.set_default_tensor_type(torch.BFloat16Tensor)
 
     models = []
