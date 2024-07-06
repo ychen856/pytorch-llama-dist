@@ -144,7 +144,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
     print('config: ', config)
 
     checkpoint_list = []
-    checkpoints = sorted(Path(checkpoints_dir).glob("*.pth"))
+    checkpoints = sorted(Path(checkpoints_dir).glob("consolidated.*.pth"))
     assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
 
     checkpoint_idx = 0
@@ -227,9 +227,10 @@ def task1_data_sending(args):
         timeout_count = 0
         while outgoing_queue.empty():
             timeout_count = timeout_count + 1
-            if not input_queue.empty():  # if server idle
+            '''if not input_queue.empty() and calculate_opt.incoming_count >= calculate_opt.outgoint_count:  # if server idle
+
                 outgoing_queue.put([0, input_queue.get(), None, None])
-                print('server idle!')
+                print('server idle 0w0!')'''
 
             if timeout_count > 12000:
                 print('task 1 end...')
@@ -246,6 +247,7 @@ def task1_data_sending(args):
 
         data = outgoing_queue.get()
         #print('data: ', data)
+        calculate_opt.outgoint_count = calculate_opt.incoming_count + 1
         http_sender.send_data(args.server_ip, args.server_port, data, calculate_opt)
         #get_server_statistic_from_q()
 def task2_computation(models, test_loader, bs, start_idx, end_idx, end_idx_buff, max_layers, device):
@@ -257,9 +259,12 @@ def task2_computation(models, test_loader, bs, start_idx, end_idx, end_idx_buff,
     # Loop through each batch
     cycle_count = 0
     input_count = 0
+    count = 0
     while not input_queue.empty():
+        count = count + 1
         cycle_count = cycle_count + 1
         print('========================================')
+        print('input count: ', count)
         print('end idx: ', end_idx)
         print('end idx buffer: ', end_idx_buff)
 
@@ -279,10 +284,17 @@ def task2_computation(models, test_loader, bs, start_idx, end_idx, end_idx_buff,
                 print(e)
                 trash_data = True
 
-            '''if outgoing_queue.empty():  # if server idle
+            #if outgoing_queue.empty():  # if server idle
+            print('I count: ', calculate_opt.incoming_count)
+            print('O count: ', calculate_opt.outgoint_count)
+            if calculate_opt.incoming_count >= calculate_opt.outgoint_count:
                 outgoing_queue.put([1, out, ids, mask])
+                end_time = time.time()
+                print('client computation time: ', end_time - start_time)
+                calculate_opt.client_comp_statistics = (0, end_idx_buff, end_time - start_time)
+                #input_count = input_count + 1
                 print('server idle!')
-                continue'''
+                continue
 
 
             end_time_sub = time.time()
@@ -329,14 +341,14 @@ def task2_computation(models, test_loader, bs, start_idx, end_idx, end_idx_buff,
 
         print('trash data: ', trash_data)
         if not trash_data:
-            if not is_oom:
+            '''if not is_oom:
                 try:
                     out, ids, mask = early_exit_cuda(models, out, ids, mask)
                 except Exception as e:
                     print('early exit oom!!!')
                     is_oom = True
 
-                    print('3: ', end_idx)
+                    print('3: ', end_idx)'''
 
             '''print('ids: ', ids)
             print('out: ', out.last_hidden_state)
@@ -505,7 +517,7 @@ if __name__ == '__main__':
 
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
-    nsamples = 50
+    #nsamples = 11
     # List to store negative log likelihoods
     nlls = []
     print(f"nsamples {nsamples}")
