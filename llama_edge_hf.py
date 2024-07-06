@@ -92,8 +92,8 @@ def layer_reallocation(type, start_idx, end_idx_buff, models):
                     models[34].to(device)
                 else:
                     # for early exit adjustment
-                    models = models[:i] + [LlamaForCausalLM_layer_0(config)] + models[i:]
-                    #models.append(LlamaForCausalLM_layer_0(config))
+                    #models = models[:i] + [LlamaForCausalLM_layer_0(config)] + models[i:]
+                    models.append(LlamaForCausalLM_layer_0(config))
                     models[i].load_state_dict(checkpoint_list[i - start_idx], strict=True)
 
                     models[i].to(device)
@@ -104,8 +104,8 @@ def layer_reallocation(type, start_idx, end_idx_buff, models):
     if type == 2: # drop layers
         print('decrease buffer')
         # for early exit adjustment
-        models = models[:-3] + models[-2:]
-        #models = models[:-1]
+        #models = models[:-3] + models[-2:]
+        models = models[:-1]
         end_idx_buff = end_idx_buff - 1
     if type == 3:   #pruning
         prune_wanda_allocation(args, models, tokenizer, device=torch.device("cuda:0"))
@@ -194,7 +194,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
             models[i].to(device)
 
-    # for early exit
+    '''# for early exit
     models.append((LlamaForCausalLM_norm(config)))
     models[end_idx + 1].load_state_dict(checkpoint_list[-2], strict=True)
     #models[end_idx + 1].cpu()
@@ -203,7 +203,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
     models.append((LlamaForCausalLM_linear(config)))
     models[end_idx + 2].load_state_dict(checkpoint_list[-1], strict=True)
     #models[end_idx + 2].cpu()
-    models[end_idx + 2].to(device)
+    models[end_idx + 2].to(device)'''
 
     '''for i in range(0, len(models)):
         model = models[i]
