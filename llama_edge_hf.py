@@ -223,7 +223,6 @@ def get_server_statistic_from_q():
 
 def task1_data_sending(args):
     while 1:
-        print('yyy')
         timeout_count = 0
         while outgoing_queue.empty():
             timeout_count = timeout_count + 1
@@ -287,7 +286,7 @@ def task2_computation(models, test_loader, bs, start_idx, end_idx, end_idx_buff,
             #if outgoing_queue.empty():  # if server idle
             print('I count: ', calculate_opt.incoming_count)
             print('O count: ', calculate_opt.outgoint_count)
-            if calculate_opt.incoming_count >= calculate_opt.outgoint_count:
+            if calculate_opt.incoming_count >= calculate_opt.outgoint_count and outgoing_queue <= 5:
                 outgoing_queue.put([1, out, ids, mask])
                 end_time = time.time()
                 print('client computation time: ', end_time - start_time)
@@ -388,7 +387,8 @@ def task2_computation(models, test_loader, bs, start_idx, end_idx, end_idx_buff,
             calculate_opt.max_end_idx = end_idx
             end_idx = end_idx + 1
 
-        if (input_count + 1) % 10 == 0:
+        #if (input_count + 1) % 10 == 0:
+        if len(calculate_opt.server_comp_statistics) >= 10:
             '''while not http_sender.returning_queue.empty():
                 [server_start_idx, server_comp_time, rtt] = http_sender.returning_queue.get()
                 calculate_opt.server_comp_statistics = (server_start_idx, server_comp_time)
