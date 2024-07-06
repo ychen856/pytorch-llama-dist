@@ -153,7 +153,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
     print('config: ', config)
 
     checkpoint_list = []
-    checkpoints = sorted(Path(checkpoints_dir).glob("*.pth"))
+    checkpoints = sorted(Path(checkpoints_dir).glob("consolidated.*.pth"))
     assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
 
     checkpoint_idx = 0
@@ -166,7 +166,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
         if checkpoint_idx > end_idx:
             break
 
-    if device == 'cuda':
+    if device.type == 'cuda':
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
     else:
         torch.set_default_tensor_type(torch.BFloat16Tensor)
@@ -193,17 +193,6 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
         else:
             models.append(LlamaForCausalLM_layer_0(config))
             models[i].load_state_dict(checkpoint_list[i], strict=True)
-            '''models[i].model.layers.self_attn.q_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.q_proj.weight'])
-            models[i].model.layers.self_attn.k_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.k_proj.weight'])
-            models[i].model.layers.self_attn.v_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.v_proj.weight'])
-            models[i].model.layers.self_attn.o_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.self_attn.o_proj.weight'])
-
-            models[i].model.layers.mlp.gate_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.mlp.gate_proj.weight'])
-            models[i].model.layers.mlp.up_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.mlp.up_proj.weight'])
-            models[i].model.layers.mlp.down_proj.weight = nn.Parameter(checkpoint_list[i]['model.layers.mlp.down_proj.weight'])
-
-            models[i].model.layers.input_layernorm.weight = nn.Parameter(checkpoint_list[i]['model.layers.input_layernorm.weight'])
-            models[i].model.layers.post_attention_layernorm.weight = nn.Parameter(checkpoint_list[i]['model.layers.post_attention_layernorm.weight'])'''
 
             models[i].to(device)
 
