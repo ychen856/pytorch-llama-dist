@@ -157,7 +157,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
         if checkpoint_idx > end_idx:
             break
 
-    #for early exit
+    '''#for early exit
     ckpt_path = checkpoints[-2]
     print(f'Loading checkpoint "{ckpt_path}"')
     checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
@@ -165,7 +165,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
     #for early exit
     ckpt_path = checkpoints[-1]
     print(f'Loading checkpoint "{ckpt_path}"')
-    checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
+    checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))'''
 
     if device == "cuda":
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
