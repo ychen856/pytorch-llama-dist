@@ -83,7 +83,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
         if checkpoint_idx > end_idx:
             break
 
-    if device == "cuda":
+    if device.type == 'cuda':
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
     else:
         torch.set_default_tensor_type(torch.BFloat16Tensor)

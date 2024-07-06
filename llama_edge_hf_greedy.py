@@ -66,7 +66,7 @@ def layer_reallocation(type, start_idx, end_idx_buff, models):
         start_idx = end_idx_buff + 1
         end_idx_buff = end_idx_buff + 3
 
-        if device == "cuda":
+        if device.type == 'cuda':
             torch.set_default_tensor_type(torch.cuda.HalfTensor)
         else:
             torch.set_default_tensor_type(torch.BFloat16Tensor)
@@ -152,7 +152,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
         if checkpoint_idx > end_idx:
             break
 
-    if device == "cuda":
+    if device.type == 'cuda':
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
     else:
         torch.set_default_tensor_type(torch.BFloat16Tensor)

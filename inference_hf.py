@@ -76,7 +76,7 @@ def get_llm2(checkpoints_dir, start_idx, end_idx, device, cache_dir="llm_weights
     prev_time = time.time()
 
 
-    if device == "cuda":
+    if device.type == 'cuda':
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
     else:
         torch.set_default_tensor_type(torch.BFloat16Tensor)
@@ -166,7 +166,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
         if checkpoint_idx > end_idx:
             break
 
-    if device == "cuda":
+    if device.type == 'cuda':
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
     else:
         torch.set_default_tensor_type(torch.BFloat16Tensor)
@@ -233,7 +233,7 @@ def load_model2(checkpoints_dir, start_idx, end_idx, device):
         checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
 
 
-    if device == "cuda":
+    if device.type == 'cuda':
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
     else:
         torch.set_default_tensor_type(torch.BFloat16Tensor)
