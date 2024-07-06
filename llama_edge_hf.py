@@ -267,7 +267,8 @@ def task2_computation(models, test_loader, bs, start_idx, end_idx, end_idx_buff,
         print('end idx: ', end_idx)
         print('end idx buffer: ', end_idx_buff)
 
-        inputs = input_queue.get()
+        input = input_queue.get()
+        input.to(device)
         if input_count % 50 == 0:
             print(f"sample {input_count}")
 
@@ -278,7 +279,7 @@ def task2_computation(models, test_loader, bs, start_idx, end_idx, end_idx_buff,
             start_time_sub = time.time()
             # Forward pass through the model
             try:
-                out, ids, mask = models[0](inputs)
+                out, ids, mask = models[0](input)
             except Exception as e:
                 print(e)
                 trash_data = True
@@ -531,6 +532,7 @@ if __name__ == '__main__':
 
 
         # Prepare inputs and move to device
+        #inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
         inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
         inputs = inputs.reshape(j - i, seqlen)
 
