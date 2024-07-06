@@ -381,10 +381,10 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
             #print('mask: ', mask)
             if k == splitting_point:
                 #out, ids, mask, pruned_data_idx_list, pruned_data_list = early_exit_lm_cuda_ppl_test(models, lm_models, out, ids, mask)
-                early_count, lm_logits = early_exit_lm_cuda_ppl_test(models, lm_models, out, ids, mask)
-                if early_count / 1024 > 0.9:
-                    is_early = True
-                    break
+                #early_count, lm_logits = early_exit_lm_cuda_ppl_test(models, lm_models, out, ids, mask)
+                #if early_count / 1024 > 0.9:
+                    #is_early = True
+                    #break
                 '''for l in range(0, 1024):
                     if len(ids[0]) <= l or ids[0][l].item() != l:
                         zeros_row = torch.zeros((1, 1, out.last_hidden_state.size(2))).to(device)
