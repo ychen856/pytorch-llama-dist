@@ -230,17 +230,19 @@ def early_exit_lm_cuda_ppl_test(models, lm_models, out, ids, mask):
 
     for i in range(0, len(probs)):
         if torch.max(probs_sort[i]).item() >= threshold:
+            probs_sum = probs_sum + torch.max(probs_sort[i]).item()
             early_count = early_count + 1
-            pruned_data_list.append(out.last_hidden_state[0][i - idx_diff])
+            '''pruned_data_list.append(out.last_hidden_state[0][i - idx_diff])
             pruned_data_idx_list.append(i - idx_diff)
 
             ids = torch.cat((ids[:, :i - idx_diff], ids[:, i - idx_diff + 1:]), dim=1)
             out.last_hidden_state = torch.cat(
                     (out.last_hidden_state[:, :i - idx_diff, :], out.last_hidden_state[:, i - idx_diff + 1:, :]), dim=1)
-            #mask = torch.cat((mask[:, :, :i - idx_diff, :], mask[:, :, i - idx_diff + 1:, :]), dim=2)
+            mask = torch.cat((mask[:, :, :i - idx_diff, :], mask[:, :, i - idx_diff + 1:, :]), dim=2)
 
-            idx_diff = idx_diff + 1
+            idx_diff = idx_diff + 1'''
 
+    print('avg prob: ', probs_sum / 1024)
     print('early count: ', early_count)
     print('# rows droped: ', idx_diff)
 
@@ -266,4 +268,5 @@ def early_exit_lm_cuda_ppl_test(models, lm_models, out, ids, mask):
         print()
         print(torch.max(probs_sort).item())'''
 
-    return out, ids, mask, pruned_data_idx_list, pruned_data_list
+    #return out, ids, mask, pruned_data_idx_list, pruned_data_list
+    return early_count, logits_linear

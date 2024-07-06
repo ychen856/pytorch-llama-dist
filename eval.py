@@ -372,16 +372,20 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
         end_time = time.time()
         #print('0: ', end_time - start_time)
         #print('out: ', out)
+        is_early = False
         for k in range (1, len(models) - 2):
+            is_early = False
             print('Processing layer: ', k)
             start_time = time.time()
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
             #print('mask: ', mask)
             if k == splitting_point:
-                break
-                out, ids, mask, pruned_data_idx_list, pruned_data_list = early_exit_lm_cuda_ppl_test(models, lm_models, out, ids, mask)
-
-                for l in range(0, 1024):
+                #out, ids, mask, pruned_data_idx_list, pruned_data_list = early_exit_lm_cuda_ppl_test(models, lm_models, out, ids, mask)
+                early_count, lm_logits = early_exit_lm_cuda_ppl_test(models, lm_models, out, ids, mask)
+                if early_count / 1024 > 0.9:
+                    is_early = True
+                    break
+                '''for l in range(0, 1024):
                     if len(ids[0]) <= l or ids[0][l].item() != l:
                         zeros_row = torch.zeros((1, 1, out.last_hidden_state.size(2))).to(device)
                         out.last_hidden_state = torch.cat(
@@ -390,10 +394,9 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
 
                         zeros_tensor = torch.tensor([[l]]).to(device)
                         ids = torch.cat((ids[:, :l], zeros_tensor, ids[:, l:]), dim=1)
-                        # ids = torch.cat((zeros_tensor, ids), dim=1)
 
-                        #zeros_row = torch.zeros((1, 1, 1, mask.size(3))).to(device)
-                        #mask = torch.cat((mask[:, :, :l, :], zeros_row, mask[:, :, l:, :]), dim=2)
+                        zeros_row = torch.zeros((1, 1, 1, mask.size(3))).to(device)
+                        mask = torch.cat((mask[:, :, :l, :], zeros_row, mask[:, :, l:, :]), dim=2)'''
 
             end_time = time.time()
             #print(k, end_time - start_time)
@@ -403,21 +406,20 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
         '''for (idx, data) in zip(pruned_data_idx_list, pruned_data_list):
             out.last_hidden_state[0][idx] = data'''
 
+        if not is_early:
 
-        start_time = time.time()
-        lm_logits = models[-2](out.last_hidden_state)
+            start_time = time.time()
+            lm_logits = models[-2](out.last_hidden_state)
+            #lm_logits = models[33](out.last_hidden_state)
+            end_time = time.time()
+            #print('33: ', end_time - start_time)
 
-        #lm_logits = models[33](out.last_hidden_state)
-        end_time = time.time()
-        #print('33: ', end_time - start_time)
-        #print('logit 33: ', lm_logits)
+            start_time = time.time()
+            lm_logits = models[-1](lm_logits)
+            end_time = time.time()
+            #print('34: ', end_time - start_time)
 
-        start_time = time.time()
-        lm_logits = lm_models[0](lm_logits)
-        #lm_logits = models[34](lm_logits)
-        end_time = time.time()
-        #print('34: ', end_time - start_time)
-        #print('logits: ', lm_logits)
+
         # Shift logits and labels for next token prediction
         shift_logits = lm_logits[:, :-1, :].contiguous()
         shift_labels = inputs[:, 1:]
