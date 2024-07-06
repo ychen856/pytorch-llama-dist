@@ -152,7 +152,7 @@ if __name__ == '__main__':
 
 
 
-    '''print("loading success")
+    print("loading success")
     test_loader = get_eval_data(tokenizer)
     bs = 1
 
@@ -223,7 +223,7 @@ if __name__ == '__main__':
             torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.2.pth')
 
         print('ppl: ', ppl.item())
-        # Empty CUDA cache to save memory'''
+        # Empty CUDA cache to save memory
 
     ppl = eval_ppl_sep_hf(models, tokenizer, device)
     print('eval ppl: ', ppl.itme())
