@@ -303,7 +303,8 @@ def task2_computation(models, test_loader, bs, start_idx, end_idx, end_idx_buff,
             for k in range(1, end_idx):
                 start_time_sub = time.time()
                 #print('start time: ', start_time_sub)
-                try:
+                out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+                '''try:
                     out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
                 except Exception as e:
                     print('oom!!!')
@@ -314,7 +315,7 @@ def task2_computation(models, test_loader, bs, start_idx, end_idx, end_idx_buff,
                     print('2: ', end_idx)
                     break
 
-                end_time_sub = time.time()
+                end_time_sub = time.time()'''
                 #print('end time: ', end_time_sub)
                 #print(k, end_time_sub - start_time_sub)
 
