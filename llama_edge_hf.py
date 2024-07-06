@@ -167,6 +167,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
     print(f'Loading checkpoint "{ckpt_path}"')
     checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))'''
 
+    print('deivce: ', device)
     if device == "cuda":
         print('hihihihi')
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
