@@ -287,7 +287,7 @@ def eval_ppl_wikitext_sep_hf(models, testenc, tokenizer, splitting_point, bs=1, 
 
         start_time = time.time()
         #lm_logits = models[33](out.last_hidden_state)
-        lm_logits = models[-1](out.last_hidden_state)
+        lm_logits = models[-2](out.last_hidden_state)
         end_time = time.time()
         #print('33: ', end_time - start_time)
         #print('logit 33: ', lm_logits)

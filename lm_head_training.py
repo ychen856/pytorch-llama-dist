@@ -170,7 +170,7 @@ if __name__ == '__main__':
 
     optimizer = AdamW(models[-1].parameters(), lr=5e-5)
 
-    num_epochs = 20
+    num_epochs = 3
     num_training_steps = num_epochs * nsamples
     lr_scheduler = get_scheduler(
         name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps
