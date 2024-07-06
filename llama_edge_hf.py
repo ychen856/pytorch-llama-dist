@@ -494,10 +494,10 @@ if __name__ == '__main__':
     print('config type: ', args.config)
     torch.manual_seed(0)
 
-    max_layers = 18
+    max_layers = args.max_layers
 
-    start_idx = 0
-    end_idx_buff = 7
+    start_idx = args.start_idx
+    end_idx_buff = args.end_idx_buff
     #allow_cuda = False
     #device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
     device = torch.device("cuda")
@@ -537,7 +537,7 @@ if __name__ == '__main__':
         input_queue.put(inputs)
 
     start_idx = 0
-    end_idx = 5
+    end_idx = args.end_idx
     # Create and start threads
     thread1 = threading.Thread(target=task1_data_sending, args=[args])
     thread2 = threading.Thread(target=task2_computation, args=[models, test_loader, bs, start_idx, end_idx, end_idx_buff, max_layers, device])
