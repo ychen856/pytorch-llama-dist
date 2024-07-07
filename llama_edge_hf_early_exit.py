@@ -248,7 +248,6 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, max_l
         print('end idx buffer: ', end_idx_buff)
 
         input = input_queue.get()
-        input.to(device)
         if input_count % 50 == 0:
             print(f"sample {input_count}")
 
@@ -270,13 +269,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, max_l
             continue
 
         for k in range(1, end_idx):
-            out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-            if k == lm_head_idx:
-                is_early_exit = early_exit_lm_head(lm_models, out)
-
-                if is_early_exit:
-                    break
-            '''try:
+            try:
                 out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
                 if k == lm_head_idx:
                     is_early_exit = early_exit_lm_head(lm_models, out)
@@ -290,7 +283,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, max_l
                 end_idx = k - 1
 
                 print('updated end index: ', end_idx)
-                break'''
+                break
 
         end_time = time.time()
         print('client computation time: ', end_time - start_time)
