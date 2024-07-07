@@ -144,7 +144,7 @@ if __name__ == '__main__':
 
 
     start_idx = 0
-    end_idx = 2
+    end_idx = 4
 
     device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
@@ -170,7 +170,7 @@ if __name__ == '__main__':
 
     optimizer = AdamW(models[-1].parameters(), lr=5e-5)
 
-    num_epochs = 3
+    num_epochs = 20
     num_training_steps = num_epochs * nsamples
     lr_scheduler = get_scheduler(
         name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps
@@ -220,7 +220,7 @@ if __name__ == '__main__':
         ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
         if ppl.item() < opt_ppl:
             opt_ppl = ppl.item()
-            torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.2.pth')
+            torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.4.pth')
 
         print('ppl: ', ppl.item())
         # Empty CUDA cache to save memory
