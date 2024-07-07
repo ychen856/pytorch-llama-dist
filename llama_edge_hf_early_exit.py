@@ -299,7 +299,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, max_l
             cycle_count = cycle_count + 1
             input_count = input_count + 1
 
-            outgoing_queue.put([end_idx + 1, out, ids, mask])
+            #outgoing_queue.put([end_idx + 1, out, ids, mask])
             print('outgoing queue PUT!')
             calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
 
