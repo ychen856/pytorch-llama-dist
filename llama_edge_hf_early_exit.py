@@ -56,7 +56,7 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
                 #break
 
         start_idx = end_idx_buff + 1
-        end_idx_buff = max_layers + 1
+        end_idx_buff = max_layers
         #end_idx_buff = end_idx_buff + 3
 
         if device.type == 'cuda':
@@ -229,6 +229,7 @@ def task1_data_sending(args):
         data = outgoing_queue.get()
         calculate_opt.outgoint_count = calculate_opt.incoming_count + 1
         http_sender.send_data(args.server_ip, args.server_port, data, calculate_opt)
+        print('outgoing queue size: ', outgoing_queue.qsize())
 
 
 def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, max_layers, device):
@@ -295,7 +296,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, max_l
             cycle_count = cycle_count + 1
             input_count = input_count + 1
 
-            #outgoing_queue.put([end_idx + 1, out, ids, mask])
+            outgoing_queue.put([end_idx + 1, out, ids, mask])
             print('outgoing queue PUT!')
             calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
 
