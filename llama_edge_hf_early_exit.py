@@ -56,7 +56,7 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
                 #break
 
         start_idx = end_idx_buff + 1
-        end_idx_buff = max_layers
+        end_idx_buff = max_layers + 1
         #end_idx_buff = end_idx_buff + 3
 
         if device.type == 'cuda':
@@ -303,7 +303,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, max_l
                 end_idx = math.ceil(end_idx / 2)
                 is_oom = False
 
-            if (input_count) % 1 == 0 and input_count < 10:
+            if (input_count) % 1 == 0 and input_count < 10 and end_idx < max_layers:
                 print('testing higher value(i<30)')
                 calculate_opt.max_end_idx = end_idx
                 end_idx = end_idx + 1
