@@ -270,3 +270,35 @@ def early_exit_lm_cuda_ppl_test(models, lm_models, out, ids, mask):
 
     #return out, ids, mask, pruned_data_idx_list, pruned_data_list
     return early_count, logits_linear
+
+
+
+def early_exit_lm_head(lm_models, out):
+    threshold = 0.9
+    temperature = 0.6
+
+    logits_norm = lm_models[0](out.last_hidden_state.detach())
+    logits_linear = lm_models[1](logits_norm.detach())
+
+    probs = torch.softmax(logits_linear / temperature, dim=-1)
+    probs_sort, probs_idx = torch.sort(probs, dim=-1, descending=True)
+
+    probs = probs.squeeze(0)
+    probs_sort = probs_sort.squeeze(0)
+    probs_sum = 0
+    early_count = 0
+
+
+    for i in range(0, len(probs)):
+        if torch.max(probs_sort[i]).item() >= threshold:
+            probs_sum = probs_sum + torch.max(probs_sort[i]).item()
+            early_count = early_count + 1
+
+
+    print('avg prob: ', probs_sum / 1024)
+    print('early count: ', early_count)
+
+    if early_count / 1024 > 0.8:
+        return True
+    else:
+        return False
