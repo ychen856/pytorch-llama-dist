@@ -313,7 +313,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 print('testing lower value (i>30)')
                 end_idx = max(0, end_idx - 2)
 
-            if cycle_count > 6 and input_count >= 10:
+            if cycle_count > 6 and input_count >= 10 and end_idx < max_layers:
                 print('testing higher value (i>30): ')
                 calculate_opt.max_end_idx = end_idx
                 end_idx = end_idx + 1
