@@ -264,13 +264,13 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
         # if server idle
         print('outgoing queue size: ', outgoing_queue.qsize())
-        '''if calculate_opt.incoming_count >= calculate_opt.outgoint_count and outgoing_queue.qsize() < 5:
+        if calculate_opt.incoming_count >= calculate_opt.outgoint_count and outgoing_queue.qsize() < 3:
             outgoing_queue.put([1, out, ids, mask])
             end_time = time.time()
             print('client computation time: ', end_time - start_time)
             calculate_opt.client_comp_statistics = (0, end_idx_buff, end_time - start_time)
             print('server idle!')
-            continue'''
+            continue
 
         for k in range(1, end_idx + 1):
             try:
@@ -298,7 +298,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
             outgoing_queue.put([end_idx + 1, out, ids, mask])
             print('outgoing queue PUT!')
-            #calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
+            calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
 
             if is_oom:
                 end_idx = math.ceil(end_idx / 2)
@@ -319,12 +319,12 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 end_idx = end_idx + 1
 
         #if (input_count) % 10 == 0:
-        '''if len(calculate_opt.server_comp_statistics) >= 4:
+        if len(calculate_opt.server_comp_statistics) >= 4:
             print(':))')
             end_idx, new_buff_idx = calculate_opt.calclate_opt()
             while new_buff_idx < end_idx_buff:
                 models, end_idx_buff = layer_reallocation(2, start_idx, end_idx_buff, max_layers, models)
-            cycle_count = 0'''
+            cycle_count = 0
 
         #if end_idx_buff < end_idx and end_idx_buff + 3 <= max_layers:  #add buffer
         if end_idx_buff < end_idx and end_idx_buff < max_layers:
