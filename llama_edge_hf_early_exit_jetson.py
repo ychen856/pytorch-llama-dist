@@ -314,22 +314,22 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 end_idx = math.ceil(end_idx / 2)
                 is_oom = False
 
-            if (input_count) % 1 == 0 and input_count < 10 and end_idx < max_layers:
+            if (input_count) % 1 == 0 and input_count < 6 and end_idx < max_layers:
                 print('testing higher value(i<30)')
                 calculate_opt.max_end_idx = end_idx
                 end_idx = end_idx + 1
 
-            if cycle_count == 6 and input_count > 10:
+            if cycle_count == 3 and input_count > 6:
                 print('testing lower value (i>30)')
                 end_idx = max(0, end_idx - 2)
 
-            if cycle_count > 6 and input_count >= 10  and end_idx < max_layers:
+            if cycle_count > 3 and input_count >= 6 and end_idx < max_layers:
                 print('testing higher value (i>30): ')
                 calculate_opt.max_end_idx = end_idx
                 end_idx = end_idx + 1
 
         #if (input_count) % 10 == 0:
-        if len(calculate_opt.server_comp_statistics) >= 10:
+        if len(calculate_opt.server_comp_statistics) >= 6:
             print(':))')
             end_idx, new_buff_idx = calculate_opt.calclate_opt()
             while new_buff_idx < end_idx_buff:
