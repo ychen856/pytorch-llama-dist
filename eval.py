@@ -379,6 +379,7 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
                 if is_early_exit:
                     is_early_exit = True
                     early_count = early_count + 1
+                    print('early: ', early_count)
                     break
 
         if not is_early_exit:
