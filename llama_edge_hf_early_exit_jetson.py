@@ -198,7 +198,7 @@ def load_lm_head(checkpoints_dir, head_idx, device, cache_dir="llm_weights"):
             lm_models[i].load_state_dict(checkpoint_list[i], strict=True)
             lm_models[i].to(device)
 
-        if i == 2:
+        else:
             lm_models.append((LlamaForCausalLM_linear(config)))
             lm_models[i].load_state_dict(checkpoint_list[i], strict=True)
             lm_models[i].to(device)
