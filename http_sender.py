@@ -99,7 +99,7 @@ def send_data(server_ip, server_port, text, calculate_opt):
         resp_message.append(rtt)
         print('server side: ', resp_message)
         calculate_opt.incoming_count = calculate_opt.incoming_count + 1
-        calculate_opt.server_comp_statistics = (resp_message[0], resp_message[2])
+        #calculate_opt.server_comp_statistics = (resp_message[0], resp_message[2])
         #returning_queue.put(resp_message)
     except:
         print('error')

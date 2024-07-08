@@ -298,7 +298,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
             outgoing_queue.put([end_idx + 1, out, ids, mask])
             print('outgoing queue PUT!')
-            calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
+            #calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
 
             if is_oom:
                 end_idx = math.ceil(end_idx / 2)
