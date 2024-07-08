@@ -52,12 +52,12 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
             checkpoint_idx = checkpoint_idx + 1
             if checkpoint_idx > max_layers:
                 break
-            if checkpoint_idx > end_idx_buff + 2:
+            if checkpoint_idx > end_idx_buff:
                 break
 
         start_idx = end_idx_buff + 1
-        if end_idx_buff + 3 <= max_layers:
-            end_idx_buff = end_idx_buff + 3
+        if end_idx_buff + 1 <= max_layers:
+            end_idx_buff = end_idx_buff + 1
         else:
             end_idx_buff = max_layers
 
@@ -320,7 +320,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
         #if (input_count) % 10 == 0:
         if len(calculate_opt.server_comp_statistics) >= 5:
-
+            print(':))')
             end_idx, new_buff_idx = calculate_opt.calclate_opt()
             while new_buff_idx < end_idx_buff:
                 models, end_idx_buff = layer_reallocation(2, start_idx, end_idx_buff, max_layers, models)
@@ -329,7 +329,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
         #if end_idx_buff < end_idx and end_idx_buff + 3 <= max_layers:  #add buffer
         if end_idx_buff < end_idx and end_idx_buff < max_layers:
             models, end_idx_buff = layer_reallocation(1, start_idx, end_idx_buff, max_layers, models)
-        while end_idx_buff > end_idx + 3:  #remove buffer
+        while end_idx_buff > end_idx + 1:  #remove buffer
             models, end_idx_buff = layer_reallocation(2, start_idx, end_idx_buff, max_layers, models)
 
         torch.cuda.empty_cache()
