@@ -1,4 +1,4 @@
-
+import gc
 
 
 class Calcualte_opt:
@@ -122,4 +122,5 @@ class Calcualte_opt:
         self._server_comp_statistics = self._client_comp_statistics[len(server_comp_time_temp) :]
         #self.comm_statistics = [max(len(self._server_comp_statistics), 10) :]
 
+        gc.collect()
         return opt_splitting_point, opt_buff_idx

@@ -6,7 +6,7 @@ import time
 
 import torch
 import yaml
-
+import gc
 from queue import Queue
 
 parser = argparse.ArgumentParser(
@@ -108,6 +108,7 @@ def send_data(server_ip, server_port, text, calculate_opt):
 
     print('client receiving time: ', end_time2 - start_time2)
     print('rrt: ', end_time2 - start_time)
+    gc.collect()
 
 
 
