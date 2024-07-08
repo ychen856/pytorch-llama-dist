@@ -114,7 +114,7 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
                 for name, param in model.named_parameters():
                     if param.requires_grad:
                         print(name, param.data)'''
-
+    gc.collect()
     return models, end_idx_buff
 
 @profile
