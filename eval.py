@@ -6,7 +6,8 @@ import torch.nn.functional as F
 import sys
 # Import get_loaders function from data module within the same directory
 from data import get_loaders
-from early_exit import early_exit_cuda_ppl_test, early_exit_lm_cuda_ppl_test
+from early_exit import early_exit_cuda_ppl_test, early_exit_lm_cuda_ppl_test, early_exit_lm_head
+
 
 def eval_ppl(model, tokenizer, device=torch.device("cuda:0")):
     allow_cuda = False
@@ -86,7 +87,7 @@ def eval_lm_head_ppl_sep_hf(models, lm_models, tokenizer, device=torch.device("c
             ppl = eval_ppl_wikitext_sep_hf(models, testloader, tokenizer, head_idx, 1, device)
             print('i: ', i)
             print('ppl: ', ppl)'''
-        head_idx = 2
+        head_idx = 4
         ppl = eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testloader, tokenizer, head_idx, 1, device)
         print('ppl: ', ppl)
     return ppl
@@ -295,7 +296,7 @@ def eval_ppl_wikitext_sep_hf(models, testenc, tokenizer, splitting_point, bs=1, 
         start_time = time.time()
         #lm_logits = models[34](lm_logits)
         lm_logits = models[-1](lm_logits)
-        print('logit size: ', lm_logits)
+        print('logit size: ', lm_logits.shape)
         end_time = time.time()
         #print('34: ', end_time - start_time)
         #print('logits: ', lm_logits)
@@ -348,7 +349,7 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
 
-    nsamples = 3
+    #nsamples = 30
     # List to store negative log likelihoods
     nlls = []
     print(f"nsamples {nsamples}")
@@ -366,67 +367,30 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
         inputs = inputs.reshape(j - i, seqlen)
         #print(tokenizer.batch_decode(inputs, skip_special_tokens=True, clean_up_tokenization_spaces=False))
 
-        start_time = time.time()
         # Forward pass through the model
         out, ids, mask = models[0](inputs)
-        end_time = time.time()
-        #print('0: ', end_time - start_time)
-        #print('out: ', out)
-        is_early = False
+        is_early_exit = False
         for k in range (1, len(models) - 2):
-            is_early = False
+            is_early_exit = False
             print('Processing layer: ', k)
             start_time = time.time()
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
             #print('mask: ', mask)
             if k == splitting_point:
-                #out, ids, mask, pruned_data_idx_list, pruned_data_list = early_exit_lm_cuda_ppl_test(models, lm_models, out, ids, mask)
-                #early_count, lm_logits = early_exit_lm_cuda_ppl_test(models, lm_models, out, ids, mask)
-                #if early_count / 1024 > 0.9:
-                    #is_early = True
-                    #break
-                '''for l in range(0, 1024):
-                    if len(ids[0]) <= l or ids[0][l].item() != l:
-                        zeros_row = torch.zeros((1, 1, out.last_hidden_state.size(2))).to(device)
-                        out.last_hidden_state = torch.cat(
-                            (out.last_hidden_state[:, :l, :], zeros_row, out.last_hidden_state[:, l:, :]), dim=1)
-                        # out.last_hidden_state = torch.cat((zeros_row, out.last_hidden_state), dim=1)
+                is_early_exit, lm_logits = early_exit_lm_head(lm_models, out)
+                if is_early_exit:
+                    break
 
-                        zeros_tensor = torch.tensor([[l]]).to(device)
-                        ids = torch.cat((ids[:, :l], zeros_tensor, ids[:, l:]), dim=1)
+        if not is_early_exit:
+            lm_logits = models[33](out.last_hidden_state)
+            lm_logits = models[34](lm_logits)
 
-                        zeros_row = torch.zeros((1, 1, 1, mask.size(3))).to(device)
-                        mask = torch.cat((mask[:, :, :l, :], zeros_row, mask[:, :, l:, :]), dim=2)'''
-
-            end_time = time.time()
-            #print(k, end_time - start_time)
-            #print('out: ', out)
-
-        # recover data from the early exit
-        '''for (idx, data) in zip(pruned_data_idx_list, pruned_data_list):
-            out.last_hidden_state[0][idx] = data'''
-
-        if not is_early:
-
-            start_time = time.time()
-            lm_logits = models[-2](out.last_hidden_state)
-            #lm_logits = models[33](out.last_hidden_state)
-            end_time = time.time()
-            #print('33: ', end_time - start_time)
-
-            start_time = time.time()
-            lm_logits = models[-1](lm_logits)
-            end_time = time.time()
-            #print('34: ', end_time - start_time)
 
 
         # Shift logits and labels for next token prediction
         shift_logits = lm_logits[:, :-1, :].contiguous()
         shift_labels = inputs[:, 1:]
 
-        #print('generated output: ', lm_logits)
-        print('shift logits: ', shift_logits)
-        print('shift lables: ', shift_labels)
 
 
         # Compute loss
@@ -445,7 +409,7 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
 
         # Calculate negative log likelihood
         neg_log_likelihood = loss.float() * seqlen * (j - i)
-
+        print('ppl: ', torch.exp(neg_log_likelihood / seqlen))
 
         # Append to list of negative log likelihoods
         nlls.append(neg_log_likelihood)
