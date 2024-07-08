@@ -350,6 +350,8 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
     nlls = []
     print(f"nsamples {nsamples}")
     # Loop through each batch
+
+    early_count = 0
     for i in range(0, nsamples, bs):
         if i % 50 == 0:
             print(f"sample {i}")
@@ -376,6 +378,7 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
                 is_early_exit, lm_logits = early_exit_lm_head(lm_models, out)
                 if is_early_exit:
                     is_early_exit = True
+                    early_count = early_count + 1
                     break
 
         if not is_early_exit:
@@ -419,5 +422,6 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
     ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
     # Empty CUDA cache to save memory
     torch.cuda.empty_cache()
+    print('early count: ', early_count)
 
     return ppl.item()
