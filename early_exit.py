@@ -278,7 +278,7 @@ def early_exit_lm_head(lm_models, out):
     temperature = 0.3
 
     logits_norm = lm_models[0](out.last_hidden_state.detach())
-    logits_linear = lm_models[2](logits_norm.detach())
+    logits_linear = lm_models[1](logits_norm.detach())
 
     probs = torch.softmax(logits_linear / temperature, dim=-1)
     probs_sort, probs_idx = torch.sort(probs, dim=-1, descending=True)

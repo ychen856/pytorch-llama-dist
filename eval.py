@@ -378,12 +378,12 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
             #print('mask: ', mask)
             if k == splitting_point:
                 is_early_exit, lm_logits = early_exit_lm_head(lm_models, out)
-                if is_early_exit:
+                '''if is_early_exit:
                     break
 
         if not is_early_exit:
             lm_logits = models[33](out.last_hidden_state)
-            lm_logits = models[34](lm_logits)
+            lm_logits = models[34](lm_logits)'''
 
 
 
