@@ -50,7 +50,7 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
 
             checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
             checkpoint_idx = checkpoint_idx + 1
-            if checkpoint_idx > max_layers:
+            if checkpoint_idx >= max_layers:
                 break
             if checkpoint_idx > end_idx_buff + 2:
                 break
@@ -263,14 +263,14 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             print(e)
 
         # if server idle
-        '''print('outgoing queue size: ', outgoing_queue.qsize())
+        print('outgoing queue size: ', outgoing_queue.qsize())
         if calculate_opt.incoming_count >= calculate_opt.outgoint_count and outgoing_queue.qsize() < 5:
             outgoing_queue.put([1, out, ids, mask])
             end_time = time.time()
             print('client computation time: ', end_time - start_time)
             calculate_opt.client_comp_statistics = (0, end_idx_buff, end_time - start_time)
             print('server idle!')
-            continue'''
+            continue
 
         for k in range(1, end_idx + 1):
             try:
