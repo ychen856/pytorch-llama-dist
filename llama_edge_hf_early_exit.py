@@ -52,12 +52,15 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
             checkpoint_idx = checkpoint_idx + 1
             if checkpoint_idx > max_layers:
                 break
-            #if checkpoint_idx > end_idx_buff + 2:
-                #break
+            if checkpoint_idx > end_idx_buff + 2:
+                break
 
         start_idx = end_idx_buff + 1
-        end_idx_buff = max_layers
-        #end_idx_buff = end_idx_buff + 3
+        if end_idx_buff + 3 <= max_layers:
+            end_idx_buff = end_idx_buff + 3
+        else:
+            end_idx_buff = max_layers
+
 
         if device.type == 'cuda':
             torch.set_default_tensor_type(torch.cuda.HalfTensor)
@@ -229,15 +232,11 @@ def task1_data_sending(args):
         data = outgoing_queue.get()
         calculate_opt.outgoint_count = calculate_opt.incoming_count + 1
         http_sender.send_data(args.server_ip, args.server_port, data, calculate_opt)
-        print('outgoing queue size: ', outgoing_queue.qsize())
 
 
-def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, max_layers, device):
+def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_idx, max_layers, device):
 
     is_oom = False
-    lm_head_idx = 2
-
-
     #prune_wanda_allocation(args, models, tokenizer, testenc[0], device=torch.device("cuda:0"))
     # Loop through each batch
     cycle_count = 0
@@ -264,20 +263,21 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, max_l
             print(e)
 
         # if server idle
-        if calculate_opt.incoming_count >= calculate_opt.outgoint_count and outgoing_queue.qsize() <= 5:
+        '''print('outgoing queue size: ', outgoing_queue.qsize())
+        if calculate_opt.incoming_count >= calculate_opt.outgoint_count and outgoing_queue.qsize() < 5:
             outgoing_queue.put([1, out, ids, mask])
             end_time = time.time()
             print('client computation time: ', end_time - start_time)
             calculate_opt.client_comp_statistics = (0, end_idx_buff, end_time - start_time)
             print('server idle!')
-            continue
+            continue'''
 
-        for k in range(1, end_idx):
+        for k in range(1, end_idx + 1):
             try:
                 out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-                if k == lm_head_idx:
-                    is_early_exit = early_exit_lm_head(lm_models, out)
-
+                if k == head_idx:
+                    is_early_exit, lm_logits = early_exit_lm_head(lm_models, out)
+                    print('is early: ', is_early_exit)
                     if is_early_exit:
                         break
             except Exception as e:
@@ -363,7 +363,7 @@ if __name__ == '__main__':
     end_idx_buff = args.end_idx_buff
 
     device = torch.device("cuda")
-    head_idx = 2
+    head_idx = 4
 
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx_buff, device)
     lm_models = load_lm_head(args.ckpt_dir_hf_sep, head_idx, device, cache_dir="llm_weights")
@@ -382,7 +382,7 @@ if __name__ == '__main__':
 
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
-    #nsamples = 11
+    nsamples = 50
     # List to store negative log likelihoods
     nlls = []
     print(f"nsamples {nsamples}")
@@ -404,7 +404,7 @@ if __name__ == '__main__':
     end_idx = args.end_idx
     # Create and start threads
     thread1 = threading.Thread(target=task1_data_sending, args=[args])
-    thread2 = threading.Thread(target=task2_computation, args=[models, lm_models, start_idx, end_idx, end_idx_buff, max_layers, device])
+    thread2 = threading.Thread(target=task2_computation, args=[models, lm_models, start_idx, end_idx, end_idx_buff, head_idx, max_layers, device])
     #thread3 = threading.Thread(target=task3_summerizing, args=[models, test_loader, bs, device])
     thread1.start()
     thread2.start()
