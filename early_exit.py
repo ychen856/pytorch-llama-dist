@@ -299,7 +299,7 @@ def early_exit_lm_head(lm_models, out):
 
     #return logits_linear
 
-    if early_count / 1024 > 0.88:
+    if early_count / 1024 > 0.8:
         return True, logits_linear
     else:
         return False, logits_linear
