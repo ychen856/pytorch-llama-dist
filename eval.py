@@ -368,13 +368,14 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
         is_early_exit = False
         for k in range (1, len(models) - 2):
             is_early_exit = False
-            print('Processing layer: ', k)
+            #print('Processing layer: ', k)
             start_time = time.time()
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
             #print('mask: ', mask)
             if k == splitting_point:
                 is_early_exit, lm_logits = early_exit_lm_head(lm_models, out)
                 if is_early_exit:
+                    is_early_exit = True
                     break
 
         if not is_early_exit:
