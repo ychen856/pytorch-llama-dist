@@ -270,7 +270,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
         # if server idle
         print('outgoing queue size: ', outgoing_queue.qsize())
-        while outgoing_queue.qsize() > 5:
+        while outgoing_queue.qsize() > 3:
             print('waiting...')
             time.sleep(1)
 
