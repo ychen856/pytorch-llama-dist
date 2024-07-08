@@ -24,7 +24,6 @@ from early_exit import early_exit_cpu, early_exit_cuda, early_exit_lm_head
 
 from memory_profiler import profile
 import gc
-import resource
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
 parser.add_argument('--config', default='config_server.yaml')
@@ -34,10 +33,7 @@ input_queue = Queue()
 outgoing_queue = Queue()
 calculate_opt = Calcualte_opt()
 
-def mem_usage():
-    usage=resource.getrusage(resource.RUSAGE_SELF)
-    return f'mem usage={usage[2]/1024.0} mb'
-@profile
+
 def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
     if type == 1: #add buffer layers
         print('increase buffer')
@@ -58,14 +54,14 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
 
             checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
             checkpoint_idx = checkpoint_idx + 1
-            if checkpoint_idx > max_layers:
+            if checkpoint_idx >= max_layers:
                 break
-            if checkpoint_idx > end_idx_buff:
+            if checkpoint_idx > end_idx_buff + 2:
                 break
 
         start_idx = end_idx_buff + 1
-        if end_idx_buff + 1 <= max_layers:
-            end_idx_buff = end_idx_buff + 1
+        if end_idx_buff + 3 <= max_layers:
+            end_idx_buff = end_idx_buff + 3
         else:
             end_idx_buff = max_layers
 
@@ -117,7 +113,7 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
     gc.collect()
     return models, end_idx_buff
 
-@profile
+
 def load_model(checkpoints_dir, start_idx, end_idx, device):
     config, kwargs = AutoConfig.from_pretrained(
         args.ckpt_dir_hf,
@@ -175,7 +171,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
     return models
 
-@profile
+
 def load_lm_head(checkpoints_dir, head_idx, device, cache_dir="llm_weights"):
     config, kwargs = AutoConfig.from_pretrained(
         args.ckpt_dir_hf,
@@ -243,7 +239,7 @@ def task1_data_sending(args):
         calculate_opt.outgoint_count = calculate_opt.incoming_count + 1
         http_sender.send_data(args.server_ip, args.server_port, data, calculate_opt)
 
-@profile
+
 def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_idx, max_layers, device):
 
     is_oom = False
@@ -318,22 +314,22 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 end_idx = math.ceil(end_idx / 2)
                 is_oom = False
 
-            if (input_count) % 1 == 0 and input_count < 4 and end_idx < max_layers:
+            if (input_count) % 1 == 0 and input_count < 5 and end_idx < max_layers:
                 print('testing higher value(i<30)')
                 calculate_opt.max_end_idx = end_idx
                 end_idx = end_idx + 1
 
-            if cycle_count == 1 and input_count > 4:
+            if cycle_count == 2 and input_count > 5:
                 print('testing lower value (i>30)')
                 end_idx = max(0, end_idx - 2)
 
-            if cycle_count > 6 and input_count >= 4:
+            if cycle_count > 2 and input_count >= 5:
                 print('testing higher value (i>30): ')
                 calculate_opt.max_end_idx = end_idx
                 end_idx = end_idx + 1
 
         #if (input_count) % 10 == 0:
-        if len(calculate_opt.server_comp_statistics) >= 4:
+        if len(calculate_opt.server_comp_statistics) >= 5:
             print(':))')
             end_idx, new_buff_idx = calculate_opt.calclate_opt()
             while new_buff_idx < end_idx_buff:
@@ -347,7 +343,6 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             models, end_idx_buff = layer_reallocation(2, start_idx, end_idx_buff, max_layers, models)
         gc.collect()
         torch.cuda.empty_cache()
-        print(mem_usage())
 
     print('end T2...')
 
