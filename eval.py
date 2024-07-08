@@ -409,7 +409,7 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
 
         # Calculate negative log likelihood
         neg_log_likelihood = loss.float() * seqlen * (j - i)
-        print('ppl: ', torch.exp(neg_log_likelihood / seqlen))
+        #print('ppl: ', torch.exp(neg_log_likelihood / seqlen))
 
         # Append to list of negative log likelihoods
         nlls.append(neg_log_likelihood)
