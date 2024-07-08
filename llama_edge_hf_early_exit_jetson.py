@@ -21,6 +21,10 @@ from prune_all import prune_wanda_allocation
 from calculate_opt import Calcualte_opt
 from early_exit import early_exit_cpu, early_exit_cuda, early_exit_lm_head
 
+
+from memory_profiler import profile
+import gc
+import resource
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
 parser.add_argument('--config', default='config_server.yaml')
@@ -30,6 +34,10 @@ input_queue = Queue()
 outgoing_queue = Queue()
 calculate_opt = Calcualte_opt()
 
+def mem_usage():
+    usage=resource.getrusage(resource.RUSAGE_SELF)
+    return f'mem usage={usage[2]/1024.0} mb'
+@profile
 def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
     if type == 1: #add buffer layers
         print('increase buffer')
@@ -109,7 +117,7 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
 
     return models, end_idx_buff
 
-
+@profile
 def load_model(checkpoints_dir, start_idx, end_idx, device):
     config, kwargs = AutoConfig.from_pretrained(
         args.ckpt_dir_hf,
@@ -167,6 +175,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
     return models
 
+@profile
 def load_lm_head(checkpoints_dir, head_idx, device, cache_dir="llm_weights"):
     config, kwargs = AutoConfig.from_pretrained(
         args.ckpt_dir_hf,
@@ -234,7 +243,7 @@ def task1_data_sending(args):
         calculate_opt.outgoint_count = calculate_opt.incoming_count + 1
         http_sender.send_data(args.server_ip, args.server_port, data, calculate_opt)
 
-
+@profile
 def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_idx, max_layers, device):
 
     is_oom = False
@@ -336,8 +345,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             models, end_idx_buff = layer_reallocation(1, start_idx, end_idx_buff, max_layers, models)
         while end_idx_buff > end_idx + 1:  #remove buffer
             models, end_idx_buff = layer_reallocation(2, start_idx, end_idx_buff, max_layers, models)
-
+        gc.collect()
         torch.cuda.empty_cache()
+        print(mem_usage())
 
     print('end T2...')
 
@@ -404,6 +414,8 @@ if __name__ == '__main__':
         inputs = inputs.reshape(j - i, seqlen)
 
         input_queue.put(inputs)
+
+    gc.collect()
 
     start_idx = 0
     end_idx = args.end_idx
