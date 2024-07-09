@@ -83,7 +83,7 @@ def eval_lm_head_ppl_sep_hf(models, lm_models, tokenizer, device=torch.device("c
 
     # Evaluate ppl in no grad context to avoid updating the model
     with torch.no_grad():
-        head_idx = 2
+        head_idx = 4
         ppl = eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testloader, tokenizer, head_idx, 1, device)
         print('ppl: ', ppl)
     return ppl
