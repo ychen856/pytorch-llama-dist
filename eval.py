@@ -377,7 +377,6 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
             #print('mask: ', mask)
             if k == splitting_point:
                 is_early_exit, lm_logits = early_exit_lm_head(lm_models, out)
-                break
                 '''if is_early_exit:
                     is_early_exit = True
                     early_count = early_count + 1
