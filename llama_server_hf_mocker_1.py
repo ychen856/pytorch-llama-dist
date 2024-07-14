@@ -58,7 +58,7 @@ def get_llm(model, cache_dir="llm_weights"):
         device_map="auto"
     )
 
-    model.seqlen = 1024
+    model.seqlen = 512
     return model
 
 
@@ -125,7 +125,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 def get_dataset(tokenizer):
     dataset = "wikitext2_hf"
     bs = 1
-    seqlen = 1024
+    seqlen = 512
 
     _, testloader = get_loaders(
         dataset, seed=0, seqlen=seqlen, tokenizer=tokenizer

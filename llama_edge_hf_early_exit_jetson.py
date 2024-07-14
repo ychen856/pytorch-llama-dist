@@ -274,7 +274,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             print('waiting...')
             time.sleep(1)
 
-        if calculate_opt.incoming_count >= calculate_opt.outgoint_count and outgoing_queue.qsize() < 2:
+        if calculate_opt.incoming_count >= calculate_opt.outgoint_count and outgoing_queue.qsize() < 1:
             outgoing_queue.put([1, out, ids, mask])
             end_time = time.time()
             print('client computation time: ', end_time - start_time)
@@ -387,7 +387,7 @@ if __name__ == '__main__':
     bs = 1
 
     # loading inputs data
-    seqlen = 1024
+    seqlen = 512
     # Get input IDs
     testenc = test_loader.input_ids
 
