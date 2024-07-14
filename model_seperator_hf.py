@@ -41,7 +41,7 @@ def get_llm(model, cache_dir="llm_weights"):
         device_map="auto"
     )
 
-    model.seqlen = 1024
+    model.seqlen = 512
     return model
 
 
@@ -102,8 +102,8 @@ if __name__ == '__main__':
 
     print("loading success")
 
-    '''ppl = eval_ppl_hf(model, tokenizer, device)
-    print(f"ppl on wikitext {ppl}")'''
+    ppl = eval_ppl_hf(model2, tokenizer, device)
+    print(f"ppl on wikitext {ppl}")
 
     #ppl = eval_ppl_hf(model2, tokenizer, device)
     #print(f"ppl on wikitext {ppl}")

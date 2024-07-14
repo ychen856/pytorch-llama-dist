@@ -48,7 +48,7 @@ def get_llm(model, cache_dir="llm_weights"):
         device_map="auto"
     )
 
-    model.seqlen = 1024
+    model.seqlen = 512
     return model
 
 def get_llm2(checkpoints_dir, start_idx, end_idx, device, cache_dir="llm_weights"):

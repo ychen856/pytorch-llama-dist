@@ -218,14 +218,13 @@ def eval_ppl_wikitext_hf(model, testenc, bs=1, device=None):
     return ppl.item()
 
 def eval_ppl_wikitext_sep_hf(models, testenc, tokenizer, splitting_point, bs=1, device=None):
-    seqlen = 1024
+    seqlen = 512
     # Get input IDs
     testenc = testenc.input_ids
 
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
 
-    nsamples = 3
     # List to store negative log likelihoods
     nlls = []
     print(f"nsamples {nsamples}")
@@ -338,7 +337,7 @@ def eval_ppl_wikitext_sep_hf(models, testenc, tokenizer, splitting_point, bs=1, 
 
 
 def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, splitting_point, bs=1, device=None):
-    seqlen = 1024
+    seqlen = 512
     # Get input IDs
     testenc = testenc.input_ids
 
