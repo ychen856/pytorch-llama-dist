@@ -213,7 +213,7 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
             ids = input[2]
             mask = input[3]'''
 
-            for i in range(0, 1024):
+            for i in range(0, 512):
                 if len(ids[0]) <= i or ids[0][i].item() != i:
                     zeros_row = torch.zeros((1, 1, out.last_hidden_state.size(2))).to(device)
                     out.last_hidden_state = torch.cat((out.last_hidden_state[:, :i, :], zeros_row, out.last_hidden_state[:, i:, :]), dim=1)
