@@ -50,12 +50,12 @@ llama_2_7b_hf:
 llama_2_7b_sep:
     #ckpt_dir_sep: D:/workspace/llama-2-7b-sep
     #tokenizer_path_sep: D:/workspace/llama-2-7b-sep/tokenizer.model
-    ckpt_dir_sep: /ychen-storage/llama-2-7b-sep-512
-    tokenizer_path_sep: /ychen-storage/llama-2-7b-sep-512/tokenizer.model
+    ckpt_dir_sep: /ychen-storage/llama-2-7b-sep
+    tokenizer_path_sep: /ychen-storage/llama-2-7b-sep/tokenizer.model
 
 llama_2_7b_hf_sep:
-    ckpt_dir_hf_sep:  /ychen-storage/llama-2-7b-chat-hf-sep-512/
-    tokenizer_path_hf_sep: /ychen-storage/llama-2-7b-chat-hf-sep-512/tokenizer.model
+    ckpt_dir_hf_sep:  /ychen-storage/llama-2-7b-chat-hf-sep/
+    tokenizer_path_hf_sep: /ychen-storage/llama-2-7b-chat-hf-sep/tokenizer.model
 
 communication:
     server_ip: test-service.nrp-nautilus.io
