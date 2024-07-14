@@ -128,7 +128,7 @@ def get_llm2(model, cache_dir="llm_weights"):
         device_map="auto"
     )
 
-    model.seqlen = 1024
+    model.seqlen = 512
     return model
 
 
@@ -272,7 +272,7 @@ if __name__ == '__main__':
     bs = 1
 
     # loading inputs data
-    seqlen = 1024
+    seqlen = 512
     # Get input IDs
     testenc = test_loader.input_ids
 
