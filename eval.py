@@ -69,7 +69,7 @@ def eval_ppl_sep_hf(models, tokenizer, device=torch.device("cuda:0")):
     return ppl
 
 def eval_lm_head_ppl_sep_hf(models, lm_models, tokenizer, device=torch.device("cuda:0")):
-    seqlen = 1024
+    seqlen = 512
     # Set dataset
     dataset = "wikitext2_hf"
 
@@ -83,7 +83,7 @@ def eval_lm_head_ppl_sep_hf(models, lm_models, tokenizer, device=torch.device("c
 
     # Evaluate ppl in no grad context to avoid updating the model
     with torch.no_grad():
-        head_idx = 4
+        head_idx = 2
         ppl = eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testloader, tokenizer, head_idx, 1, device)
         print('ppl: ', ppl)
     return ppl

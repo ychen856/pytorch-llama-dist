@@ -50,7 +50,7 @@ def get_llm2(model, cache_dir="llm_weights"):
         device_map="auto"
     )
 
-    model.seqlen = 1024
+    model.seqlen = 512
     return model
 
 
@@ -144,7 +144,7 @@ if __name__ == '__main__':
 
 
     start_idx = 0
-    end_idx = 4
+    end_idx = 2
 
     device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
@@ -157,7 +157,7 @@ if __name__ == '__main__':
     bs = 1
 
     # loading inputs data
-    seqlen = 1024
+    seqlen = 512
     # Get input IDs
     testenc = test_loader.input_ids
 
@@ -220,7 +220,7 @@ if __name__ == '__main__':
         ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
         if ppl.item() < opt_ppl:
             opt_ppl = ppl.item()
-            torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.4.pth')
+            torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.2.pth')
 
         print('ppl: ', ppl.item())
         # Empty CUDA cache to save memory
