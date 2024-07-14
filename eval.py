@@ -373,13 +373,13 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
             start_time = time.time()
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
             #print('mask: ', mask)
-            '''if k == splitting_point:
+            if k == splitting_point:
                 is_early_exit, lm_logits = early_exit_lm_head(lm_models, out)
                 if is_early_exit:
                     is_early_exit = True
                     early_count = early_count + 1
                     print('early: ', early_count)
-                    break'''
+                    break
 
         if not is_early_exit:
             lm_logits = models[33](out.last_hidden_state)
