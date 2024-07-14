@@ -58,7 +58,7 @@ def get_llm(model, cache_dir="llm_weights"):
         device_map="auto"
     )
 
-    model.seqlen = 512
+    model.seqlen = 256
     return model
 
 
@@ -125,7 +125,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 def get_dataset(tokenizer):
     dataset = "wikitext2_hf"
     bs = 1
-    seqlen = 512
+    seqlen = 256
 
     _, testloader = get_loaders(
         dataset, seed=0, seqlen=seqlen, tokenizer=tokenizer
@@ -213,7 +213,7 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
             ids = input[2]
             mask = input[3]'''
 
-            for i in range(0, 512):
+            for i in range(0, 256):
                 if len(ids[0]) <= i or ids[0][i].item() != i:
                     zeros_row = torch.zeros((1, 1, out.last_hidden_state.size(2))).to(device)
                     out.last_hidden_state = torch.cat((out.last_hidden_state[:, :i, :], zeros_row, out.last_hidden_state[:, i:, :]), dim=1)

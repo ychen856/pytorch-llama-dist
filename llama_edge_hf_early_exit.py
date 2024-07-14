@@ -376,7 +376,7 @@ if __name__ == '__main__':
     bs = 1
 
     # loading inputs data
-    seqlen = 512
+    seqlen = 256
     # Get input IDs
     testenc = test_loader.input_ids
 
