@@ -47,7 +47,7 @@ def eval_ppl_hf(model, tokenizer, device=torch.device("cuda:0")):
     return ppl
 
 def eval_ppl_sep_hf(models, tokenizer, device=torch.device("cuda:0")):
-    seqlen = 1024
+    seqlen = 512
     # Set dataset
     dataset = "wikitext2_hf"
 
