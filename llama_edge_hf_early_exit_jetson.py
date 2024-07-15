@@ -286,11 +286,11 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
         for k in range(1, end_idx + 1):
             try:
                 out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-                if k == head_idx:
+                '''if k == head_idx:
                     is_early_exit, lm_logits = early_exit_lm_head(lm_models, out)
                     print('is early: ', is_early_exit)
                     if is_early_exit:
-                        break
+                        break'''
             except Exception as e:
                 print('oom!!!')
                 is_oom = True
