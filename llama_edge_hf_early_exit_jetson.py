@@ -275,7 +275,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             time.sleep(1)
 
         # if server idle
-        if calculate_opt.incoming_count >= calculate_opt.outgoint_count and outgoing_queue.qsize() < 5:
+        if calculate_opt.incoming_count >= calculate_opt.outgoint_count and outgoing_queue.qsize() < 3:
             outgoing_queue.put([1, out, ids, mask])
             end_time = time.time()
             print('client computation time: ', end_time - start_time)
