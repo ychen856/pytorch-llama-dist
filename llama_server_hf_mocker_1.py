@@ -171,11 +171,6 @@ def task1_data_receiving(args, inputs):
 
     while 1:
         http_receiver.run(port=args.server_port)
-    ''' print(f'{pid} with thread {curr_thread}, with process: {curr_process} Started')
-    print('T1 do nothing!')
-    for i in range(0, 5):
-        sleep(0.1)
-        incoming_queue.put(inputs[i])'''
 
 def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=True):
     pid = os.getpid()
@@ -208,12 +203,12 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
             out, ids, mask = models[0](out)
             #out, ids, mask = models[0](input)
         else:
-            '''start_idx = input[0]
+            start_idx = input[0]
             out = input[1]
             ids = input[2]
-            mask = input[3]'''
+            mask = input[3]
 
-            for i in range(0, 1024):
+            '''for i in range(0, 1024):
                 if len(ids[0]) <= i or ids[0][i].item() != i:
                     zeros_row = torch.zeros((1, 1, out.last_hidden_state.size(2))).to(device)
                     out.last_hidden_state = torch.cat((out.last_hidden_state[:, :i, :], zeros_row, out.last_hidden_state[:, i:, :]), dim=1)
@@ -225,12 +220,8 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
 
                     zeros_row = torch.zeros((1, 1, 1, mask.size(3))).to(device)
                     mask = torch.cat((mask[:, :, :i , :], zeros_row, mask[:, :, i:, :]), dim=2)
-                    #mask = torch.cat((zeros_row, mask), dim=2)
+                    #mask = torch.cat((zeros_row, mask), dim=2)'''
 
-
-        '''print('out: ', out.last_hidden_state)
-        print('ids: ', ids)
-        print('mask: ', mask)'''
 
         end_time = time.time()
         #print('0: ', end_time - start_time)
