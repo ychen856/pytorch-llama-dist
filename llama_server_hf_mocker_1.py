@@ -195,6 +195,8 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
         ids = input[2]
         mask = input[3]
 
+
+        print('start idx: ', start_idx)
         #input = http_receiver.get_in_queue_data()
         print('start compute time: ', time.time())
         start_time = time.time()
@@ -203,10 +205,6 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
             out, ids, mask = models[0](out)
             #out, ids, mask = models[0](input)
         else:
-            start_idx = input[0]
-            out = input[1]
-            ids = input[2]
-            mask = input[3]
 
             '''for i in range(0, 1024):
                 if len(ids[0]) <= i or ids[0][i].item() != i:
@@ -227,7 +225,6 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
         #print('0: ', end_time - start_time)
         start_comp_time = time.time()
         # print('out: ', out)
-        print('start idx: ', start_idx)
         for k in range(max(1, start_idx), len(models) - 2):
             start_time = time.time()
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
