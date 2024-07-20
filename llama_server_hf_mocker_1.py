@@ -194,6 +194,7 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
         out = input[1]
         ids = input[2]
         mask = input[3]
+        idx = input[4]
 
 
         print('start idx: ', start_idx)
@@ -264,7 +265,7 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
         print('end compute time: ', time.time())
         print('total computation time: ', total_comp_time)
 
-        http_receiver.set_outgoing_queue([start_idx, total_comp_time])
+        http_receiver.set_outgoing_queue([start_idx, total_comp_time, idx])
         '''shift_logits = lm_logits[:, :-1, :].contiguous()
 
         print('shift logits: ', shift_logits)
