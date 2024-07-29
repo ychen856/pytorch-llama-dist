@@ -313,7 +313,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
     is_oom = False
     #prune_wanda_allocation(args, models, tokenizer, testenc[0], device=torch.device("cuda:0"))
     # Loop through each batch
-    batch_count = 30
+    batch_count = 6
     cycle_count = 0
     input_count = 0
     count = 0
@@ -332,38 +332,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             if batch_count <=1:
                 break
 
-            '''test_loader = get_eval_data(tokenizer)
-            bs = 1
-
-            # loading inputs data
-            seqlen = 1024
-            # Get input IDs
-            testenc = test_loader.input_ids
-
-            # Calculate number of samples
-            nsamples = testenc.numel() // seqlen
-            nsamples = 30
-            # List to store negative log likelihoods
-            nlls = []
-            print(f"nsamples {nsamples}")
-
-            for i in range(0, nsamples, bs):
-                if i % 50 == 0:
-                    print(f"sample {i}")
-
-                # Calculate end index
-                j = min(i + bs, nsamples)
-
-                # Prepare inputs and move to device
-                inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
-                inputs = inputs.reshape(j - i, seqlen)
-
-                input_queue.put(inputs)
-                temp.append(inputs)'''
 
 
             for data in temp:
-                #print('data: ', data)
                 input_queue.put(data)
             gc.collect()
             batch_count = batch_count - 1
@@ -427,37 +398,19 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
         print('client computation time: ', end_time - start_time)
 
 
-
-
-        '''cycle_count = cycle_count + 1
-        input_count = input_count + 1
-
-
-
-        calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)'''
-
-        #input_count = input_count + 1
-
-        '''if not is_early_exit:
-            calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
-            outgoing_queue.put([end_idx + 1, out, ids, mask, idx])
-            print('outgoing queue PUT!')'''
-        #else:
-            #calculate_opt.server_comp_statistics = (end_idx + 1, 0)
-
         if not is_early_exit:
             cycle_count = cycle_count + 1
             input_count = input_count + 1
 
             outgoing_queue.put([end_idx + 1, out, ids, mask, idx])
             print('outgoing queue PUT!')
-            calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
+            #calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
 
             if is_oom:
                 end_idx = max(1, math.ceil(end_idx / 2))
                 is_oom = False
 
-            if (input_count) % 1 == 0 and input_count < 10 and end_idx < max_layers and statistics_period <= 10:
+            '''if (input_count) % 1 == 0 and input_count < 10 and end_idx < max_layers and statistics_period <= 10:
                 print('testing higher value(i<30)')
                 calculate_opt.max_end_idx = end_idx
                 end_idx = end_idx + 1
@@ -487,7 +440,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
         if end_idx_buff < end_idx and end_idx_buff < max_layers:
             models, end_idx_buff = layer_reallocation(1, start_idx, end_idx_buff, max_layers, models)
         while end_idx_buff > end_idx + 3:  #remove buffer
-            models, end_idx_buff = layer_reallocation(2, start_idx, end_idx_buff, max_layers, models)
+            models, end_idx_buff = layer_reallocation(2, start_idx, end_idx_buff, max_layers, models)'''
 
         torch.cuda.empty_cache()
 
