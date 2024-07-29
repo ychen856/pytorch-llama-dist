@@ -30,6 +30,7 @@ import yaml
 from queue import Queue
 from prune_all import prune_wanda_allocation
 from calculate_opt import Calcualte_opt
+from timestamp_manager import Timestamp_manager
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
@@ -39,6 +40,7 @@ args = parser.parse_args()
 input_queue = Queue()
 outgoing_queue = Queue()
 calculate_opt = Calcualte_opt()
+timestamp_manager = Timestamp_manager()
 
 def layer_reallocation(type, start_idx, end_idx_buff, models):
     if type == 1: #add buffer layers
@@ -207,17 +209,63 @@ def task1_data_sending(args):
 
         data = outgoing_queue.get()
         #print('data: ', data)
-        http_sender.send_data(args.server_ip, args.server_port, data, calculate_opt)
+        http_sender.send_data(args.server_ip, args.server_port, data, calculate_opt, timestamp_manager)
+
 
 
 def task2_computation(models, start_idx, end_idx, end_idx_buff, max_layers, device):
     is_oom = False
     trash_data = False
+    batch_count = 10
 
-    while not input_queue.empty():
+    #while not input_queue.empty():
+    while (1):
+        if input_queue.qsize() == 0:
+            # time.sleep(150)
+            while len(timestamp_manager.end_times) < 5:
+                time.sleep(0.0001)
+            timestamp_manager.get_time_diff_every_n_inputs(5)
+            timestamp_manager.clearAll()
+            time.sleep(20)
+
+            if batch_count <= 1:
+                break
+
+            test_loader = get_eval_data(tokenizer)
+            bs = 1
+
+            # loading inputs data
+            seqlen = 1024
+            # Get input IDs
+            testenc = test_loader.input_ids
+
+            # Calculate number of samples
+            nsamples = testenc.numel() // seqlen
+            nsamples = 5
+            # List to store negative log likelihoods
+            nlls = []
+            print(f"nsamples {nsamples}")
+
+            for i in range(0, nsamples, bs):
+                if i % 50 == 0:
+                    print(f"sample {i}")
+
+                # Calculate end index
+                j = min(i + bs, nsamples)
+
+                # Prepare inputs and move to device
+                inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
+                inputs = inputs.reshape(j - i, seqlen)
+
+                input_queue.put(inputs)
+
+            batch_count = batch_count - 1
+
+
         print('edge device:')
         start_time = time.time()
-
+        idx = input_queue.qsize()
+        timestamp_manager.start_times = (idx, start_time)
         input = input_queue.get()
 
         # Forward pass through the model
@@ -228,8 +276,12 @@ def task2_computation(models, start_idx, end_idx, end_idx_buff, max_layers, devi
         print('client computation time: ', end_time - start_time)
 
         #outgoing_queue.put([end_idx + 1, out, ids, mask])
-        outgoing_queue.put([0, input, None, None])
+        outgoing_queue.put([0, input, None, None, idx])
 
+        data = outgoing_queue.get()
+        # print('data: ', data)
+        http_sender.send_data(args.server_ip, args.server_port, data, calculate_opt, timestamp_manager)
+        http_sender.get_queue_data()
 
 
         torch.cuda.empty_cache()
@@ -279,7 +331,7 @@ if __name__ == '__main__':
 
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
-    nsamples = 50
+    nsamples = 5
     # List to store negative log likelihoods
     nlls = []
     print(f"nsamples {nsamples}")
@@ -300,18 +352,20 @@ if __name__ == '__main__':
     start_idx = 0
     end_idx = 0
     # Create and start threads
-    thread1 = threading.Thread(target=task1_data_sending, args=[args])
+    #thread1 = threading.Thread(target=task1_data_sending, args=[args])
     thread2 = threading.Thread(target=task2_computation, args=[models, start_idx, end_idx, end_idx_buff, max_layers, device])
-    #thread3 = threading.Thread(target=task3_summerizing, args=[models, test_loader, bs, device])
-    thread1.start()
+    #thread1.start()
     thread2.start()
     #thread3.start()
 
     # Wait for both threads to finish (optional)
-    thread1.join()
+    #thread1.join()
     thread2.join()
     #thread3.join()
 
     print("Both tasks completed!")
+    print('start: ', timestamp_manager.start_times)
+    print('end: ', timestamp_manager.end_times)
+    timestamp_manager.get_time_diff_every_n_inputs(5)
 
 
