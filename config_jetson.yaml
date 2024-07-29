@@ -41,7 +41,7 @@ edge_layer_setting:
   max_layers: 3
   start_idx: 0
   end_idx_buff: 3
-  end_idx:  2
+  end_idx:  1
 
 
 llama_2_7b_hf:
