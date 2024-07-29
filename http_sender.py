@@ -51,10 +51,10 @@ def get_queue_data():
 
 
 def pop_incoming_queue():
-    returning_queue.pop(0)
+    returning_queue.get()
 
 
-def send_data(server_ip, server_port, text, calculate_opt):
+def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     #text = 'fodge'
     #text = [torch.rand(4, 1, 4096), torch.rand(4, 1, 4096), torch.rand(4, 1, 4096)]
     #text = text[0]
@@ -73,18 +73,18 @@ def send_data(server_ip, server_port, text, calculate_opt):
     conn.putheader('Content-Length', str(total_size))
     conn.endheaders()
 
-    print('package size: ', total_size)
+    #print('package size: ', total_size)
     #print(newx)
     conn.send(newx)
     end_time = time.time()
-    print('client sending time: ', end_time - start_time)
+    #print('client sending time: ', end_time - start_time)
 
 
     start_time2 = time.time()
     resp = conn.getresponse()
 
     resp_data = resp.readlines()
-    print('TTTTTTTTTTTTTTTT:', resp_data)
+    #print('TTTTTTTTTTTTTTTT:', resp_data)
     resp_str = b''
 
     for i in range(4, len(resp_data)):
@@ -93,21 +93,26 @@ def send_data(server_ip, server_port, text, calculate_opt):
     rtt = end_time2 - start_time
 
     try:
+        # resp_message = [start_idx, total_comp_time, idx]
         resp_message = pickle.loads(resp_str)
 
         resp_message = resp_message[0]
         resp_message.append(rtt)
         print('server side: ', resp_message)
-        calculate_opt.incoming_count = calculate_opt.incoming_count + 1
-        calculate_opt.server_comp_statistics = (resp_message[0], resp_message[2])
+
+        timestamp_manager.end_times = (resp_message[2], end_time2)
+
+        if not resp_message[0] == 0:
+            calculate_opt.incoming_count = calculate_opt.incoming_count + 1
+            calculate_opt.server_comp_statistics = (resp_message[0], resp_message[3])
         #returning_queue.put(resp_message)
     except:
         print('error')
     #print('return message: ', resp_message[0])
     #returning_queue.append(resp_message)
 
-    print('client receiving time: ', end_time2 - start_time2)
-    print('rrt: ', end_time2 - start_time)
+    #print('client receiving time: ', end_time2 - start_time2)
+    print('rrt: ', rtt)
     gc.collect()
 
 
