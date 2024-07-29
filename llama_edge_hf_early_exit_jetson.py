@@ -329,7 +329,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             timestamp_manager.clearAll()
             time.sleep(20)
 
-            if batch_count <=1 :
+            if batch_count <=1:
                 break
 
             '''test_loader = get_eval_data(tokenizer)
@@ -365,7 +365,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             for data in temp:
                 #print('data: ', data)
                 input_queue.put(data)
-
+            gc.collect()
             batch_count = batch_count - 1
 
 
