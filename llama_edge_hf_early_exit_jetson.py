@@ -404,13 +404,13 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
             outgoing_queue.put([end_idx + 1, out, ids, mask, idx])
             print('outgoing queue PUT!')
-            calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
+            #calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
 
             if is_oom:
                 end_idx = max(1, math.ceil(end_idx / 2))
                 is_oom = False
 
-            if (input_count) % 1 == 0 and input_count < 10 and end_idx < max_layers and statistics_period <= 10:
+            '''if (input_count) % 1 == 0 and input_count < 10 and end_idx < max_layers and statistics_period <= 10:
                 print('testing higher value(i<30)')
                 calculate_opt.max_end_idx = end_idx
                 end_idx = end_idx + 1
@@ -431,16 +431,16 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             #while new_buff_idx < end_idx_buff:
             #    models, end_idx_buff = layer_reallocation(2, start_idx, end_idx_buff, max_layers, models)
 
-            '''lm_head, _ = get_lm_head_idx(end_idx)
+            lm_head, _ = get_lm_head_idx(end_idx)
             if not lm_head == head_idx:
-                head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx, device, cache_dir="llm_weights")'''
+                head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx, device, cache_dir="llm_weights")
             cycle_count = 0
 
         #if end_idx_buff < end_idx and end_idx_buff + 3 <= max_layers:  #add buffer
         if end_idx_buff < end_idx and end_idx_buff < max_layers:
             models, end_idx_buff = layer_reallocation(1, start_idx, end_idx_buff, max_layers, models)
         while end_idx_buff > end_idx + 3:  #remove buffer
-            models, end_idx_buff = layer_reallocation(2, start_idx, end_idx_buff, max_layers, models)
+            models, end_idx_buff = layer_reallocation(2, start_idx, end_idx_buff, max_layers, models)'''
 
         torch.cuda.empty_cache()
 
