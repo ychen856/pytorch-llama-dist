@@ -68,7 +68,7 @@ def eval_ppl_sep_hf(models, tokenizer, device=torch.device("cuda:0")):
             print('ppl: ', ppl)'''
     return ppl
 
-def eval_lm_head_ppl_sep_hf(models, lm_models, tokenizer, device=torch.device("cuda:0")):
+def eval_lm_head_ppl_sep_hf(models, lm_models, head_idx, tokenizer, device=torch.device("cuda:0")):
     seqlen = 1024
     # Set dataset
     dataset = "wikitext2_hf"
@@ -83,7 +83,6 @@ def eval_lm_head_ppl_sep_hf(models, lm_models, tokenizer, device=torch.device("c
 
     # Evaluate ppl in no grad context to avoid updating the model
     with torch.no_grad():
-        head_idx = 4
         ppl = eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testloader, tokenizer, head_idx, 1, device)
         print('ppl: ', ppl)
     return ppl
@@ -368,28 +367,29 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
         # Forward pass through the model
         out, ids, mask = models[0](inputs)
         is_early_exit = False
-        for k in range (1, len(models) - 2):
+        #for k in range (1, len(models) - 2):
+        for k in range(1, len(models)):
             is_early_exit = False
             #print('Processing layer: ', k)
             start_time = time.time()
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
             #print('mask: ', mask)
-            '''if k == splitting_point:
-                is_early_exit, lm_logits = early_exit_lm_head(lm_models, out)
+            if k == splitting_point:
+                is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, splitting_point)
                 if is_early_exit:
                     is_early_exit = True
                     early_count = early_count + 1
                     print('early: ', early_count)
-                    break'''
+                    break
 
-        if not is_early_exit:
+        '''if not is_early_exit:
             lm_logits = models[33](out.last_hidden_state)
-            lm_logits = models[34](lm_logits)
+            lm_logits = models[34](lm_logits)'''
 
 
 
         # Shift logits and labels for next token prediction
-        shift_logits = lm_logits[:, :-1, :].contiguous()
+        '''shift_logits = lm_logits[:, :-1, :].contiguous()
         shift_labels = inputs[:, 1:]
 
 
@@ -425,4 +425,5 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
     torch.cuda.empty_cache()
     print('early count: ', early_count)
 
-    return ppl.item()
+    return ppl.item()'''
+    return 0
