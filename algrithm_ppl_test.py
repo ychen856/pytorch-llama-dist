@@ -281,7 +281,9 @@ if __name__ == '__main__':
                     head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx[i], device)
 
                 # print('mask: ', mask)
+
                 if k == head_idx:
+                    print('head idx: ', head_idx)
                     is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, head_idx)
 
                     if is_early_exit:
