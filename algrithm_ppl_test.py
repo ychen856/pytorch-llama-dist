@@ -229,7 +229,6 @@ if __name__ == '__main__':
     print("loading success")
 
     test_loader = get_eval_data(tokenizer)
-    print('FFFFF: ', test_loader)
     bs = 1
 
     # loading inputs data
@@ -244,7 +243,7 @@ if __name__ == '__main__':
     nlls = []
     print(f"nsamples {nsamples}")
 
-    end_idx = [10, 7, 7, -1, 7, -1, -1, 7, 7, 7]
+    end_idx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
     # Evaluate ppl in no grad context to avoid updating the model
     with torch.no_grad():
