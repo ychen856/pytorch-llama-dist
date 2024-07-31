@@ -308,6 +308,7 @@ if __name__ == '__main__':
             # Compute loss
             loss_fct = nn.CrossEntropyLoss()
             loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
+            print('loss: ', loss)
 
 
             # Calculate negative log likelihood
