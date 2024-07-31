@@ -268,7 +268,7 @@ if __name__ == '__main__':
             is_early_exit = False
 
             #lm_head, lm_head_idx = get_lm_head_idx(end_idx[i])
-
+            print('iii: ', i)
             # for k in range (1, len(models) - 2):
             for k in range(1, len(models) - 2):
                 is_early_exit = False
@@ -319,13 +319,13 @@ if __name__ == '__main__':
 
             sys.stdout.flush()
 
-        print('begin calcualte ppl')
-        # Compute perplexity
-        ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
-        # Empty CUDA cache to save memory
-        torch.cuda.empty_cache()
-        print('early count: ', early_count)
-        print('ppl: ', ppl.item())
+    print('begin calcualte ppl')
+    # Compute perplexity
+    ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
+    # Empty CUDA cache to save memory
+    torch.cuda.empty_cache()
+    print('early count: ', early_count)
+    print('ppl: ', ppl.item())
 
 
 
