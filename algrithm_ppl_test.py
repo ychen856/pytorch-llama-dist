@@ -244,7 +244,7 @@ if __name__ == '__main__':
     nlls = []
     print(f"nsamples {nsamples}")
 
-    end_idx = [10, 7, 7, -1, 7, -1, -1, 7, 7, 7]
+    end_idx = [7, 7, 5, -1, 5, -1, 5, 6, 6, 7]
 
     # Evaluate ppl in no grad context to avoid updating the model
     with torch.no_grad():
