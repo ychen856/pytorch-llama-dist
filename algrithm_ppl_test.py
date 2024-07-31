@@ -244,7 +244,7 @@ if __name__ == '__main__':
     nlls = []
     print(f"nsamples {nsamples}")
 
-    end_idx = [9, 9, 9, -1, 9, -1, 9, 9, 9, -1]
+    end_idx = [9, 9, 9, -1, 9, -1, 9, 9, 9, 7]
 
     # Evaluate ppl in no grad context to avoid updating the model
     with torch.no_grad():
@@ -263,6 +263,13 @@ if __name__ == '__main__':
             inputs = inputs.reshape(j - i, seqlen)
             # print(tokenizer.batch_decode(inputs, skip_special_tokens=True, clean_up_tokenization_spaces=False))
 
+            head_idx = -1
+            print("i: ", i)
+            print('end idx[i]: ', end_idx[i])
+            if end_idx[i] > 0:
+                head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx[i], device)
+
+
             # Forward pass through the model
             out, ids, mask = models[0](inputs)
             is_early_exit = False
@@ -275,12 +282,6 @@ if __name__ == '__main__':
                 # print('Processing layer: ', k)
                 start_time = time.time()
                 out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-
-                head_idx = -1
-                print("i: ", i)
-                print('end idx[i]: ', end_idx[i])
-                if end_idx[i] > 0:
-                    head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx[i], device)
 
                 # print('mask: ', mask)
 
