@@ -279,7 +279,7 @@ if __name__ == '__main__':
             # for k in range (1, len(models) - 2):
             for k in range(1, len(models) - 2):
                 is_early_exit = False
-                # print('Processing layer: ', k)
+                print('Processing layer: ', k)
                 start_time = time.time()
                 out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
