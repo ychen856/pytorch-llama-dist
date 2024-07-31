@@ -248,17 +248,6 @@ if __name__ == '__main__':
 
     # Evaluate ppl in no grad context to avoid updating the model
     with torch.no_grad():
-        seqlen = 1024
-        # Get input IDs
-        testenc = testenc.input_ids
-
-        # Calculate number of samples
-        nsamples = testenc.numel() // seqlen
-
-        # nsamples = 30
-        # List to store negative log likelihoods
-        nlls = []
-        print(f"nsamples {nsamples}")
         # Loop through each batch
 
         early_count = 0
