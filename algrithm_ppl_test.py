@@ -276,7 +276,7 @@ if __name__ == '__main__':
                 start_time = time.time()
                 out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
-                if end_idx > 0:
+                if end_idx[i] > 0:
                     head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx[i], device)
 
                 # print('mask: ', mask)
