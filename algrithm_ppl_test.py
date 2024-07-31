@@ -244,7 +244,7 @@ if __name__ == '__main__':
     nlls = []
     print(f"nsamples {nsamples}")
 
-    end_idx = [-1, 5, 6, 7, -1, 8, -1, -1, -1]
+    end_idx = [-1, 5, 6, 6, 7, -1, 8, -1, -1, -1]
 
     # Evaluate ppl in no grad context to avoid updating the model
     with torch.no_grad():
@@ -277,6 +277,8 @@ if __name__ == '__main__':
                 out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
                 head_idx = -1
+                print("i: ", i)
+                print('end idx[i]: ', end_idx[i])
                 if end_idx[i] > 0:
                     head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx[i], device)
 
