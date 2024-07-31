@@ -267,7 +267,7 @@ if __name__ == '__main__':
             out, ids, mask = models[0](inputs)
             is_early_exit = False
 
-            lm_head, lm_head_idx = get_lm_head_idx(end_idx[i])
+            #lm_head, lm_head_idx = get_lm_head_idx(end_idx[i])
 
             # for k in range (1, len(models) - 2):
             for k in range(1, len(models)):
@@ -276,6 +276,7 @@ if __name__ == '__main__':
                 start_time = time.time()
                 out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
+                head_idx = -1
                 if end_idx[i] > 0:
                     head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx[i], device)
 
