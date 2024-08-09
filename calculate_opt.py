@@ -16,6 +16,7 @@ class Calcualte_opt(object):
         self._last_opt_calc_time = math.inf
         self._outgoint_count = 0
         self._incoming_count = 0
+        self._steady_state = False
 
     @property
     def start_idx(self):
@@ -61,6 +62,10 @@ class Calcualte_opt(object):
     def last_opt_calc_time(self):
         return self.last_opt_calc_time
 
+    @property
+    def steady_state(self):
+        return self._steady_state
+
     @client_comp_statistics.setter
     def client_comp_statistics(self, value): #[end_idx, buff_end_idx, comp_time]
         end_idx, buff_end_idx, comp_time = value
@@ -103,6 +108,10 @@ class Calcualte_opt(object):
     def statistic_period(self, value):
         self._statisitc_period = value
 
+    @steady_state.setter
+    def steady_state(self, value):
+        self._steady_state = value
+
     def calclate_opt(self):
         print('do opt')
         #print('FFFFFFFFFFFFFFFFFFFF: ', self._client_comp_statistics)
@@ -113,7 +122,7 @@ class Calcualte_opt(object):
         #print('fffffffffffffffffff: ', client_comp_time_temp)
         #print('zzzzzzzzzzzzzzzzzzz: ', server_comp_time_temp)
 
-        client_end_idx =  client_comp_time_temp[0][0]
+        client_end_idx = client_comp_time_temp[0][0]
         avg_client_comp_time = 0
         avg_server_comp_time = 0
         opt_comp_time = math.inf
@@ -161,8 +170,8 @@ class Calcualte_opt(object):
         self._end_idx = opt_splitting_point
         self._end_idx_buff = opt_buff_idx
 
-        print('last opt: ', self._last_opt_calc_time)
-        print('opt: ', opt_comp_time)
+        #print('last opt: ', self._last_opt_calc_time)
+        #print('opt: ', opt_comp_time)
         if self._last_opt_calc_time * 1.5 < opt_comp_time:
             self._statisitc_period = max(10, self._statisitc_period - 4)
         elif self._last_opt_calc_time * 1.3 > opt_comp_time:
@@ -173,8 +182,8 @@ class Calcualte_opt(object):
 
 
         gc.collect()
-        print('opt splitting point: ', opt_splitting_point)
-        print('statisitc period: ', self._statisitc_period)
+        #print('opt splitting point: ', opt_splitting_point)
+        #print('statisitc period: ', self._statisitc_period)
 
 
         return opt_splitting_point, opt_buff_idx, self._statisitc_period
