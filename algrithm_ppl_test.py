@@ -244,7 +244,7 @@ if __name__ == '__main__':
     print(f"nsamples {nsamples}")
 
     #end_idx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    end_idx = [9, 9, 9, 9, 10, 5, -1, 5, 5, 5]
+    end_idx = [5, 5, 5, -1, 5, -1, 5, 5, 5, 5]
 
 
     # Evaluate ppl in no grad context to avoid updating the model
