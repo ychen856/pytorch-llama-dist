@@ -238,43 +238,14 @@ if __name__ == '__main__':
 
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
-    nsamples = 30
+    nsamples = 10
     # List to store negative log likelihoods
     nlls = []
     print(f"nsamples {nsamples}")
 
     #end_idx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    #end_idx = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
-    end_idx = [1,
-1,
-1,
-1,
-1,
-1,
-1,
-1,
-1,
-1,
-1,
-1,
-1,
-2,
-2,
-2,
-3,
-3,
-3,
-3,
-4,
-4,
-5,
-1,
-1,
-1,
-1,
-1,
-1,
-1]
+    end_idx = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+
 
     # Evaluate ppl in no grad context to avoid updating the model
     with torch.no_grad():
