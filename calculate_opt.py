@@ -7,7 +7,7 @@ class Calcualte_opt(object):
         self._start_idx = 0
         self._end_idx = 0
         self._end_idx_buff = 0
-        self._statisitc_period = 5
+        self._statisitc_period = 10
 
         self._client_comp_statistics = []
         self._server_comp_statistics = []
