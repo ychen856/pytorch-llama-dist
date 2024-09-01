@@ -39,7 +39,7 @@ temp = []
 
 def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
     if type == 1: #add buffer layers
-        print('increase buffer')
+        #print('increase buffer')
         config, kwargs = AutoConfig.from_pretrained(
             args.ckpt_dir_hf,
             return_unused_kwargs=True
@@ -100,7 +100,7 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
                 break
 
     if type == 2: # drop layers
-        print('decrease buffer')
+        #print('decrease buffer')
         models = models[:-1]
         end_idx_buff = end_idx_buff - 1
     if type == 3:   #pruning
@@ -131,7 +131,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
     checkpoint_idx = 0
     for checkpoint in checkpoints:
         ckpt_path = checkpoint
-        print(f'Loading checkpoint "{ckpt_path}"')
+        #print(f'Loading checkpoint "{ckpt_path}"')
 
         checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
         checkpoint_idx = checkpoint_idx + 1
@@ -207,8 +207,6 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
 
     lm_head, lm_head_idx = get_lm_head_idx(end_idx)
 
-    print('lm_head: ', lm_head)
-    print('lm_head_idx: ', lm_head_idx)
 
     checkpoint_list = []
     checkpoints = sorted(Path(checkpoints_dir).glob("lm_head.*.pth"))
@@ -223,7 +221,7 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
     for i in range(0, len(checkpoints)):
         if i == 0 or i == lm_head_idx:
             ckpt_path = checkpoints[i]
-            print(f'Loading checkpoint "{ckpt_path}"')
+            #print(f'Loading checkpoint "{ckpt_path}"')
 
             checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
 
@@ -282,8 +280,11 @@ def task1_data_sending(args):
 
             time.sleep(0.0001)'''
 
-        while outgoing_queue.empty() and input_queue.qsize() > 0:
-        #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0:
+        #print('zzz', calculate_opt.steady_state)
+        #while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
+        #while outgoing_queue.empty() and input_queue.qsize() > 0:
+        #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0 and calculate_opt.steady_state:
+        while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0:
             timeout_count = timeout_count + 1
 
             start_time = time.time()
@@ -295,7 +296,7 @@ def task1_data_sending(args):
 
                 outgoing_queue.put([0, input_queue.get(), None, None, idx])
                 end_time = time.time()
-                print('client computation time: ', end_time - start_time)
+                #print('client computation time: ', end_time - start_time)
                 # calculate_opt.client_comp_statistics = (-1, end_idx_buff, end_time - start_time)
                 print('server idle!')
             else:
@@ -303,7 +304,7 @@ def task1_data_sending(args):
 
 
         data = outgoing_queue.get()
-        calculate_opt.outgoint_count = calculate_opt.incoming_count + 1
+        calculate_opt.outgoint_count = calculate_opt.outgoint_count + 1
         http_sender.send_data(args.server_ip, args.server_port, data, calculate_opt, timestamp_manager)
 
 
@@ -313,39 +314,70 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
     is_oom = False
     #prune_wanda_allocation(args, models, tokenizer, testenc[0], device=torch.device("cuda:0"))
     # Loop through each batch
-    batch_count = 6
+    batch_count = 30
     cycle_count = 0
     input_count = 0
     count = 0
     statistics_period = calculate_opt.statistic_period
 
+
+
     #while not input_queue.empty():
     while(1):
         if input_queue.qsize() == 0:
             #time.sleep(150)
-            while len(timestamp_manager.end_times) < 5:
+            while len(timestamp_manager.end_times) < 10:
                 time.sleep(0.0001)
-            timestamp_manager.get_time_diff_every_n_inputs(5)
+            timestamp_manager.get_time_diff_every_n_inputs(10)
             timestamp_manager.clearAll()
             time.sleep(20)
 
-            if batch_count <=1:
+            if batch_count <= 1:
                 break
 
+            '''test_loader = get_eval_data(tokenizer)
+            bs = 1
 
+            # loading inputs data
+            seqlen = 1024
+            # Get input IDs
+            testenc = test_loader.input_ids
 
+            # Calculate number of samples
+            nsamples = testenc.numel() // seqlen
+            nsamples = 30
+            # List to store negative log likelihoods
+            nlls = []
+            print(f"nsamples {nsamples}")
+
+            for i in range(0, nsamples, bs):
+                if i % 50 == 0:
+                    print(f"sample {i}")
+
+                # Calculate end index
+                j = min(i + bs, nsamples)
+
+                # Prepare inputs and move to device
+                inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
+                inputs = inputs.reshape(j - i, seqlen)
+
+                input_queue.put(inputs)
+                temp.append(inputs)'''
+
+            print('???????????????????')
             for data in temp:
+                #print('data: ', data)
                 input_queue.put(data)
-            gc.collect()
+
             batch_count = batch_count - 1
 
 
         is_early_exit = False
         count = count + 1
         print('========================================')
-        print('input count: ', count)
+        #print('input count: ', count)
         print('end idx: ', end_idx)
-        print('end idx buffer: ', end_idx_buff)
+        #print('end idx buffer: ', end_idx_buff)
 
         idx = input_queue.qsize()
         input = input_queue.get()
@@ -380,8 +412,6 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                         end_idx = k
 
                     if is_early_exit:
-                        #calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, time.time() - start_time)
-                        #calculate_opt.server_comp_statistics = (end_idx + 1, 0)
                         timestamp_manager.end_times = (idx, time.time())
                         break
 
@@ -391,41 +421,60 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
                 end_idx = k - 1
 
-                print('updated end idx: ', end_idx)
+                #print('updated end idx: ', end_idx)
                 break
 
         end_time = time.time()
-        print('client computation time: ', end_time - start_time)
+        #print('client computation time: ', end_time - start_time)
 
+
+
+
+        '''cycle_count = cycle_count + 1
+        input_count = input_count + 1
+
+
+
+        calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)'''
+
+        #input_count = input_count + 1
+
+        '''if not is_early_exit:
+            calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
+            outgoing_queue.put([end_idx + 1, out, ids, mask, idx])
+            print('outgoing queue PUT!')'''
+        #else:
+            #calculate_opt.server_comp_statistics = (end_idx + 1, 0)
 
         if not is_early_exit:
             cycle_count = cycle_count + 1
             input_count = input_count + 1
 
             outgoing_queue.put([end_idx + 1, out, ids, mask, idx])
-            print('outgoing queue PUT!')
-            #calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
+            #print('outgoing queue PUT!')
+            calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
 
             if is_oom:
                 end_idx = max(1, math.ceil(end_idx / 2))
                 is_oom = False
 
-            '''if (input_count) % 1 == 0 and input_count < 10 and end_idx < max_layers and statistics_period <= 10:
-                print('testing higher value(i<30)')
+            if (input_count) % 2 == 0 and input_count < 20 and end_idx < max_layers and statistics_period <= 10:
+                #print('testing higher value(i<30)')
                 calculate_opt.max_end_idx = end_idx
                 end_idx = end_idx + 1
 
-            if cycle_count == (statistics_period - 8) and input_count > 10 and cycle_count % 2 == 0:
-                print('testing lower value (i>30)')
+            if cycle_count == (statistics_period - 8) and input_count > 20 and cycle_count % 2 == 0:
+                #print('testing lower value (i>30)')
                 end_idx = max(1, end_idx - 2)
 
-            if cycle_count > (statistics_period - 8) and input_count >= 10 and end_idx < max_layers and cycle_count % 2 == 0:
-                print('testing higher value (i>30): ')
+            if cycle_count > (statistics_period - 8) and input_count >= 20 and end_idx < max_layers and cycle_count % 2 == 0:
+                #print('testing higher value (i>30): ')
                 calculate_opt.max_end_idx = end_idx
                 end_idx = end_idx + 1
 
         #if (input_count) % 10 == 0:
         if len(calculate_opt.server_comp_statistics) >= statistics_period:
+            print('statistic')
             #statistics_period = statistics_period + 5
             end_idx, new_buff_idx, statistics_period = calculate_opt.calclate_opt()
             #while new_buff_idx < end_idx_buff:
@@ -440,7 +489,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
         if end_idx_buff < end_idx and end_idx_buff < max_layers:
             models, end_idx_buff = layer_reallocation(1, start_idx, end_idx_buff, max_layers, models)
         while end_idx_buff > end_idx + 3:  #remove buffer
-            models, end_idx_buff = layer_reallocation(2, start_idx, end_idx_buff, max_layers, models)'''
+            models, end_idx_buff = layer_reallocation(2, start_idx, end_idx_buff, max_layers, models)
 
         torch.cuda.empty_cache()
 
@@ -476,7 +525,7 @@ if __name__ == '__main__':
 
 
     device = torch.device("cuda")
-    head_idx = 1
+    head_idx = 2
     calculate_opt.statistic_period = 10
 
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx_buff, device)
@@ -496,7 +545,7 @@ if __name__ == '__main__':
 
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
-    nsamples = 5
+    nsamples = 10
     # List to store negative log likelihoods
     nlls = []
     print(f"nsamples {nsamples}")

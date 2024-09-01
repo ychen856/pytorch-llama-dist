@@ -184,6 +184,8 @@ class Calcualte_opt(object):
         gc.collect()
         #print('opt splitting point: ', opt_splitting_point)
         #print('statisitc period: ', self._statisitc_period)
+        if self._statisitc_period > 20:
+            self._steady_state = True
 
 
         return opt_splitting_point, opt_buff_idx, self._statisitc_period
