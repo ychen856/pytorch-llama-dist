@@ -458,16 +458,16 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 end_idx = max(1, math.ceil(end_idx / 2))
                 is_oom = False
 
-            if (input_count) % 2 == 0 and input_count < 20 and end_idx < max_layers and statistics_period <= 10:
+            if (input_count) % 2 == 0 and input_count < 6 and end_idx < max_layers and statistics_period <= 5:
                 #print('testing higher value(i<30)')
                 calculate_opt.max_end_idx = end_idx
                 end_idx = end_idx + 1
 
-            if cycle_count == (statistics_period - 8) and input_count > 20 and cycle_count % 2 == 0:
+            if cycle_count == (statistics_period - 6) and input_count > 6 and cycle_count % 2 == 0:
                 #print('testing lower value (i>30)')
                 end_idx = max(1, end_idx - 2)
 
-            if cycle_count > (statistics_period - 8) and input_count >= 20 and end_idx < max_layers and cycle_count % 2 == 0:
+            if cycle_count > (statistics_period - 6) and input_count >= 6 and end_idx < max_layers and cycle_count % 2 == 0:
                 #print('testing higher value (i>30): ')
                 calculate_opt.max_end_idx = end_idx
                 end_idx = end_idx + 1
@@ -563,7 +563,7 @@ if __name__ == '__main__':
         inputs = inputs.reshape(j - i, seqlen)
 
         input_queue.put(inputs)
-        temp.append(inputs)
+        #temp.append(inputs)
 
     start_idx = 0
     calculate_opt.end_idx = args.end_idx
