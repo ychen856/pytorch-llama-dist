@@ -564,7 +564,7 @@ if __name__ == '__main__':
         inputs = inputs.reshape(j - i, seqlen)
 
         input_queue.put(inputs)
-        #temp.append(inputs)
+        temp.append(inputs)
 
     start_idx = 0
     calculate_opt.end_idx = args.end_idx
