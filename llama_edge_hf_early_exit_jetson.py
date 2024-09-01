@@ -457,7 +457,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             if is_oom:
                 end_idx = max(1, math.ceil(end_idx / 2))
                 is_oom = False
-
+            print('statistic: ', statistics_period)
             if (input_count) % 2 == 0 and input_count < 6 and end_idx < max_layers and statistics_period <= 5:
                 print('1')
                 #print('testing higher value(i<30)')
