@@ -459,6 +459,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 is_oom = False
 
             if (input_count) % 2 == 0 and input_count < 6 and end_idx < max_layers and statistics_period <= 5:
+                print('1')
                 #print('testing higher value(i<30)')
                 calculate_opt.max_end_idx = end_idx
                 end_idx = end_idx + 1
