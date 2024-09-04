@@ -216,7 +216,7 @@ def task1_data_sending(args):
 def task2_computation(models, start_idx, end_idx, end_idx_buff, max_layers, device):
     is_oom = False
     trash_data = False
-    batch_count = 10
+    batch_count = 30
 
     #while not input_queue.empty():
     while (1):
@@ -224,7 +224,7 @@ def task2_computation(models, start_idx, end_idx, end_idx_buff, max_layers, devi
             # time.sleep(150)
             while len(timestamp_manager.end_times) < 5:
                 time.sleep(0.0001)
-            timestamp_manager.get_time_diff_every_n_inputs(5)
+            timestamp_manager.get_time_diff_every_n_inputs(10)
             timestamp_manager.clearAll()
             time.sleep(20)
 
@@ -366,6 +366,6 @@ if __name__ == '__main__':
     print("Both tasks completed!")
     print('start: ', timestamp_manager.start_times)
     print('end: ', timestamp_manager.end_times)
-    timestamp_manager.get_time_diff_every_n_inputs(5)
+    timestamp_manager.get_time_diff_every_n_inputs(10)
 
 
