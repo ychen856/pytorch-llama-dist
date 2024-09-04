@@ -281,7 +281,7 @@ def task1_data_sending(args):
             time.sleep(0.0001)'''
 
         #print('zzz', calculate_opt.steady_state)
-        while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
+        '''while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
         #while outgoing_queue.empty() and input_queue.qsize() > 0:
         #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0 and calculate_opt.steady_state:
         #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0:
@@ -300,7 +300,7 @@ def task1_data_sending(args):
                 # calculate_opt.client_comp_statistics = (-1, end_idx_buff, end_time - start_time)
                 print('server idle!')
             else:
-                break
+                break'''
 
 
         data = outgoing_queue.get()
@@ -527,7 +527,7 @@ if __name__ == '__main__':
 
     device = torch.device("cuda")
     head_idx = 2
-    calculate_opt.statistic_period = 5
+    calculate_opt.statistic_period = 10
 
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx_buff, device)
     _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, head_idx, device, cache_dir="llm_weights")
