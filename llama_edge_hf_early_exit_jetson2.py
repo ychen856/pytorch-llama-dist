@@ -119,7 +119,7 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
 
 def load_model(checkpoints_dir, start_idx, end_idx, device):
     config, kwargs = AutoConfig.from_pretrained(
-        args.ckpt_dir_hf,
+        args.ckpt_dir_hf_sep,
         return_unused_kwargs=True
     )
     #print('config: ', config)
