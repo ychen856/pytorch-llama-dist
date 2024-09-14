@@ -530,7 +530,7 @@ if __name__ == '__main__':
 
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx_buff, device)
     _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, head_idx, device, cache_dir="llm_weights")
-    tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
+    tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf_sep, use_fast=False)
 
 
 
