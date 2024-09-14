@@ -173,9 +173,9 @@ class Calcualte_opt(object):
         #print('last opt: ', self._last_opt_calc_time)
         #print('opt: ', opt_comp_time)
         if self._last_opt_calc_time * 1.5 < opt_comp_time:
-            self._statisitc_period = max(10, self._statisitc_period - 4)
+            self._statisitc_period = max(10, self._statisitc_period - 2)
         elif self._last_opt_calc_time * 1.3 > opt_comp_time:
-            self._statisitc_period = min(300, self._statisitc_period + 8)
+            self._statisitc_period = min(300, self._statisitc_period + 4)
 
         #self._last_opt_calc_time = min(self._last_opt_calc_time, opt_comp_time)
         self._last_opt_calc_time = opt_comp_time
@@ -184,7 +184,7 @@ class Calcualte_opt(object):
         gc.collect()
         #print('opt splitting point: ', opt_splitting_point)
         #print('statisitc period: ', self._statisitc_period)
-        if self._statisitc_period > 20:
+        if self._statisitc_period > 10:
             self._steady_state = True
 
 
