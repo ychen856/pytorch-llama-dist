@@ -326,9 +326,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
     while(1):
         if input_queue.qsize() == 0:
             #time.sleep(150)
-            while len(timestamp_manager.end_times) < 10:
+            while len(timestamp_manager.end_times) < 8:
                 time.sleep(0.0001)
-            timestamp_manager.get_time_diff_every_n_inputs(10)
+            timestamp_manager.get_time_diff_every_n_inputs(8)
             timestamp_manager.clearAll()
             time.sleep(20)
 
@@ -345,7 +345,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
             # Calculate number of samples
             nsamples = testenc.numel() // seqlen
-            nsamples = 10
+            nsamples = 8
             # List to store negative log likelihoods
             nlls = []
             print(f"nsamples {nsamples}")
@@ -526,7 +526,7 @@ if __name__ == '__main__':
 
     device = torch.device("cuda")
     head_idx = 2
-    calculate_opt.statistic_period = 10
+    calculate_opt.statistic_period = 8
 
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx_buff, device)
     _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, head_idx, device, cache_dir="llm_weights")
