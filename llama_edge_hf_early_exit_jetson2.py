@@ -281,7 +281,7 @@ def task1_data_sending(args):
             time.sleep(0.0001)'''
 
         #print('zzz', calculate_opt.steady_state)
-        while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
+        '''while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
         #while outgoing_queue.empty() and input_queue.qsize() > 0:
         #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0 and calculate_opt.steady_state:
         #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0:
@@ -300,7 +300,7 @@ def task1_data_sending(args):
                 # calculate_opt.client_comp_statistics = (-1, end_idx_buff, end_time - start_time)
                 print('server idle!')
             else:
-                break
+                break'''
 
 
         data = outgoing_queue.get()
@@ -326,16 +326,16 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
     while(1):
         if input_queue.qsize() == 0:
             #time.sleep(150)
-            while len(timestamp_manager.end_times) < 6:
+            while len(timestamp_manager.end_times) < 5:
                 time.sleep(0.0001)
-            timestamp_manager.get_time_diff_every_n_inputs(6)
+            timestamp_manager.get_time_diff_every_n_inputs(5)
             timestamp_manager.clearAll()
             time.sleep(20)
 
             if batch_count <= 1:
                 break
 
-            test_loader = get_eval_data(tokenizer)
+            '''test_loader = get_eval_data(tokenizer)
             bs = 1
 
             # loading inputs data
@@ -345,7 +345,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
             # Calculate number of samples
             nsamples = testenc.numel() // seqlen
-            nsamples = 6
+            nsamples = 30
             # List to store negative log likelihoods
             nlls = []
             print(f"nsamples {nsamples}")
@@ -362,12 +362,12 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 inputs = inputs.reshape(j - i, seqlen)
 
                 input_queue.put(inputs)
-                #temp.append(inputs)
+                temp.append(inputs)'''
 
-            '''print('???????????????????')
+            print('???????????????????')
             for data in temp:
                 #print('data: ', data)
-                input_queue.put(data)'''
+                input_queue.put(data)
 
             batch_count = batch_count - 1
 
@@ -457,17 +457,18 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             if is_oom:
                 end_idx = max(1, math.ceil(end_idx / 2))
                 is_oom = False
-
-            if (input_count) % 2 == 0 and input_count < 20 and end_idx < max_layers and statistics_period <= 6:
+            print('statistic: ', statistics_period)
+            if (input_count) % 2 == 0 and input_count < 6 and end_idx < max_layers and statistics_period <= 5:
+                print('1')
                 #print('testing higher value(i<30)')
                 calculate_opt.max_end_idx = end_idx
                 end_idx = end_idx + 1
 
-            if cycle_count == (statistics_period - 8) and input_count > 20 and cycle_count % 2 == 0:
+            if cycle_count == (statistics_period - 4) and input_count > 6 and cycle_count % 2 == 0:
                 #print('testing lower value (i>30)')
                 end_idx = max(1, end_idx - 2)
 
-            if cycle_count > (statistics_period - 8) and input_count >= 20 and end_idx < max_layers and cycle_count % 2 == 0:
+            if cycle_count > (statistics_period - 4) and input_count >= 6 and end_idx < max_layers and cycle_count % 2 == 0:
                 #print('testing higher value (i>30): ')
                 calculate_opt.max_end_idx = end_idx
                 end_idx = end_idx + 1
@@ -526,7 +527,7 @@ if __name__ == '__main__':
 
     device = torch.device("cuda")
     head_idx = 2
-    calculate_opt.statistic_period = 6
+    calculate_opt.statistic_period = 10
 
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx_buff, device)
     _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, head_idx, device, cache_dir="llm_weights")
@@ -545,7 +546,7 @@ if __name__ == '__main__':
 
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
-    nsamples = 6
+    nsamples = 5
     # List to store negative log likelihoods
     nlls = []
     print(f"nsamples {nsamples}")
@@ -563,7 +564,7 @@ if __name__ == '__main__':
         inputs = inputs.reshape(j - i, seqlen)
 
         input_queue.put(inputs)
-        #temp.append(inputs)
+        temp.append(inputs)
 
     start_idx = 0
     calculate_opt.end_idx = args.end_idx
