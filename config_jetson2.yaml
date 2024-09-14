@@ -38,7 +38,7 @@ model_config:
   vocab_size: 32000
 
 edge_layer_setting:
-  max_layers: 7
+  max_layers: 6
   start_idx: 0
   end_idx_buff: 5
   end_idx:  3
