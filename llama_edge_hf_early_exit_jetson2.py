@@ -199,7 +199,7 @@ def get_lm_head_idx(end_idx):
     return lm_head, lm_head_idx
 def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
     config, kwargs = AutoConfig.from_pretrained(
-        args.ckpt_dir_hf,
+        args.ckpt_dir_hf_sep,
         return_unused_kwargs=True
     )
     #print('config: ', config)
