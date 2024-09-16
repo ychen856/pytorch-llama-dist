@@ -241,7 +241,7 @@ def task2_computation(models, start_idx, end_idx, end_idx_buff, max_layers, devi
 
             # Calculate number of samples
             nsamples = testenc.numel() // seqlen
-            nsamples = 5
+            nsamples = 10
             # List to store negative log likelihoods
             nlls = []
             print(f"nsamples {nsamples}")
