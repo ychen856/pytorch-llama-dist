@@ -335,7 +335,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             if batch_count <= 1:
                 break
 
-            '''test_loader = get_eval_data(tokenizer)
+            test_loader = get_eval_data(tokenizer)
             bs = 1
 
             # loading inputs data
@@ -345,7 +345,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
             # Calculate number of samples
             nsamples = testenc.numel() // seqlen
-            nsamples = 30
+            nsamples = 8
             # List to store negative log likelihoods
             nlls = []
             print(f"nsamples {nsamples}")
@@ -362,12 +362,12 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 inputs = inputs.reshape(j - i, seqlen)
 
                 input_queue.put(inputs)
-                temp.append(inputs)'''
+                temp.append(inputs)
 
-            print('???????????????????')
+            ''' print('???????????????????')
             for data in temp:
                 #print('data: ', data)
-                input_queue.put(data)
+                input_queue.put(data)'''
 
             batch_count = batch_count - 1
 
@@ -564,7 +564,7 @@ if __name__ == '__main__':
         inputs = inputs.reshape(j - i, seqlen)
 
         input_queue.put(inputs)
-        temp.append(inputs)
+        #temp.append(inputs)
 
     start_idx = 0
     calculate_opt.end_idx = args.end_idx
