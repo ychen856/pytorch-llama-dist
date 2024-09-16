@@ -324,13 +324,6 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
     global repeated
     #while not input_queue.empty():
     while(1):
-        if repeated < 1:
-            for data in temp:
-                # print('data: ', data)
-                input_queue.put(data)
-
-            repeated = repeated + 1
-
         if input_queue.qsize() == 0 and repeated == 1:
             #time.sleep(150)
             while len(timestamp_manager.end_times) < 10:
@@ -377,7 +370,14 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 input_queue.put(data)
 
             batch_count = batch_count - 1
+            repeated = 0
 
+        if repeated < 1:
+            for data in temp:
+                # print('data: ', data)
+                input_queue.put(data)
+
+            repeated = repeated + 1
 
         is_early_exit = False
         count = count + 1
