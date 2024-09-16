@@ -321,7 +321,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
     statistics_period = calculate_opt.statistic_period
 
 
-
+    global repeated
     #while not input_queue.empty():
     while(1):
         if repeated < 1:
