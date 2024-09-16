@@ -32,7 +32,7 @@ input_queue = Queue()
 outgoing_queue = Queue()
 calculate_opt = Calcualte_opt()
 timestamp_manager = Timestamp_manager()
-
+repeated = 0
 temp = []
 
 
@@ -281,7 +281,7 @@ def task1_data_sending(args):
             time.sleep(0.0001)'''
 
         #print('zzz', calculate_opt.steady_state)
-        '''while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
+        while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
         #while outgoing_queue.empty() and input_queue.qsize() > 0:
         #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0 and calculate_opt.steady_state:
         #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0:
@@ -300,7 +300,7 @@ def task1_data_sending(args):
                 # calculate_opt.client_comp_statistics = (-1, end_idx_buff, end_time - start_time)
                 print('server idle!')
             else:
-                break'''
+                break
 
 
         data = outgoing_queue.get()
@@ -324,18 +324,25 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
     #while not input_queue.empty():
     while(1):
-        if input_queue.qsize() == 0:
+        if repeated < 1:
+            for data in temp:
+                # print('data: ', data)
+                input_queue.put(data)
+
+            repeated = repeated + 1
+
+        if input_queue.qsize() == 0 and repeated == 1:
             #time.sleep(150)
-            while len(timestamp_manager.end_times) < 8:
+            while len(timestamp_manager.end_times) < 10:
                 time.sleep(0.0001)
-            timestamp_manager.get_time_diff_every_n_inputs(8)
+            timestamp_manager.get_time_diff_every_n_inputs(10)
             timestamp_manager.clearAll()
             time.sleep(20)
 
             if batch_count <= 1:
                 break
 
-            test_loader = get_eval_data(tokenizer)
+            '''test_loader = get_eval_data(tokenizer)
             bs = 1
 
             # loading inputs data
@@ -362,12 +369,12 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 inputs = inputs.reshape(j - i, seqlen)
 
                 input_queue.put(inputs)
-                temp.append(inputs)
+                temp.append(inputs)'''
 
-            ''' print('???????????????????')
+            print('???????????????????')
             for data in temp:
                 #print('data: ', data)
-                input_queue.put(data)'''
+                input_queue.put(data)
 
             batch_count = batch_count - 1
 
@@ -546,7 +553,7 @@ if __name__ == '__main__':
 
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
-    nsamples = 8
+    nsamples = 5
     # List to store negative log likelihoods
     nlls = []
     print(f"nsamples {nsamples}")
