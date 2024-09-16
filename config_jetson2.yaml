@@ -48,8 +48,8 @@ edge_layer_setting:
 llama_2_7b_hf:
   #ckpt_dir_hf: /home/yichun/workspace/llama-2-7b-chat-hf/
   #tokenizer_path_hf: /home/yichun/workspace/llama-2-7b-chat-hf/
-  ckpt_dir_hf: /home/ychen514/ychen_storage/workspace/llama-2-7b-chat-hf
-  tokenizer_path_hf: /home/ychen514/ychen_storage/workspace/llama-2-7b-chat-hf/tokenizer.model
+  ckpt_dir_hf: /home/li/ychen_storage/workspace/llama-2-7b-chat-hf
+  tokenizer_path_hf: /home/li/ychen_storage/workspace/llama-2-7b-chat-hf/tokenizer.model
 
 
 llama_2_7b_sep:
