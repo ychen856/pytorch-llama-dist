@@ -281,7 +281,7 @@ def task1_data_sending(args):
             time.sleep(0.0001)'''
 
         #print('zzz', calculate_opt.steady_state)
-        while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
+        '''while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
         #while outgoing_queue.empty() and input_queue.qsize() > 0:
         #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0 and calculate_opt.steady_state:
         #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0:
@@ -300,7 +300,7 @@ def task1_data_sending(args):
                 # calculate_opt.client_comp_statistics = (-1, end_idx_buff, end_time - start_time)
                 print('server idle!')
             else:
-                break
+                break'''
 
 
         data = outgoing_queue.get()
