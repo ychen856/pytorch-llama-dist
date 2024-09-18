@@ -32,7 +32,7 @@ input_queue = Queue()
 outgoing_queue = Queue()
 calculate_opt = Calcualte_opt()
 timestamp_manager = Timestamp_manager()
-repeated = 0
+repeated = 1
 temp = []
 
 
@@ -280,7 +280,7 @@ def task1_data_sending(args):
 
             time.sleep(0.0001)'''
 
-        #print('zzz', calculate_opt.steady_state)
+        '''#print('zzz', calculate_opt.steady_state)
         #while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
         while outgoing_queue.empty() and input_queue.qsize() > 0:
         #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0 and calculate_opt.steady_state:
@@ -300,7 +300,7 @@ def task1_data_sending(args):
                 # calculate_opt.client_comp_statistics = (-1, end_idx_buff, end_time - start_time)
                 print('server idle!')
             else:
-                break
+                break'''
 
 
         data = outgoing_queue.get()
@@ -370,7 +370,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 input_queue.put(data)
 
             batch_count = batch_count - 1
-            repeated = 0
+            #repeated = 0
 
         if repeated < 1:
             for data in temp:
