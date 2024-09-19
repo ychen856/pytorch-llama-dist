@@ -222,9 +222,9 @@ def task2_computation(models, start_idx, end_idx, end_idx_buff, max_layers, devi
     while (1):
         if input_queue.qsize() == 0:
             # time.sleep(150)
-            while len(timestamp_manager.end_times) < 10:
+            while len(timestamp_manager.end_times) < 20:
                 time.sleep(0.0001)
-            timestamp_manager.get_time_diff_every_n_inputs(10)
+            timestamp_manager.get_time_diff_every_n_inputs(20)
             timestamp_manager.clearAll()
             time.sleep(20)
 
@@ -241,7 +241,7 @@ def task2_computation(models, start_idx, end_idx, end_idx_buff, max_layers, devi
 
             # Calculate number of samples
             nsamples = testenc.numel() // seqlen
-            nsamples = 10
+            nsamples = 20
             # List to store negative log likelihoods
             nlls = []
             print(f"nsamples {nsamples}")
@@ -331,7 +331,7 @@ if __name__ == '__main__':
 
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
-    nsamples = 10
+    nsamples = 20
     # List to store negative log likelihoods
     nlls = []
     print(f"nsamples {nsamples}")
