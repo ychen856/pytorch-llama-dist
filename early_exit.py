@@ -299,21 +299,21 @@ def early_exit_lm_head(lm_models, out, lm_head):
 
     #return logits_linear
 
-    '''early_rate = 0.88
+    early_rate = 0.88
     if lm_head == 4:
         early_rate = 0.8794106607
     elif lm_head == 2:
         early_rate = 0.8663311749
     elif lm_head == 1:
-        early_rate = 0.8490639077'''
+        early_rate = 0.8490639077
 
-    early_rate = 0.887
+    '''early_rate = 0.887
     if lm_head == 4:
         early_rate = 0.87
     elif lm_head == 2:
         early_rate = 0.86
     elif lm_head == 1:
-        early_rate = 0.84
+        early_rate = 0.84'''
 
     if early_count / 1024 > early_rate:
         return True, logits_linear
