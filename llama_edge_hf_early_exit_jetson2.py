@@ -32,7 +32,7 @@ input_queue = Queue()
 outgoing_queue = Queue()
 calculate_opt = Calcualte_opt()
 timestamp_manager = Timestamp_manager()
-repeated = 0
+repeated = 1
 temp = []
 
 
@@ -326,9 +326,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
     while(1):
         if input_queue.qsize() == 0 and repeated == 1:
             #time.sleep(150)
-            while len(timestamp_manager.end_times) < 20:
+            while len(timestamp_manager.end_times) < 10:
                 time.sleep(0.0001)
-            timestamp_manager.get_time_diff_every_n_inputs(20)
+            timestamp_manager.get_time_diff_every_n_inputs(10)
             timestamp_manager.clearAll()
             time.sleep(20)
 
@@ -370,7 +370,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 input_queue.put(data)
 
             batch_count = batch_count - 1
-            repeated = 0
+            #repeated = 0
 
         if repeated < 1:
             for data in temp:
