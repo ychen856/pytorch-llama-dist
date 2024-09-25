@@ -140,8 +140,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
 
     if device.type == 'cuda':
-        print('ZZZZZZZZZZZZZZZZZZZZ')
-        torch.set_default_dtype(torch.cuda.HalfTensor)
+        torch.set_default_dtype(torch.float16)
         #torch.set_default_tensor_type(torch.cuda.HalfTensor)
     else:
         torch.set_default_tensor_type(torch.BFloat16Tensor)
