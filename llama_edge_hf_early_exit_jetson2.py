@@ -32,7 +32,7 @@ input_queue = Queue()
 outgoing_queue = Queue()
 calculate_opt = Calcualte_opt()
 timestamp_manager = Timestamp_manager()
-repeated = 0
+repeated = 1
 temp = []
 
 
@@ -371,7 +371,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 input_queue.put(data)
 
             batch_count = batch_count - 1
-            repeated = 0
+            #repeated = 0
 
         if repeated < 1:
             for data in temp:
@@ -554,7 +554,7 @@ if __name__ == '__main__':
 
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
-    nsamples = 5
+    nsamples = 10
     # List to store negative log likelihoods
     nlls = []
     print(f"nsamples {nsamples}")
