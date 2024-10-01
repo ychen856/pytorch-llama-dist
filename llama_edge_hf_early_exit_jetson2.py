@@ -32,7 +32,7 @@ input_queue = Queue()
 outgoing_queue = Queue()
 calculate_opt = Calcualte_opt()
 timestamp_manager = Timestamp_manager()
-repeated = 1
+repeated = 0
 temp = []
 
 
