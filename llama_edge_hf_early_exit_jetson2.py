@@ -319,6 +319,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
     cycle_count = 0
     input_count = 0
     count = 0
+    early_count = 0
     statistics_period = calculate_opt.statistic_period
 
 
@@ -330,6 +331,10 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             while len(timestamp_manager.end_times) < 10:
                 time.sleep(0.0001)
             timestamp_manager.get_time_diff_every_n_inputs(10)
+
+            print('early count: ', early_count)
+            early_count = 0
+
             timestamp_manager.clearAll()
             time.sleep(20)
 
@@ -453,6 +458,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             print('outgoing queue PUT!')'''
         #else:
             #calculate_opt.server_comp_statistics = (end_idx + 1, 0)
+
+        if is_early_exit:
+            early_count = early_count + 1
 
         if not is_early_exit:
             cycle_count = cycle_count + 1
