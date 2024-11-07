@@ -244,7 +244,18 @@ if __name__ == '__main__':
     print(f"nsamples {nsamples}")
 
     #end_idx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    end_idx = [5, 5, 5, -1, 5, -1, 5, 5, 5, 5]
+    #end_idx = [5, 5, 6, 6, 7, 7, 8, 8, 8, 8]
+
+    end_idx_map = [[0, 0, 0, 5, 0, 5, 6, 6, 7, 7],
+                [8, 8, 8, 8, 9, 9, 10, 10, 7, 2],
+                [2, 2, 2, 2, 2, 2, 2, 2, 1, 1],
+                [2, 2, 3, 3, 4, 4, 5, 2, 2, 2],
+                [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                [2, 2, 2, 2, 1, 1, 2, 2, 3, 3],
+                [3, 3, 3, 4, 4, 5, 1, 1, 1, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                [1, 1, 1, 1, 1, 1, 2, 2, 3, 3]]
 
 
     # Evaluate ppl in no grad context to avoid updating the model
@@ -267,68 +278,72 @@ if __name__ == '__main__':
             head_idx = -1
             print("i: ", i)
             print('end idx[i]: ', end_idx[i])
-            if end_idx[i] > 0:
-                head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx[i], device)
+
+            for batch in (0, 30):
+                nlls = None
+                end_idx = end_idx_map[batch]
+                if end_idx[i] > 0:
+                    head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx[i], device)
 
 
-            # Forward pass through the model
-            out, ids, mask = models[0](inputs)
-            is_early_exit = False
-
-            #lm_head, lm_head_idx = get_lm_head_idx(end_idx[i])
-            print('iii: ', i)
-            # for k in range (1, len(models) - 2):
-            for k in range(1, len(models) - 2):
+                # Forward pass through the model
+                out, ids, mask = models[0](inputs)
                 is_early_exit = False
-                print('Processing layer: ', k)
-                start_time = time.time()
-                out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
-                # print('mask: ', mask)
+                #lm_head, lm_head_idx = get_lm_head_idx(end_idx[i])
+                print('iii: ', i)
+                # for k in range (1, len(models) - 2):
+                for k in range(1, len(models) - 2):
+                    is_early_exit = False
+                    print('Processing layer: ', k)
+                    start_time = time.time()
+                    out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
-                if k == head_idx:
-                    print('head idx: ', head_idx)
-                    is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, head_idx)
+                    # print('mask: ', mask)
 
-                    if is_early_exit:
-                        is_early_exit = True
-                        early_count = early_count + 1
-                        print('early: ', early_count)
-                        break
+                    if k == head_idx:
+                        print('head idx: ', head_idx)
+                        is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, head_idx)
 
-            if not is_early_exit:
-                lm_logits = models[33](out.last_hidden_state)
-                lm_logits = models[34](lm_logits)
+                        if is_early_exit:
+                            is_early_exit = True
+                            early_count = early_count + 1
+                            print('early: ', early_count)
+                            break
 
-            # Shift logits and labels for next token prediction
-            shift_logits = lm_logits[:, :-1, :].contiguous()
-            shift_labels = inputs[:, 1:]
+                if not is_early_exit:
+                    lm_logits = models[33](out.last_hidden_state)
+                    lm_logits = models[34](lm_logits)
 
-
-
-            # Compute loss
-            loss_fct = nn.CrossEntropyLoss()
-            loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
-            print('loss: ', loss)
-
-
-            # Calculate negative log likelihood
-            neg_log_likelihood = loss.float() * seqlen * (j - i)
-            #print('ppl: ', torch.exp(neg_log_likelihood / seqlen))
-
-            # Append to list of negative log likelihoods
-            nlls.append(neg_log_likelihood)
+                # Shift logits and labels for next token prediction
+                shift_logits = lm_logits[:, :-1, :].contiguous()
+                shift_labels = inputs[:, 1:]
 
 
-            sys.stdout.flush()
 
-    print('begin calcualte ppl')
-    # Compute perplexity
-    ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
-    # Empty CUDA cache to save memory
-    torch.cuda.empty_cache()
-    print('early count: ', early_count)
-    print('ppl: ', ppl.item())
+                # Compute loss
+                loss_fct = nn.CrossEntropyLoss()
+                loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
+                print('loss: ', loss)
+
+
+                # Calculate negative log likelihood
+                neg_log_likelihood = loss.float() * seqlen * (j - i)
+                #print('ppl: ', torch.exp(neg_log_likelihood / seqlen))
+
+                # Append to list of negative log likelihoods
+                nlls.append(neg_log_likelihood)
+
+
+                sys.stdout.flush()
+
+        print('begin calcualte ppl')
+        # Compute perplexity
+        ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
+        # Empty CUDA cache to save memory
+        torch.cuda.empty_cache()
+        print('early count: ', early_count)
+        print('ppl: ', ppl.item())
 
 
 
