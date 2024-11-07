@@ -211,7 +211,7 @@ if __name__ == '__main__':
         for k, v in config[key].items():
             setattr(args, k, v)
 
-    print('config type: ', args.config)
+    #print('config type: ', args.config)
     torch.manual_seed(0)
 
 
@@ -274,8 +274,8 @@ if __name__ == '__main__':
                 # print(tokenizer.batch_decode(inputs, skip_special_tokens=True, clean_up_tokenization_spaces=False))
 
                 head_idx = -1
-                print("i: ", i)
-                print('end idx[i]: ', end_idx[i])
+                #print("i: ", i)
+                #print('end idx[i]: ', end_idx[i])
 
                 if end_idx[i] > 0:
                     head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx[i], device)
@@ -286,18 +286,18 @@ if __name__ == '__main__':
                 is_early_exit = False
 
                 #lm_head, lm_head_idx = get_lm_head_idx(end_idx[i])
-                print('iii: ', i)
+                #print('iii: ', i)
                 # for k in range (1, len(models) - 2):
                 for k in range(1, len(models) - 2):
                     is_early_exit = False
-                    print('Processing layer: ', k)
+                    #print('Processing layer: ', k)
                     start_time = time.time()
                     out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
                     # print('mask: ', mask)
 
                     if k == head_idx:
-                        print('head idx: ', head_idx)
+                        #print('head idx: ', head_idx)
                         is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, head_idx)
 
                         if is_early_exit:
