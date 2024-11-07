@@ -278,7 +278,7 @@ if __name__ == '__main__':
             head_idx = -1
             #print("i: ", i)
 
-            for batch in (0, 30):
+            for batch in range (0, 30):
                 nlls = []
                 end_idx = end_idx_map[batch]
                 print('end idx[i]: ', end_idx[i])
