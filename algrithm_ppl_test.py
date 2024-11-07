@@ -137,13 +137,13 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
         args.ckpt_dir_hf,
         return_unused_kwargs=True
     )
-    print('config: ', config)
-    print('??: ', end_idx)
+    #print('config: ', config)
+    #print('??: ', end_idx)
 
     lm_head, lm_head_idx = get_lm_head_idx(end_idx)
 
-    print('lm_head: ', lm_head)
-    print('lm_head_idx: ', lm_head_idx)
+    #print('lm_head: ', lm_head)
+    #print('lm_head_idx: ', lm_head_idx)
 
     checkpoint_list = []
     checkpoints = sorted(Path(checkpoints_dir).glob("lm_head.*.pth"))
@@ -153,7 +153,7 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
     for i in range(0, len(checkpoints)):
         if i == 0 or i == lm_head_idx:
             ckpt_path = checkpoints[i]
-            print(f'Loading checkpoint "{ckpt_path}"')
+            #print(f'Loading checkpoint "{ckpt_path}"')
 
             checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
 
@@ -332,13 +332,15 @@ if __name__ == '__main__':
 
                 sys.stdout.flush()
 
-        print('begin calcualte ppl')
-        # Compute perplexity
-        ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
-        # Empty CUDA cache to save memory
-        torch.cuda.empty_cache()
-        print('early count: ', early_count)
-        print('ppl: ', ppl.item())
+            print('early: ', early_count)
+
+            print('begin calcualte ppl')
+            # Compute perplexity
+            ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
+            # Empty CUDA cache to save memory
+            torch.cuda.empty_cache()
+            print('early count: ', early_count)
+            print('ppl: ', ppl.item())
 
 
 
