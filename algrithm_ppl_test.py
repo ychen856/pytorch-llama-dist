@@ -277,7 +277,6 @@ if __name__ == '__main__':
 
             head_idx = -1
             #print("i: ", i)
-            print('end idx[i]: ', end_idx[i])
 
             for batch in (0, 30):
                 nlls = None
