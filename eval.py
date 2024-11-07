@@ -368,7 +368,7 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
         out, ids, mask = models[0](inputs)
         is_early_exit = False
         #for k in range (1, len(models) - 2):
-        for k in range(1, len(models)):
+        for k in range(1, len(models) - 2):
             is_early_exit = False
             #print('Processing layer: ', k)
             start_time = time.time()
@@ -385,6 +385,9 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
         '''if not is_early_exit:
             lm_logits = models[33](out.last_hidden_state)
             lm_logits = models[34](lm_logits)'''
+
+        lm_logits = models[33](out.last_hidden_state)
+        lm_logits = models[34](lm_logits)
 
 
 
