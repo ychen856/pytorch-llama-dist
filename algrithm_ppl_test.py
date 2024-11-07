@@ -280,7 +280,10 @@ if __name__ == '__main__':
 
             for batch in range (0, 30):
                 nlls = []
+                print('batch: ', batch)
+                print('fff: ', end_idx_map[batch])
                 end_idx = end_idx_map[batch]
+
                 print('end idx[i]: ', end_idx[i])
 
                 if end_idx[i] > 0:
