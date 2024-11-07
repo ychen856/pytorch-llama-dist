@@ -382,14 +382,14 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
                     print('early: ', early_count)
                     break
 
-        '''if not is_early_exit:
+        if not is_early_exit:
             lm_logits = models[33](out.last_hidden_state)
-            lm_logits = models[34](lm_logits)'''
+            lm_logits = models[34](lm_logits)
 
 
 
         # Shift logits and labels for next token prediction
-        '''shift_logits = lm_logits[:, :-1, :].contiguous()
+        shift_logits = lm_logits[:, :-1, :].contiguous()
         shift_labels = inputs[:, 1:]
 
 
@@ -425,5 +425,5 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
     torch.cuda.empty_cache()
     print('early count: ', early_count)
 
-    return ppl.item()'''
-    return 0
+    return ppl.item()
+    #return 0
