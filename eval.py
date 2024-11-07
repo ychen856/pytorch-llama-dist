@@ -382,9 +382,9 @@ def eval_lm_head_ppl_wikitext_sep_hf(models, lm_models, testenc, tokenizer, spli
                     print('early: ', early_count)
                     break
 
-        if not is_early_exit:
+        '''if not is_early_exit:
             lm_logits = models[33](out.last_hidden_state)
-            lm_logits = models[34](lm_logits)
+            lm_logits = models[34](lm_logits)'''
 
 
 
