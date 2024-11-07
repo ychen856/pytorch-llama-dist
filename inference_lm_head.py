@@ -203,7 +203,7 @@ if __name__ == '__main__':
     #allow_cuda = False
     #device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
 
-    head_idx = 1
+    head_idx = 2
 
     device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, 0, 34, device)
