@@ -236,23 +236,23 @@ if __name__ == '__main__':
 
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
-    #nsamples = 10
+    nsamples = 10
     # List to store negative log likelihoods
     nlls = []
     print(f"nsamples {nsamples}")
 
     #end_idx = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     #end_idx = [5, 5, 6, 6, 7, 7, 8, 8, 8, 8]
-    #end_idx_map = [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
-    #end_idx_map =    [[5, 5, 5, 5, 6, 6, 7, 7, 8, 8], [9, 9, 9, 9, 10, 10, 5, 5, 5, 5], [5, 5, 5, 5, 5, 5, 5, 5, 3, 3], [4, 4, 4, 4, 5, 5, 6, -1, -1, -1], [3, 3, 3, 3, 3, 3, 3, 3, 3, 3], [3, 3, 3, 3, 3, 3, 3, 3, 3, 3], [3, 3, 3, 3, 3, 3, 1, 1, 2, 2], [2, 2, 2, 3, 3, 4, 4, 5, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 2, 2, 3, 3, 4, 4], [4, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 2, 2, 3, 3, 4, 4, 5, 5, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 2, 2, 3, 3, 4, 4, 5, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 2, 2], [2, 2, 3, 3, 4, 4, 5, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
+
+    end_idx_map = [[5, 5, 5, 5, 6, 6, 7, 7, 8, 8], [9, 9, 9, 9, 10, 5, 5, 5, 5, 5], [5, 5, 5, 5, 5, 5, 5, 3, 3, 4], [4, 4, 5, 5, 5, 6, 6, -1, -1, 3], [3, 3, 3, 3, 3, 3, 3, 3, 3, 3], [3, 3, 3, 3, 3, 3, 3, 3, 3, 3], [3, 3, 3, 3, 3, 3, 1, 1, 2, 2], [2, 2, 2, 3, 3, 4, 4, -1, 5, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 2, 2, 3, 3, 4], [4, 4, 4, 5, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 2, 2, 3, 3, 4, 4], [4, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 2, 2, 3, 3, 4, 4, 5, 5, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 2, 2, 3, 3, 4, 4, 5, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
     # Evaluate ppl in no grad context to avoid updating the model
     with torch.no_grad():
         # Loop through each batch
-        for batch in range(0, 1):
+        for batch in range(0, 30):
             nlls = []
-            #print('batch: ', batch)
-            #print('fff: ', end_idx_map[batch])
-            #end_idx = end_idx_map[batch]
+            print('batch: ', batch)
+            print('fff: ', end_idx_map[batch])
+            end_idx = end_idx_map[batch]
 
 
 
@@ -269,16 +269,13 @@ if __name__ == '__main__':
                 inputs = inputs.reshape(j - i, seqlen)
                 # print(tokenizer.batch_decode(inputs, skip_special_tokens=True, clean_up_tokenization_spaces=False))
 
-
-                #head_idx = -1
+                head_idx = -1
                 #print("i: ", i)
                 #print('end idx[i]: ', end_idx[i])
 
+                if end_idx[i] > 0:
+                    head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx[i], device)
 
-                #if end_idx[i] > 0:
-                #    head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx[i], device)
-                head_idx = 1
-                head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, head_idx, device)
 
                 # Forward pass through the model
                 out, ids, mask = models[0](inputs)
