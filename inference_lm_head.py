@@ -80,7 +80,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
     models = []
     for i in range(start_idx, end_idx + 1):
-        print('i: ', i)
+        #print('i: ', i)
         if i == 0:
             models.append(LlamaForCausalLM_emb(config))
             models[i].load_state_dict(checkpoint_list[i], strict=True)
@@ -112,22 +112,56 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
     return models
 
 
-def load_lm_head(checkpoints_dir, head_idx, device, cache_dir="llm_weights"):
+def get_lm_head_idx(end_idx):
+
+    lm_heads = [1, 2, 4]
+    lm_head = 1
+    lm_head_idx = 0
+
+    for i in range(0, len(lm_heads)):
+        print('?????: ', lm_heads[i])
+        print('fffff: ', i)
+        if lm_heads[i] > end_idx:
+            #lm_head = lm_heads[i - 1]
+            #lm_head_idx = lm_head_idx - 1
+            break
+        elif lm_heads[i] == end_idx:
+            lm_head = lm_heads[i]
+            lm_head_idx = i
+            break
+
+        lm_head = lm_heads[i]
+        lm_head_idx = i
+
+    lm_head_idx = lm_head_idx + 1
+
+
+    return lm_head, lm_head_idx
+def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
     config, kwargs = AutoConfig.from_pretrained(
         args.ckpt_dir_hf,
         return_unused_kwargs=True
     )
     print('config: ', config)
+    print('??: ', end_idx)
+
+    lm_head, lm_head_idx = get_lm_head_idx(end_idx)
+
+    print('lm_head: ', lm_head)
+    print('lm_head_idx: ', lm_head_idx)
 
     checkpoint_list = []
     checkpoints = sorted(Path(checkpoints_dir).glob("lm_head.*.pth"))
     assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
 
-    for checkpoint in checkpoints:
-        ckpt_path = checkpoint
-        print(f'Loading checkpoint "{ckpt_path}"')
 
-        checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
+    for i in range(0, len(checkpoints)):
+        if i == 0 or i == lm_head_idx:
+            ckpt_path = checkpoints[i]
+            print(f'Loading checkpoint "{ckpt_path}"')
+
+            checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
+
 
 
     if device.type == 'cuda':
@@ -148,7 +182,8 @@ def load_lm_head(checkpoints_dir, head_idx, device, cache_dir="llm_weights"):
             lm_models[i].load_state_dict(checkpoint_list[i], strict=True)
             lm_models[i].to(device)
 
-    return lm_models
+    return lm_head, lm_models
+
 
 
 
@@ -167,14 +202,17 @@ if __name__ == '__main__':
 
     #allow_cuda = False
     #device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
+
+    head_idx = 1
+
     device = torch.device("cuda")
-    models = load_model(args.ckpt_dir_hf_sep, 0, 34, device)
-    lm_models = load_lm_head(args.ckpt_dir_hf_sep, 4, device)
+    models = load_model(args.ckpt_dir_hf_sep, 0, head_idx, device)
+    _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, head_idx, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
 
 
 
     print("loading success")
 
-    ppl = eval_lm_head_ppl_sep_hf(models, lm_models, tokenizer, device)
+    ppl = eval_lm_head_ppl_sep_hf(models, lm_models, head_idx, tokenizer, device)
     print(f"ppl on wikitext {ppl}")

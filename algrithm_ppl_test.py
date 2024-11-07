@@ -157,8 +157,6 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
 
             checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
 
-
-
     if device.type == 'cuda':
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
     else:
