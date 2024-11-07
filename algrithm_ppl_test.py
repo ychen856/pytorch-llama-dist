@@ -276,12 +276,14 @@ if __name__ == '__main__':
             # print(tokenizer.batch_decode(inputs, skip_special_tokens=True, clean_up_tokenization_spaces=False))
 
             head_idx = -1
-            print("i: ", i)
+            #print("i: ", i)
             print('end idx[i]: ', end_idx[i])
 
             for batch in (0, 30):
                 nlls = None
                 end_idx = end_idx_map[batch]
+                print('end idx[i]: ', end_idx[i])
+
                 if end_idx[i] > 0:
                     head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx[i], device)
 
