@@ -261,29 +261,29 @@ if __name__ == '__main__':
     # Evaluate ppl in no grad context to avoid updating the model
     with torch.no_grad():
         # Loop through each batch
+        for batch in range(0, 30):
+            nlls = []
+            print('batch: ', batch)
+            print('fff: ', end_idx_map[batch])
+            end_idx = end_idx_map[batch]
 
-        early_count = 0
-        for i in range(0, nsamples, bs):
-            if i % 50 == 0:
-                print(f"sample {i}")
 
-            # Calculate end index
-            j = min(i + bs, nsamples)
 
-            # Prepare inputs and move to device
-            inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
-            inputs = inputs.reshape(j - i, seqlen)
-            # print(tokenizer.batch_decode(inputs, skip_special_tokens=True, clean_up_tokenization_spaces=False))
+            early_count = 0
+            for i in range(0, nsamples, bs):
+                if i % 50 == 0:
+                    print(f"sample {i}")
 
-            head_idx = -1
-            #print("i: ", i)
+                # Calculate end index
+                j = min(i + bs, nsamples)
 
-            for batch in range (0, 30):
-                nlls = []
-                print('batch: ', batch)
-                print('fff: ', end_idx_map[batch])
-                end_idx = end_idx_map[batch]
+                # Prepare inputs and move to device
+                inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
+                inputs = inputs.reshape(j - i, seqlen)
+                # print(tokenizer.batch_decode(inputs, skip_special_tokens=True, clean_up_tokenization_spaces=False))
 
+                head_idx = -1
+                print("i: ", i)
                 print('end idx[i]: ', end_idx[i])
 
                 if end_idx[i] > 0:
