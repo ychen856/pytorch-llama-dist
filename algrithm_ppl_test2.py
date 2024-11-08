@@ -233,7 +233,7 @@ if __name__ == '__main__':
     seqlen = 1024
     # Get input IDs
     testenc = test_loader.input_ids
-
+    input_list = []
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
 
@@ -249,6 +249,7 @@ if __name__ == '__main__':
         # Prepare inputs and move to device
         inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
         inputs = inputs.reshape(j - i, seqlen)
+        input_list.append(inputs)
 
     # batch 10 - 2
     # end_idx_map =  [[5, 5, 5, 5, 6, 6, 7, 7, 8, 8], [9, 9, 9, 9, 10, 10, 5, 5, 5, 5], [5, 5, 5, 5, 5, 5, 5, 5, 3, 3], [4, 4, 4, 4, 5, 5, 6, -1, -1, -1], [3, 3, 3, 3, 3, 3, 3, 3, 3, 3], [3, 3, 3, 3, 3, 3, 3, 3, 3, 3], [3, 3, 3, 3, 3, 3, 1, 1, 2, 2], [2, 2, 2, 3, 3, 4, 4, 5, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 2, 2, 3, 3, 4, 4], [4, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 2, 2, 3, 3, 4, 4, 5, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 2, 2], [2, 2, 3, 3, 4, 4, 5, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 2, 2, 3], [3, 3, 3, 4, 4, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
@@ -278,7 +279,7 @@ if __name__ == '__main__':
                 # print("i: ", i)
                 # print('end idx[i]: ', end_idx[i])
 
-                input = inputs[input_count]
+                input = input_list[input_count]
                 if end_idx[input_idx] > 0:
                     head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx[input_idx], device)
 
@@ -315,7 +316,7 @@ if __name__ == '__main__':
 
             # Shift logits and labels for next token prediction
             shift_logits = lm_logits[:, :-1, :].contiguous()
-            shift_labels = inputs[input_idx][:, 1:]
+            shift_labels = input[:, 1:]
 
             print('shift logits: ', shift_logits)
             print('shift labels: ', shift_labels)
