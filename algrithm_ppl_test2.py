@@ -32,7 +32,7 @@ parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
 parser.add_argument('--config', default='config_server.yaml')
 parser.add_argument('--selection', type=int)
-args = parser.parse_args()
+args = vars(parser.parse_args())
 
 
 def get_llm(model, cache_dir="llm_weights"):
