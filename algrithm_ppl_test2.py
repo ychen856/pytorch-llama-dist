@@ -273,6 +273,7 @@ if __name__ == '__main__':
         print('batch: ', batch_idx)
         nlls = []
         end_idx = end_idx_map[batch_idx]
+        early_count = 0
         for input_idx in range (0, batch_size):
             with torch.no_grad():
                 head_idx = -1
