@@ -1,9 +1,6 @@
-# Import necessary modules
-import time
 import torch
 import torch.nn as nn
 import sys
-# Import get_loaders function from data module within the same directory
 from data import get_loaders
 import http_sender
 
