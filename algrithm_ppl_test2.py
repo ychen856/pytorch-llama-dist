@@ -344,7 +344,7 @@ if __name__ == '__main__':
 
         print('begin calcualte ppl')
         # Compute perplexity
-        ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
+        ppl = torch.exp(torch.stack(nlls).sum() / (batch_size * seqlen))
         # Empty CUDA cache to save memory
         torch.cuda.empty_cache()
         print('early count: ', early_count)
