@@ -30,7 +30,7 @@ import yaml
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
-parser.add_argument('--config', default='config_server.yaml')
+#parser.add_argument('--config', default='config_server.yaml')
 parser.add_argument('-s', '--selection', type=int, default=2)
 args = vars(parser.parse_args())
 
