@@ -330,6 +330,7 @@ if __name__ == '__main__':
             j = min(input_idx + bs, nsamples)
             # Calculate negative log likelihood
             neg_log_likelihood = loss.float() * seqlen * (j - input_idx)
+            print('likelihood: ', neg_log_likelihood)
             # print('ppl: ', torch.exp(neg_log_likelihood / seqlen))
 
             # Append to list of negative log likelihoods
