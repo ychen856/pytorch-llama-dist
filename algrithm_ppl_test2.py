@@ -31,7 +31,7 @@ import yaml
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
 parser.add_argument('--config', default='config_server.yaml')
-parser.add_argument('--selection', type=int)
+parser.add_argument('-s', '--selection', type=int, default=2)
 args = vars(parser.parse_args())
 
 
@@ -227,6 +227,7 @@ if __name__ == '__main__':
 
 
     print("loading success")
+    print('type: ', args.selection)
 
     test_loader = get_eval_data(tokenizer)
     bs = 1
