@@ -338,7 +338,7 @@ if __name__ == '__main__':
             sys.stdout.flush()
 
             input_count = input_count + 1
-            if input_count > nsamples:
+            if input_count >= nsamples:
                 input_count = 0
 
         print('begin calcualte ppl')
