@@ -2,6 +2,9 @@
 import gc
 import math
 import threading
+from datetime import datetime
+import random
+
 import torch
 import time
 from pathlib import Path
@@ -321,14 +324,15 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
     count = 0
     early_count = 0
     statistics_period = calculate_opt.statistic_period
-
+    batch_size = 10
 
     global repeated
     #while not input_queue.empty():
     while(1):
-        if input_queue.qsize() == 0 and repeated == 3:
+        #if input_queue.qsize() == 0 and repeated == 3:
+        if input_queue.qsize() == 0:
             #time.sleep(150)
-            while len(timestamp_manager.end_times) < 20:
+            while len(timestamp_manager.end_times) < batch_size:
                 time.sleep(0.0001)
             timestamp_manager.get_time_diff_every_n_inputs(10)
 
@@ -341,7 +345,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             if batch_count <= 1:
                 break
 
-            '''test_loader = get_eval_data(tokenizer)
+
+            # load new data
+            test_loader = get_eval_data(tokenizer)
             bs = 1
 
             # loading inputs data
@@ -351,9 +357,10 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
             # Calculate number of samples
             nsamples = testenc.numel() // seqlen
-            nsamples = 8
+            #nsamples = 8
             # List to store negative log likelihoods
             nlls = []
+            temp = []
             print(f"nsamples {nsamples}")
 
             for i in range(0, nsamples, bs):
@@ -367,23 +374,31 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
                 inputs = inputs.reshape(j - i, seqlen)
 
-                input_queue.put(inputs)
-                temp.append(inputs)'''
+                #input_queue.put(inputs)
+                temp.append(inputs)
 
-            print('???????????????????')
+            random.seed(datetime.now().timestamp())
+            random.shuffle(temp)
+
+            for i in range(0, batch_size):
+                input_queue.put(temp[i])
+
+            temp = []
+
+            '''print('???????????????????')
             for data in temp:
                 #print('data: ', data)
-                input_queue.put(data)
+                input_queue.put(data)'''
 
             batch_count = batch_count - 1
-            repeated = 0
+            #repeated = 0
 
-        if repeated < 3:
+        '''if repeated < 3:
             for data in temp:
                 # print('data: ', data)
                 input_queue.put(data)
 
-            repeated = repeated + 1
+            repeated = repeated + 1'''
 
         is_early_exit = False
         count = count + 1
@@ -562,7 +577,8 @@ if __name__ == '__main__':
 
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
-    nsamples = 5
+    #nsamples = 5
+    batch_size = 10
     # List to store negative log likelihoodss
     nlls = []
     print(f"nsamples {nsamples}")
@@ -579,8 +595,17 @@ if __name__ == '__main__':
         inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
         inputs = inputs.reshape(j - i, seqlen)
 
-        input_queue.put(inputs)
+        #input_queue.put(inputs)
         temp.append(inputs)
+
+    random.seed(datetime.now().timestamp())
+    random.shuffle(temp)
+
+    print('zz: ', temp)
+    for i in range(0, batch_size):
+        input_queue.put(temp[i])
+
+    temp = []
 
     start_idx = 0
     calculate_opt.end_idx = args.end_idx
