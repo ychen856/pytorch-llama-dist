@@ -390,9 +390,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
         is_early_exit = False
         count = count + 1
-        print('========================================')
+        #print('========================================')
         #print('input count: ', count)
-        print('end idx: ', end_idx)
+        #print('end idx: ', end_idx)
         #print('end idx buffer: ', end_idx_buff)
 
         idx = input_queue.qsize()
@@ -419,7 +419,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 if k == head_idx:
                     try:
                         is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, head_idx)
-                        print('is early: ', is_early_exit)
+                        #print('is early: ', is_early_exit)
                     except Exception as e:
                         print('early oom!')
                         is_oom = True
@@ -476,7 +476,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             if is_oom:
                 end_idx = max(1, math.ceil(end_idx / 2))
                 is_oom = False
-            print('statistic: ', statistics_period)
+            #print('statistic: ', statistics_period)
             if (input_count) % 2 == 0 and input_count < 12 and end_idx < max_layers and statistics_period <= 10:
                 print('1')
                 #print('testing higher value(i<30)')
@@ -494,7 +494,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
         #if (input_count) % 10 == 0:
         if len(calculate_opt.server_comp_statistics) >= statistics_period:
-            print('statistic')
+            #print('statistic')
             #statistics_period = statistics_period + 5
             end_idx, new_buff_idx, statistics_period = calculate_opt.calclate_opt()
             #while new_buff_idx < end_idx_buff:
@@ -525,7 +525,7 @@ def task3_summerizing(models, test_loader, bs, device):
             [start_idx, server_comp_time, rtt] = http_sender.returning_queue.get()
             calculate_opt.server_comp_statistics = (start_idx, server_comp_time)
             calculate_opt.comm_statistics = rtt - server_comp_time
-            print('server_side: ',  [start_idx, server_comp_time, rtt])
+            #print('server_side: ',  [start_idx, server_comp_time, rtt])
 
 
 if __name__ == '__main__':
