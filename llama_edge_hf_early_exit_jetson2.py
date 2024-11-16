@@ -284,9 +284,9 @@ def task1_data_sending(args):
 
             time.sleep(0.0001)'''
 
-        '''#print('zzz', calculate_opt.steady_state)
-        #while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
-        while outgoing_queue.empty() and input_queue.qsize() > 0:
+        #print('zzz', calculate_opt.steady_state)
+        while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
+        #while outgoing_queue.empty() and input_queue.qsize() > 0:
         #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0 and calculate_opt.steady_state:
         #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0:
             timeout_count = timeout_count + 1
@@ -304,7 +304,7 @@ def task1_data_sending(args):
                 # calculate_opt.client_comp_statistics = (-1, end_idx_buff, end_time - start_time)
                 print('server idle!')
             else:
-                break'''
+                break
 
 
         data = outgoing_queue.get()
@@ -325,12 +325,11 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
     early_count = 0
     statistics_period = calculate_opt.statistic_period
     batch_size = 10
-
+    # repeated 5->0, 10->1, 20->3
     global repeated
     #while not input_queue.empty():
     while(1):
-        #if input_queue.qsize() == 0 and repeated == 3:
-        if input_queue.qsize() == 0:
+        if input_queue.qsize() == 0 and repeated == 1:
             #time.sleep(150)
             while len(timestamp_manager.end_times) < batch_size:
                 time.sleep(0.0001)
@@ -345,9 +344,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             if batch_count <= 1:
                 break
 
-
-            # load new data
-            test_loader = get_eval_data(tokenizer)
+            '''test_loader = get_eval_data(tokenizer)
             bs = 1
 
             # loading inputs data
@@ -357,10 +354,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
             # Calculate number of samples
             nsamples = testenc.numel() // seqlen
-            #nsamples = 8
+            nsamples = 8
             # List to store negative log likelihoods
             nlls = []
-            temp = []
             print(f"nsamples {nsamples}")
 
             for i in range(0, nsamples, bs):
@@ -374,31 +370,23 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
                 inputs = inputs.reshape(j - i, seqlen)
 
-                #input_queue.put(inputs)
-                temp.append(inputs)
+                input_queue.put(inputs)
+                temp.append(inputs)'''
 
-            random.seed(datetime.now().timestamp())
-            random.shuffle(temp)
-
-            for i in range(0, batch_size):
-                input_queue.put(temp[i])
-
-            temp = []
-
-            '''print('???????????????????')
+            print('???????????????????')
             for data in temp:
                 #print('data: ', data)
-                input_queue.put(data)'''
+                input_queue.put(data)
 
             batch_count = batch_count - 1
-            #repeated = 0
+            repeated = 0
 
-        '''if repeated < 3:
+        if repeated < 1:
             for data in temp:
                 # print('data: ', data)
                 input_queue.put(data)
 
-            repeated = repeated + 1'''
+            repeated = repeated + 1
 
         is_early_exit = False
         count = count + 1
@@ -578,7 +566,7 @@ if __name__ == '__main__':
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
     #nsamples = 5
-    batch_size = 10
+    batch_size = 5
     # List to store negative log likelihoodss
     nlls = []
     print(f"nsamples {nsamples}")
@@ -604,8 +592,6 @@ if __name__ == '__main__':
     print('zz: ', temp)
     for i in range(0, batch_size):
         input_queue.put(temp[i])
-
-    temp = []
 
     start_idx = 0
     calculate_opt.end_idx = args.end_idx
