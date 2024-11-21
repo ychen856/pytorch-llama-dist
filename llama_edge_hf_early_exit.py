@@ -2,11 +2,13 @@
 import gc
 import math
 import threading
+from datetime import datetime
+
 import torch
 import time
 from pathlib import Path
 import argparse
-
+import random
 import http_sender
 from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
@@ -32,7 +34,7 @@ input_queue = Queue()
 outgoing_queue = Queue()
 calculate_opt = Calcualte_opt()
 timestamp_manager = Timestamp_manager()
-
+nsamples = 0
 temp = []
 
 
@@ -282,9 +284,9 @@ def task1_data_sending(args):
 
         #print('zzz', calculate_opt.steady_state)
         #while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
-        #while outgoing_queue.empty() and input_queue.qsize() > 0:
+        while outgoing_queue.empty() and input_queue.qsize() > 0:
         #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0 and calculate_opt.steady_state:
-        while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0:
+        #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0:
             timeout_count = timeout_count + 1
 
             start_time = time.time()
@@ -314,19 +316,21 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
     is_oom = False
     #prune_wanda_allocation(args, models, tokenizer, testenc[0], device=torch.device("cuda:0"))
     # Loop through each batch
-    batch_count = 10
+    batch_count = 30
     cycle_count = 0
     input_count = 0
     count = 0
     statistics_period = calculate_opt.statistic_period
     early_count = 0
+    input_idx = 30
+    batch_size = 10
 
 
     #while not input_queue.empty():
     while(1):
         if input_queue.qsize() == 0:
             #time.sleep(150)
-            while len(timestamp_manager.end_times) < 10:
+            while len(timestamp_manager.end_times) < batch_size:
                 time.sleep(0.0001)
             timestamp_manager.get_time_diff_every_n_inputs(10)
 
@@ -369,8 +373,15 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 temp.append(inputs)'''
 
             print('???????????????????')
+
+            '''for i in range (0, batch_size):
+                #print('input idx: ', input_idx)
+                input_queue.put(temp[input_idx])
+                input_idx = input_idx + 1
+                #if input_idx >= nsamples:
+                #    input_idx = 0'''
+
             for data in temp:
-                #print('data: ', data)
                 input_queue.put(data)
 
             batch_count = batch_count - 1
@@ -551,7 +562,8 @@ if __name__ == '__main__':
 
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
-    nsamples = 10
+    batch_size = 10
+    #nsamples = 10
     # List to store negative log likelihoods
     nlls = []
     print(f"nsamples {nsamples}")
@@ -568,8 +580,15 @@ if __name__ == '__main__':
         inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
         inputs = inputs.reshape(j - i, seqlen)
 
-        input_queue.put(inputs)
+        #input_queue.put(inputs)
         temp.append(inputs)
+
+    random.seed(datetime.now().timestamp())
+    random.shuffle(temp)
+    temp = temp[:batch_size]
+
+    for i in range (0, batch_size):
+        input_queue.put(temp[i])
 
     start_idx = 0
     calculate_opt.end_idx = args.end_idx
