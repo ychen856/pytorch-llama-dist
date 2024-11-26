@@ -9,6 +9,7 @@ from early_exit import early_exit_lm_head
 from eval_sep_hf import get_eval_data
 from model_hf import LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, LlamaForCausalLM_linear
 import yaml
+import torch.nn.functional as F
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--selection', type=int)
@@ -267,7 +268,7 @@ if __name__ == '__main__':
         batch_size = 20
 
     input_count = 0
-    for batch_idx in range (0, 30):
+    for batch_idx in range (0, 1):
         print('batch: ', batch_idx)
         nlls = []
         end_idx = end_idx_map[batch_idx]
@@ -320,6 +321,14 @@ if __name__ == '__main__':
 
             #print('shift logits: ', shift_logits)
             #print('shift labels: ', shift_labels)
+            text_logit = F.softmax(shift_logits.reshape(-1, shift_logits.size(-1))).argmax(dim=-1)
+            text_labels = F.softmax(shift_labels.reshape(-1, shift_labels.size(-1))).argmax(dim=-1)
+            reshaped_logit = text_logit.view(1, -1)
+            reshaped_labels = text_labels.view(1, -1)
+            print('text logits: ',
+                  tokenizer.batch_decode(reshaped_logit, skip_special_tokens=True, clean_up_tokenization_spaces=False))
+            print('text lables: ',
+                  tokenizer.batch_decode(reshaped_labels, skip_special_tokens=True, clean_up_tokenization_spaces=False))
 
             # Compute loss
             loss_fct = nn.CrossEntropyLoss()
