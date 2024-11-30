@@ -268,7 +268,7 @@ if __name__ == '__main__':
         batch_size = 20
 
     input_count = 0
-    for batch_idx in range (0, batch_size):
+    for batch_idx in range (0, 30):
         print('batch: ', batch_idx)
         nlls = []
         end_idx = end_idx_map[batch_idx]
