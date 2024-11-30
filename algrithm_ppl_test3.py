@@ -326,10 +326,10 @@ if __name__ == '__main__':
             reshaped_labels = shift_labels.view(1, -1)
 
 
-            print('text logits: ',
+            '''print('text logits: ',
                   tokenizer.batch_decode(reshaped_logit, skip_special_tokens=True, clean_up_tokenization_spaces=False))
             print('text lables: ',
-                  tokenizer.batch_decode(reshaped_labels, skip_special_tokens=True, clean_up_tokenization_spaces=False))
+                  tokenizer.batch_decode(reshaped_labels, skip_special_tokens=True, clean_up_tokenization_spaces=False))'''
 
             # Compute loss
             loss_fct = nn.CrossEntropyLoss()
