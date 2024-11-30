@@ -330,8 +330,8 @@ if __name__ == '__main__':
             #text_labels = torch.nn.functional.log_softmax(shift_labels.reshape(-1, shift_logits.size(-1)), -1)
             reshaped_logit = text_logit.view(1, -1)
             reshaped_labels = shift_labels.view(1, -1)
-            print('text logits: ',
-                  tokenizer.batch_decode(reshaped_logit, skip_special_tokens=True, clean_up_tokenization_spaces=False))
+            #print('text logits: ',
+                  #tokenizer.batch_decode(reshaped_logit, skip_special_tokens=True, clean_up_tokenization_spaces=False))
             print('text lables: ',
                   tokenizer.batch_decode(reshaped_labels, skip_special_tokens=True, clean_up_tokenization_spaces=False))
 
