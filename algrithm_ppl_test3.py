@@ -334,8 +334,8 @@ if __name__ == '__main__':
 
 
 
-            print('shift logits: ', reshaped_logit)
-            print('shift labels: ', reshaped_labels)
+            print('shift logits: ', reshaped_logit.shape)
+            print('shift labels: ', reshaped_labels.shape)
 
             #print('text logits: ',
                   #tokenizer.batch_decode(reshaped_logit, skip_special_tokens=True, clean_up_tokenization_spaces=False))
