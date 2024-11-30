@@ -299,7 +299,7 @@ if __name__ == '__main__':
 
                     # print('mask: ', mask)
 
-                    if k == head_idx:
+                    '''if k == head_idx:
                         # print('head idx: ', head_idx)
                         is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, head_idx)
 
@@ -308,7 +308,7 @@ if __name__ == '__main__':
                             is_early_exit = True
                             early_count = early_count + 1
                             print('early: ', early_count)
-                            break
+                            break'''
 
                 if not is_early_exit:
                     print('is not early!')
