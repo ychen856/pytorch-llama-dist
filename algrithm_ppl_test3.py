@@ -268,7 +268,7 @@ if __name__ == '__main__':
         batch_size = 20
 
     input_count = 0
-    for batch_idx in range (0, 30):
+    for batch_idx in range (0, 10):
         print('batch: ', batch_idx)
         nlls = []
         end_idx = end_idx_map[batch_idx]
@@ -326,10 +326,10 @@ if __name__ == '__main__':
             reshaped_labels = shift_labels.view(1, -1)
 
 
-            #print('text logits: ',
-                  #tokenizer.batch_decode(reshaped_logit, skip_special_tokens=True, clean_up_tokenization_spaces=False))
-            #print('text lables: ',
-                  #tokenizer.batch_decode(reshaped_labels, skip_special_tokens=True, clean_up_tokenization_spaces=False))
+            print('text logits: ',
+                  tokenizer.batch_decode(reshaped_logit, skip_special_tokens=True, clean_up_tokenization_spaces=False))
+            print('text lables: ',
+                  tokenizer.batch_decode(reshaped_labels, skip_special_tokens=True, clean_up_tokenization_spaces=False))
 
             # Compute loss
             loss_fct = nn.CrossEntropyLoss()
