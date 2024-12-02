@@ -291,7 +291,7 @@ if __name__ == '__main__':
                 lm_head, lm_head_idx = get_lm_head_idx(end_idx[input_idx])
                 # print('iii: ', i)
                 # for k in range (1, len(models) - 2):
-                for k in range(1, len(models) - 2):
+                '''for k in range(1, len(models) - 2):
                     is_early_exit = False
                     # print('Processing layer: ', k)
                     start_time = time.time()
@@ -308,7 +308,7 @@ if __name__ == '__main__':
                             is_early_exit = True
                             early_count = early_count + 1
                             print('early: ', early_count)
-                            break
+                            break'''
 
                 if not is_early_exit:
                     print('is not early!')
