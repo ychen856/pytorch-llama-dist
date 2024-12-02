@@ -30,9 +30,8 @@ import yaml
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
-#parser.add_argument('--config', default='config_server.yaml')
-parser.add_argument('-s', '--selection', type=int, default=2)
-args = vars(parser.parse_args())
+parser.add_argument('--config', default='config_server.yaml')
+args = parser.parse_args()
 
 
 def get_llm(model, cache_dir="llm_weights"):
@@ -99,11 +98,6 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
             models[i].to(device)
 
-    '''for i in range(0, len(models)):
-        model = models[i]
-        for name, param in model.named_parameters():
-            if param.requires_grad:
-                print(name, param.data)'''
 
     return models
 
@@ -360,7 +354,7 @@ if __name__ == '__main__':
             sys.stdout.flush()
 
             input_count = input_count + 1
-            if input_count > nsamples:
+            if input_count >= nsamples:
                 input_count = 0
 
         print('begin calcualte ppl')
@@ -370,5 +364,3 @@ if __name__ == '__main__':
         torch.cuda.empty_cache()
         print('early count: ', early_count)
         print('ppl: ', ppl.item())
-
-
