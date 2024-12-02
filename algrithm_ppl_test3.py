@@ -291,7 +291,7 @@ if __name__ == '__main__':
                 lm_head, lm_head_idx = get_lm_head_idx(end_idx[input_idx])
                 # print('iii: ', i)
                 # for k in range (1, len(models) - 2):
-                '''for k in range(1, len(models) - 2):
+                for k in range(1, len(models) - 2):
                     is_early_exit = False
                     # print('Processing layer: ', k)
                     start_time = time.time()
@@ -299,7 +299,7 @@ if __name__ == '__main__':
 
                     # print('mask: ', mask)
 
-                    if k == head_idx:
+                    '''if k == head_idx:
                         # print('head idx: ', head_idx)
                         is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, head_idx)
 
