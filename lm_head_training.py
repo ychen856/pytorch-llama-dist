@@ -144,7 +144,7 @@ if __name__ == '__main__':
 
 
     start_idx = 0
-    end_idx = 6
+    end_idx = 8
 
     device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
@@ -220,7 +220,7 @@ if __name__ == '__main__':
         ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
         if ppl.item() < opt_ppl:
             opt_ppl = ppl.item()
-            torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.6.pth')
+            torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.8.pth')
 
         print('ppl: ', ppl.item())
         # Empty CUDA cache to save memory
