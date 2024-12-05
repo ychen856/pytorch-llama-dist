@@ -38,6 +38,7 @@ from early_exit import early_exit_cpu, early_exit_cuda
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
 parser.add_argument('--config', default='config_server.yaml')
+parser.add_argument('--head', type=int)
 args = parser.parse_args()
 
 
@@ -142,8 +143,8 @@ if __name__ == '__main__':
     print('config type: ', args.config)
     torch.manual_seed(0)
 
-
-    start_idx = 0
+    print('head:', args.head)
+    start_idx = args.head
     end_idx = 10
 
     device = torch.device("cuda")
@@ -220,7 +221,9 @@ if __name__ == '__main__':
         ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
         if ppl.item() < opt_ppl:
             opt_ppl = ppl.item()
-            torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.10.pth')
+            #torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.10.pth')
+            torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.'+args.head+'.pth')
+
 
         print('ppl: ', ppl.item())
         # Empty CUDA cache to save memory
