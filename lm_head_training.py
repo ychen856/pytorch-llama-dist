@@ -132,8 +132,8 @@ if __name__ == '__main__':
     torch.manual_seed(0)
 
     print('head:', args.head)
-    start_idx = args.head
-    end_idx = 10
+    start_idx = 0
+    end_idx = args.head
 
     device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
