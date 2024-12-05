@@ -7,17 +7,9 @@ import numpy as np
 import torch
 import time
 from pathlib import Path
-import json
-from sentencepiece import SentencePieceProcessor
-from tqdm import tqdm
 import argparse
 
-import http_receiver
-from data import get_loaders
 import torch.nn as nn
-import safetensors
-import http_sender
-from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
 from torch.optim import AdamW
 from transformers import get_scheduler
@@ -30,10 +22,6 @@ from layerwrapper import WrappedGPT
 from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
     LlamaForCausalLM_linear
 import yaml
-from queue import Queue
-from prune_all import prune_wanda_allocation
-from calculate_opt import Calcualte_opt
-from early_exit import early_exit_cpu, early_exit_cuda
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
