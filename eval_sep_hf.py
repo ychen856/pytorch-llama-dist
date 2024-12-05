@@ -3,6 +3,8 @@ import torch.nn as nn
 import sys
 from data import get_loaders
 import http_sender
+import random
+from datetime import datetime
 
 # Function to evaluate perplexity (ppl) on a specified model and tokenizer
 def get_eval_data(tokenizer):
@@ -13,9 +15,10 @@ def get_eval_data(tokenizer):
     # Print status
     print(f"evaluating on {dataset}")
 
+    random.seed(datetime.now().timestamp())
     # Get the test loader
     _, testloader = get_loaders(
-        dataset, seed=0, seqlen=seqlen, tokenizer=tokenizer
+        dataset, seed=random.random(), seqlen=seqlen, tokenizer=tokenizer
     )
 
     return testloader
