@@ -210,7 +210,7 @@ if __name__ == '__main__':
         if ppl.item() < opt_ppl:
             opt_ppl = ppl.item()
             #torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.10.pth')
-            torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.'+args.head+'.pth')
+            torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.'+ str(args.head) +'.pth')
 
 
         print('ppl: ', ppl.item())
