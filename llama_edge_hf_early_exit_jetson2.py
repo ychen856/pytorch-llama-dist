@@ -319,7 +319,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
     #prune_wanda_allocation(args, models, tokenizer, testenc[0], device=torch.device("cuda:0"))
     # Loop through each batch
     #batch_count = 30
-    batch_count = 3
+    batch_count = 10
     cycle_count = 0
     input_count = 0
     count = 0
