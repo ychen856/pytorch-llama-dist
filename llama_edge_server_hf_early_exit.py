@@ -3,18 +3,20 @@ import gc
 import math
 import threading
 from datetime import datetime
-import random
 
 import torch
 import time
 from pathlib import Path
 import argparse
-
+import random
 import http_sender
 from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
 
+from multiprocessing import set_start_method
 import sys
+import os
+from data import get_loaders
 
 from eval_sep_hf import get_eval_data
 from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
@@ -25,17 +27,20 @@ from prune_all import prune_wanda_allocation
 from calculate_opt import Calcualte_opt
 from early_exit import early_exit_cpu, early_exit_cuda, early_exit_lm_head
 from timestamp_manager import Timestamp_manager
-
+from threading import current_thread, Thread
+from multiprocessing import current_process
+import http_receiver
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
 parser.add_argument('--config', default='config_server.yaml')
 args = parser.parse_args()
 
-input_queue = Queue()
-outgoing_queue = Queue()
+incoming_queue = Queue()
+outgoing_queue_forward = Queue()
+outgoing_queue_return = Queue()
 calculate_opt = Calcualte_opt()
 timestamp_manager = Timestamp_manager()
-repeated = 0
+nsamples = 0
 temp = []
 
 
@@ -44,7 +49,7 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
     if type == 1: #add buffer layers
         #print('increase buffer')
         config, kwargs = AutoConfig.from_pretrained(
-            args.ckpt_dir_hf_sep,
+            args.ckpt_dir_hf,
             return_unused_kwargs=True
         )
         #print('config: ', config)
@@ -122,7 +127,7 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
 
 def load_model(checkpoints_dir, start_idx, end_idx, device):
     config, kwargs = AutoConfig.from_pretrained(
-        args.ckpt_dir_hf_sep,
+        args.ckpt_dir_hf,
         return_unused_kwargs=True
     )
     #print('config: ', config)
@@ -143,8 +148,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
 
     if device.type == 'cuda':
-        torch.set_default_dtype(torch.float16)
-        #torch.set_default_tensor_type(torch.cuda.HalfTensor)
+        torch.set_default_tensor_type(torch.cuda.HalfTensor)
     else:
         torch.set_default_tensor_type(torch.BFloat16Tensor)
 
@@ -178,6 +182,46 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
     return models
 
+def get_dataset(tokenizer):
+    dataset = "wikitext2_hf"
+    bs = 1
+    seqlen = 1024
+
+    _, testloader = get_loaders(
+        dataset, seed=0, seqlen=seqlen, tokenizer=tokenizer
+    )
+    # Get input IDs
+    testenc = testloader.input_ids
+
+    # Calculate number of samples
+    nsamples = testenc.numel() // seqlen
+
+    nsamples = 5
+    # List to store negative log likelihoods
+    nlls = []
+    print(f"nsamples {nsamples}")
+
+    input_list = []
+    # Loop through each batch
+    for i in range(0, nsamples, bs):
+        if i % 50 == 0:
+            print(f"sample {i}")
+
+        # Calculate end index
+        j = min(i + bs, nsamples)
+
+        # Prepare inputs and move to device
+        inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
+        print('input: ', inputs)
+        inputs = inputs.reshape(j - i, seqlen)
+        print('inputs: ', inputs)
+        print('inputs: ', inputs.shape)
+        input_list.append(inputs)
+
+
+    return input_list
+
+
 def get_lm_head_idx(end_idx):
 
     lm_heads = [1, 2, 4]
@@ -203,7 +247,7 @@ def get_lm_head_idx(end_idx):
     return lm_head, lm_head_idx
 def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
     config, kwargs = AutoConfig.from_pretrained(
-        args.ckpt_dir_hf_sep,
+        args.ckpt_dir_hf,
         return_unused_kwargs=True
     )
     #print('config: ', config)
@@ -260,33 +304,23 @@ def get_server_statistic_from_q():
         calculate_opt.comm_statistics = rtt - server_comp_time
         print('server_side: ', [start_idx, server_comp_time, rtt])
 
+def task1_data_receiving(args, inputs):
+    pid = os.getpid()
+    curr_thread = current_thread().name
+    curr_process = current_process().name
+    print(f'{pid} with thread {curr_thread}, with process: {curr_process} Started')
+    print('T1 do nothing!')
+
+    while 1:
+        http_receiver.run(port=args.server_port)
+
 def task1_data_sending(args):
     while 1:
         timeout_count = 0
-        '''while outgoing_queue.empty():
-            timeout_count = timeout_count + 1
-
-            start_time = time.time()
-            #print('outgoing queue size: ', outgoing_queue.qsize())
-            if input_queue.qsize() > 0 and calculate_opt.incoming_count + 2 >= calculate_opt.outgoint_count and outgoing_queue.qsize() < 10:
-                idx = input_queue.qsize()
-                timestamp_manager.start_times = (idx, start_time)
-
-                outgoing_queue.put([0, input_queue.get(), None, None, idx])
-                end_time = time.time()
-                print('client computation time: ', end_time - start_time)
-                # calculate_opt.client_comp_statistics = (-1, end_idx_buff, end_time - start_time)
-                print('server idle!')
-
-            if timeout_count > 12000:
-                print('task 1 end...')
-                return
-
-            time.sleep(0.0001)'''
 
         #print('zzz', calculate_opt.steady_state)
-        #while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
-        while outgoing_queue.empty() and input_queue.qsize() > 0:
+        while outgoing_queue_forward.empty() and incoming_queue.qsize() > 0 and calculate_opt.steady_state:
+        #while outgoing_queue.empty() and input_queue.qsize() > 0:
         #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0 and calculate_opt.steady_state:
         #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0:
             timeout_count = timeout_count + 1
@@ -294,11 +328,11 @@ def task1_data_sending(args):
             start_time = time.time()
             #print('outgoing queue size: ', outgoing_queue.qsize())
 
-            if input_queue.qsize() > 0 and calculate_opt.incoming_count + 2 >= calculate_opt.outgoint_count:
-                idx = input_queue.qsize()
+            if incoming_queue.qsize() > 0 and calculate_opt.incoming_count + 2 >= calculate_opt.outgoint_count:
+                idx = incoming_queue.qsize()
                 timestamp_manager.start_times = (idx, start_time)
 
-                outgoing_queue.put([0, input_queue.get(), None, None, idx])
+                outgoing_queue_forward.put([0, incoming_queue.get(), None, None, idx])
                 end_time = time.time()
                 #print('client computation time: ', end_time - start_time)
                 # calculate_opt.client_comp_statistics = (-1, end_idx_buff, end_time - start_time)
@@ -307,119 +341,85 @@ def task1_data_sending(args):
                 break
 
 
-        data = outgoing_queue.get()
+        data = outgoing_queue_forward.get()
         calculate_opt.outgoint_count = calculate_opt.outgoint_count + 1
-        #http_sender.send_data(args.server_ip, args.server_port, data, calculate_opt, timestamp_manager)
-        http_sender.send_data(args.gateway_ip, args.gateway_port, data, calculate_opt, timestamp_manager)
+        http_sender.send_data(args.server_ip, args.server_port, data, calculate_opt, timestamp_manager)
 
+def task1_data_receiving(args, inputs):
+    pid = os.getpid()
+    curr_thread = current_thread().name
+    curr_process = current_process().name
+    print(f'{pid} with thread {curr_thread}, with process: {curr_process} Started')
+    print('T1 do nothing!')
 
-def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_idx, max_layers, device):
+    while 1:
+        http_receiver.run(port=args.gateway_port)
 
-    is_oom = False
-    #prune_wanda_allocation(args, models, tokenizer, testenc[0], device=torch.device("cuda:0"))
-    # Loop through each batch
-    batch_count = 30
+def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, max_layer_amount, head_idx, tokenizer, device, is_dummy=True):
+    pid = os.getpid()
+    curr_thread = current_thread().name
+    curr_process = current_process().name
+    print(f'{pid} with thread {curr_thread}, with process: {curr_process} Started')
+    print('T2 computaton...')
     cycle_count = 0
     input_count = 0
-    count = 0
-    early_count = 0
+    layer_amount = end_idx - start_idx
     statistics_period = calculate_opt.statistic_period
-    batch_size = 20
-    # repeated 5->0, 10->1, 20->3
-    global repeated
-    #while not input_queue.empty():
     while(1):
-        if input_queue.qsize() == 0 and repeated == 3:
-            #time.sleep(150)
-            while len(timestamp_manager.end_times) < batch_size:
-                time.sleep(0.0001)
-            timestamp_manager.get_time_diff_every_n_inputs(10)
+        print('start time: ', time.time())
+        start_time_0 = time.time()
+        if is_dummy:
+            while incoming_queue.empty():
+                print('wait...')
+                time.sleep(0.01)
 
-            print('early count: ', early_count)
-            early_count = 0
+            input = incoming_queue.get()
+        else:
+            input = http_receiver.get_in_queue_data()
 
-            timestamp_manager.clearAll()
-            time.sleep(20)
-
-            if batch_count <= 1:
-                break
-
-            '''test_loader = get_eval_data(tokenizer)
-            bs = 1
-
-            # loading inputs data
-            seqlen = 1024
-            # Get input IDs
-            testenc = test_loader.input_ids
-
-            # Calculate number of samples
-            nsamples = testenc.numel() // seqlen
-            nsamples = 8
-            # List to store negative log likelihoods
-            nlls = []
-            print(f"nsamples {nsamples}")
-
-            for i in range(0, nsamples, bs):
-                if i % 50 == 0:
-                    print(f"sample {i}")
-
-                # Calculate end index
-                j = min(i + bs, nsamples)
-
-                # Prepare inputs and move to device
-                inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
-                inputs = inputs.reshape(j - i, seqlen)
-
-                input_queue.put(inputs)
-                temp.append(inputs)'''
-
-            print('???????????????????')
-            for data in temp:
-                #print('data: ', data)
-                input_queue.put(data)
-
-            batch_count = batch_count - 1
-            repeated = 0
-
-        if repeated < 3:
-            for data in temp:
-                # print('data: ', data)
-                input_queue.put(data)
-
-            repeated = repeated + 1
-
+        start_idx = input[0]
+        out = input[1]
+        ids = input[2]
+        mask = input[3]
+        idx = input[4]
         is_early_exit = False
-        count = count + 1
-        #print('========================================')
-        #print('input count: ', count)
-        #print('end idx: ', end_idx)
-        #print('end idx buffer: ', end_idx_buff)
-
-        idx = input_queue.qsize()
-        input = input_queue.get()
-
-        if input_count % 50 == 0:
-            print(f"sample {input_count}")
+        is_oom = False
 
 
+        print('start idx: ', start_idx)
+        #input = http_receiver.get_in_queue_data()
+        print('start compute time: ', time.time())
         start_time = time.time()
-        timestamp_manager.start_times = (idx, start_time)
-
-
+        start_comp_time = time.time()
         # Forward pass through the model
-        try:
-            out, ids, mask = models[0](input)
-        except Exception as e:
-            print(e)
+        if start_idx == 0:
+            out, ids, mask = models[0](out)
+            #out, ids, mask = models[0](input)
+        else:
+            '''for i in range(0, 1024):
+                if len(ids[0]) <= i or ids[0][i].item() != i:
+                    zeros_row = torch.zeros((1, 1, out.last_hidden_state.size(2))).to(device)
+                    out.last_hidden_state = torch.cat((out.last_hidden_state[:, :i, :], zeros_row, out.last_hidden_state[:, i:, :]), dim=1)
+                    #out.last_hidden_state = torch.cat((zeros_row, out.last_hidden_state), dim=1)
+
+                    zeros_tensor = torch.tensor([[i]]).to(device)
+                    ids = torch.cat((ids[:, :i], zeros_tensor, ids[:, i:]), dim=1)
+                    #ids = torch.cat((zeros_tensor, ids), dim=1)
+
+                    zeros_row = torch.zeros((1, 1, 1, mask.size(3))).to(device)
+                    mask = torch.cat((mask[:, :, :i , :], zeros_row, mask[:, :, i:, :]), dim=2)
+                    #mask = torch.cat((zeros_row, mask), dim=2)'''
 
 
-        for k in range(1, end_idx + 1):
+        end_time = time.time()
+        #print('0: ', end_time - start_time)
+        for k in range(start_idx, end_idx + 1):
             try:
                 out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
                 if k == head_idx:
                     try:
                         is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, head_idx)
-                        #print('is early: ', is_early_exit)
+                        print('is early: ', is_early_exit)
                     except Exception as e:
                         print('early oom!')
                         is_oom = True
@@ -440,61 +440,69 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 #print('updated end idx: ', end_idx)
                 break
 
-        end_time = time.time()
-        #print('client computation time: ', end_time - start_time)
+        if not is_early_exit and end_idx >= 33:
+            start_time = time.time()
+            lm_logits = models[33](out.last_hidden_state)
+            end_time = time.time()
+
+            if end_idx >=34:
+                start_time = time.time()
+                lm_logits = models[34](lm_logits)
+                end_time = time.time()
+
+            #print('logits: ', lm_logits)
+            #print('logit size: ', lm_logits.size())
+
+        total_comp_time = time.time() - start_comp_time
+
+        # print('out: ', out)
+        print('end compute time: ', time.time())
+        print('total computation time: ', total_comp_time)
+
+        '''total_comp_time = time.time() - start_comp_time
+
+        print('out: ', out)
+        print('end compute time: ', time.time())
+        print('total computation time: ', total_comp_time)'''
 
 
+        if is_dummy:
+            break
 
 
-        '''cycle_count = cycle_count + 1
-        input_count = input_count + 1
+        if is_early_exit or end_idx >= 34:
+            http_receiver.set_outgoing_queue([start_idx, total_comp_time, idx])
 
 
-
-        calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)'''
-
-        #input_count = input_count + 1
-
-        '''if not is_early_exit:
-            calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
-            outgoing_queue.put([end_idx + 1, out, ids, mask, idx])
-            print('outgoing queue PUT!')'''
-        #else:
-            #calculate_opt.server_comp_statistics = (end_idx + 1, 0)
-
-        if is_early_exit:
-            early_count = early_count + 1
-
-        if not is_early_exit:
+        if not is_early_exit and end_idx < 34:
             cycle_count = cycle_count + 1
             input_count = input_count + 1
 
-            outgoing_queue.put([end_idx + 1, out, ids, mask, idx])
+            outgoing_queue_forward.put([end_idx + 1, out, ids, mask, idx])
             #print('outgoing queue PUT!')
-            calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
+            calculate_opt.gateway_comp_statistics = (start_idx, end_idx, end_idx - start_idx, end_idx_buff, total_comp_time)
 
             if is_oom:
-                end_idx = max(1, math.ceil(end_idx / 2))
+                end_idx = max(1, math.ceil(end_idx - start_idx / 2 + start_idx))
                 is_oom = False
-            #print('statistic: ', statistics_period)
-            if (input_count) % 2 == 0 and input_count < 12 and end_idx < max_layers and statistics_period <= 10:
-                print('1')
+
+            if (input_count) % 2 == 0 and input_count < 20 and layer_amount < max_layer_amount and statistics_period <= 10:
                 #print('testing higher value(i<30)')
-                calculate_opt.max_end_idx = end_idx
-                end_idx = end_idx + 1
+                calculate_opt.max_layer_amount = layer_amount
+                layer_amount = layer_amount + 1
 
-            if cycle_count == (statistics_period - 4) and input_count > 6 and cycle_count % 2 == 0:
+            if cycle_count == (statistics_period - 8) and input_count > 20 and cycle_count % 2 == 0:
                 #print('testing lower value (i>30)')
-                end_idx = max(1, end_idx - 2)
+                layer_amount = max(1, layer_amount - 2)
 
-            if cycle_count > (statistics_period - 4) and input_count >= 6 and end_idx < max_layers and cycle_count % 2 == 0:
+            if cycle_count > (statistics_period - 8) and input_count >= 20 and layer_amount < max_layer_amount and cycle_count % 2 == 0:
                 #print('testing higher value (i>30): ')
-                calculate_opt.max_end_idx = end_idx
-                end_idx = end_idx + 1
+                calculate_opt.max_layer_amount = layer_amount
+                layer_amount = layer_amount + 1
 
         #if (input_count) % 10 == 0:
         if len(calculate_opt.server_comp_statistics) >= statistics_period:
-            #print('statistic')
+            print('statistic')
             #statistics_period = statistics_period + 5
             end_idx, new_buff_idx, statistics_period = calculate_opt.calclate_opt()
             #while new_buff_idx < end_idx_buff:
@@ -505,6 +513,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx, device, cache_dir="llm_weights")
             cycle_count = 0
 
+        max_layers = start_idx + max_layer_amount
         #if end_idx_buff < end_idx and end_idx_buff + 3 <= max_layers:  #add buffer
         if end_idx_buff < end_idx and end_idx_buff < max_layers:
             models, end_idx_buff = layer_reallocation(1, start_idx, end_idx_buff, max_layers, models)
@@ -515,8 +524,10 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
 
     calculate_opt.statistic_period = statistics_period
-    print('end T2...')
 
+
+
+    print('round time: ', time.time() - start_time_0)
 
 
 def task3_summerizing(models, test_loader, bs, device):
@@ -525,10 +536,10 @@ def task3_summerizing(models, test_loader, bs, device):
             [start_idx, server_comp_time, rtt] = http_sender.returning_queue.get()
             calculate_opt.server_comp_statistics = (start_idx, server_comp_time)
             calculate_opt.comm_statistics = rtt - server_comp_time
-            #print('server_side: ',  [start_idx, server_comp_time, rtt])
-
+            print('server_side: ',  [start_idx, server_comp_time, rtt])
 
 if __name__ == '__main__':
+    set_start_method('spawn')
     with open(args.config) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
     for key in config:
@@ -538,85 +549,51 @@ if __name__ == '__main__':
     print('config type: ', args.config)
     torch.manual_seed(0)
 
-    max_layers = args.max_layers
 
+
+    end_idx_buff = args.end_idx_buff
+    max_layer_amount = args.max_layer_amount
+    start_idx = 0
+    end_idx = 34
+    head_idx = args.head_idx
+
+    #allow_cuda = False
+    #device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
+    device = torch.device("cuda")
+    models = load_model(args.ckpt_dir_hf_sep, end_idx_buff, end_idx, device)
+    _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, head_idx, device, cache_dir="llm_weights")
+    tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
+
+    inputs = get_dataset(tokenizer)
+    print("loading success")
+    # Create and start threads
+
+
+
+
+
+    incoming_queue.put(inputs[0])
+    thread3 = threading.Thread(target=task2_computation, args=[models, lm_models, start_idx, end_idx, end_idx_buff, max_layer_amount, head_idx, tokenizer, device, True])
+
+    thread3.start()
+    thread3.join()
+
+    max_layer_amount = args.max_layers_amount
     start_idx = args.start_idx
+    end_idx = args.end_idx
     end_idx_buff = args.end_idx_buff
 
+    start_time = time.time()
+    thread1 = threading.Thread(target=task1_data_receiving, args=[args, inputs])
+    thread2 = threading.Thread(target=task1_data_sending, args=[args])
+    thread3 = threading.Thread(target=task2_computation, args=[models, lm_models, start_idx, end_idx, end_idx_buff, max_layer_amount, head_idx, tokenizer, device, False])
 
-    device = torch.device("cuda")
-    head_idx = 2
-    calculate_opt.statistic_period = 10
-
-    models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx_buff, device)
-    _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, head_idx, device, cache_dir="llm_weights")
-    tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf_sep, use_fast=False)
-
-
-
-    print("loading success")
-    test_loader = get_eval_data(tokenizer)
-    bs = 1
-
-    # loading inputs data
-    seqlen = 1024
-    # Get input IDs
-    testenc = test_loader.input_ids
-
-    # Calculate number of samples
-    nsamples = testenc.numel() // seqlen
-    #nsamples = 5
-    batch_size = 5
-    # List to store negative log likelihoodss
-    nlls = []
-    print(f"nsamples {nsamples}")
-
-
-    for i in range(0, nsamples, bs):
-        if i % 50 == 0:
-            print(f"sample {i}")
-
-        # Calculate end index
-        j = min(i + bs, nsamples)
-
-        # Prepare inputs and move to device
-        inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
-        inputs = inputs.reshape(j - i, seqlen)
-
-        #input_queue.put(inputs)
-        temp.append(inputs)
-
-    random.seed(datetime.now().timestamp())
-    random.shuffle(temp)
-    temp = temp[:5]
-    print('zz: ', temp)
-    for i in range(0, batch_size):
-        input_queue.put(temp[i])
-
-    start_idx = 0
-    calculate_opt.end_idx = args.end_idx
-    calculate_opt.end_idx_buff = end_idx_buff
-
-    #calculate_opt.end_idx = 4
-    #calculate_opt.end_idx_buff = 4
-
-    # Create and start threads
-    thread1 = threading.Thread(target=task1_data_sending, args=[args])
-    thread2 = threading.Thread(target=task2_computation, args=[models, lm_models, start_idx, calculate_opt.end_idx, calculate_opt.end_idx_buff, head_idx, max_layers, device])
-    #thread3 = threading.Thread(target=task3_summerizing, args=[models, test_loader, bs, device])
     thread1.start()
     thread2.start()
-    #thread3.start()
+    thread3.start()
 
     # Wait for both threads to finish (optional)
     thread1.join()
     thread2.join()
-    #thread3.join()
-
-    print("Both tasks completed!")
-
-    timestamp_manager.get_time_diff_every_n_inputs(1)
-    timestamp_manager.clearAll()
-    gc.collect()
-
-
+    thread3.join()
+    print('total_time: ', time.time() - start_time)

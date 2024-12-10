@@ -7,14 +7,8 @@ import os
 import torch
 import time
 from pathlib import Path
-import json
-from sentencepiece import SentencePieceProcessor
-from tqdm import tqdm
 import argparse
 
-import torch.nn as nn
-import torch.nn.functional as F
-import http_sender
 from data import get_loaders
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
 from multiprocessing import Pool
@@ -23,24 +17,11 @@ import multiprocessing as mp
 
 from multiprocessing import current_process
 from threading import current_thread, Thread
-import sys
-
-from eval_sep_hf import get_eval_data
-from layerwrapper import WrappedGPT
 from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
     LlamaForCausalLM_linear
 import yaml
 from queue import Queue
 import http_receiver
-from time import sleep
-from model import ModelArgs, Transformer
-from model_dist import Transformer_emb, Transformer_b0, Transformer_b1, Transformer_b2, Transformer_b3, \
-    Transformer_b4, Transformer_b5, Transformer_b6, Transformer_b7, Transformer_b8, Transformer_b9, Transformer_b10, Transformer_b11, \
-    Transformer_b12, Transformer_b13, Transformer_b14, Transformer_b15, Transformer_b16, Transformer_b17, Transformer_b18, Transformer_b19, \
-    Transformer_b20, Transformer_b21, Transformer_b22, Transformer_b23, Transformer_b24, Transformer_b25, Transformer_b26, Transformer_b27, \
-    Transformer_b28, Transformer_b29, Transformer_b30, Transformer_b31, Transformer_norm, Transformer_linear
-from prune_all import prepare_calibration_input_opt, prepare_calibration_input, find_layers, check_outlier_mean, \
-    return_given_alpha, check_sparsity
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
