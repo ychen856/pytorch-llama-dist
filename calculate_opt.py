@@ -29,7 +29,7 @@ class Calcualte_opt(object):
         self._incoming_count = 0
         self._steady_state = False
 
-        self._gateway_opt_table = []    #[[start_idx, layer_amount, time], [], ...]
+        self._gateway_opt_table = []    #[[gateway_start_idx, opt_gateway_layer_amount, opt_buff_idx, opt_comp_time], [], ...]
 
     @property
     def start_idx(self):
@@ -239,7 +239,7 @@ class Calcualte_opt(object):
         return opt_splitting_point, opt_buff_idx, self._statisitc_period
 
 
-    def calclate_opt_gateway(self):
+    def calclate_opt_gateway(self, start_idx):
         print('do opt')
         #print('FFFFFFFFFFFFFFFFFFFF: ', self._client_comp_statistics)
         #print('ZZZZZZZZZZZZZZZZZZZZ: ', self._server_comp_statistics)
@@ -321,5 +321,6 @@ class Calcualte_opt(object):
         if self._statisitc_period > 20:
             self._steady_state = True
 
+        [gateway_start_idx, opt_gateway_layer_amount, opt_buff_idx, opt_comp_time] = find_row(self._gateway_opt_table, start_idx)
 
-        return opt_splitting_point, opt_buff_idx, self._statisitc_period
+        return start_idx + opt_gateway_layer_amount, opt_buff_idx, self._statisitc_period
