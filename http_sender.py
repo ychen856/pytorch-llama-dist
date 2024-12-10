@@ -61,6 +61,7 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     #text = [torch.rand(4, 1, 4096), torch.rand(4, 1, 4096), torch.rand(4, 1, 4096)]
     #text = text[0]
     start_time = time.time()
+    start_idx = text[0]
     newx = pickle.dumps(text)
     total_size = len(newx)
 
@@ -75,6 +76,7 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     conn.putheader('Content-Length', str(total_size))
     conn.endheaders()
 
+    print('http sending: ', text)
     #print('package size: ', total_size)
     #print(newx)
     conn.send(newx)
@@ -99,7 +101,7 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
         resp_message = pickle.loads(resp_str)
 
         resp_message = resp_message[0]
-        resp_message.append(rtt)
+        resp_message.append(rtt)    #resp_message = [start_idx, total_comp_time, idx, rtt(total time)]
         print('server side: ', resp_message)
 
         timestamp_manager.end_times = (resp_message[2], end_time2)
@@ -114,10 +116,9 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     #returning_queue.append(resp_message)
 
     #print('client receiving time: ', end_time2 - start_time2)
+    print('http receiving: ', start_idx, rtt)
     print('rrt: ', rtt)
     gc.collect()
-
-
 
 
 
