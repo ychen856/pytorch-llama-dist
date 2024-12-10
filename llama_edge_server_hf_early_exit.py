@@ -347,6 +347,7 @@ def task1_data_sending(args):
 
 
         data = outgoing_queue_forward.get()
+        print('data: ', data)
         calculate_opt.outgoint_count = calculate_opt.outgoint_count + 1
         http_sender.send_data(args.server_ip, args.server_port, data, calculate_opt, timestamp_manager)
 
@@ -390,7 +391,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
         # Forward pass through the model
         if start_idx == 0:
             #out, ids, mask = models[0](out)
-            outgoing_queue_forward.put([start_idx, out, ids, mask, idx]) # forward the original input to the server
+            outgoing_queue_forward.put([start_idx, out, ids, mask, idx, 0]) # forward the original input to the server
 
         if start_idx > 0:
             end_time = time.time()
