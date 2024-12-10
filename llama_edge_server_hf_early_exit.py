@@ -460,7 +460,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             cycle_count = cycle_count + 1
             input_count = input_count + 1
 
-            outgoing_queue_forward.put([end_idx + 1, out, ids, mask, idx])
+            outgoing_queue_forward.put([end_idx + 1, out, ids, mask, idx, total_comp_time])
             #print('outgoing queue PUT!')
             calculate_opt.gateway_comp_statistics = (start_idx, end_idx, end_idx - start_idx, end_idx_buff, total_comp_time)
 
