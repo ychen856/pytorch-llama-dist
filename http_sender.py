@@ -9,6 +9,8 @@ import yaml
 import gc
 from queue import Queue
 
+import http_receiver
+
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
 parser.add_argument('--config', default='config_server.yaml')
@@ -62,6 +64,7 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     #text = text[0]
     start_time = time.time()
     start_idx = text[0]
+    client_comp_time = text[4]
     newx = pickle.dumps(text)
     total_size = len(newx)
 
@@ -119,6 +122,8 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     print('http receiving: ', start_idx, rtt)
     print('rrt: ', rtt)
     gc.collect()
+
+    http_receiver.outgoing_queue.put([start_idx, rtt + client_comp_time, idx])
 
 
 

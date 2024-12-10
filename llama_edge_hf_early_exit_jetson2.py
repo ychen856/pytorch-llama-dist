@@ -298,7 +298,7 @@ def task1_data_sending(args):
                 idx = input_queue.qsize()
                 timestamp_manager.start_times = (idx, start_time)
 
-                outgoing_queue.put([0, input_queue.get(), None, None, idx])
+                outgoing_queue.put([0, input_queue.get(), None, None, idx, 0])
                 end_time = time.time()
                 #print('client computation time: ', end_time - start_time)
                 # calculate_opt.client_comp_statistics = (-1, end_idx_buff, end_time - start_time)
@@ -470,7 +470,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             cycle_count = cycle_count + 1
             input_count = input_count + 1
 
-            outgoing_queue.put([end_idx + 1, out, ids, mask, idx])
+            outgoing_queue.put([end_idx + 1, out, ids, mask, idx, end_time - start_time])
             print('outgoing queue PUT!')
             calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
 

@@ -153,8 +153,13 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
         torch.set_default_tensor_type(torch.BFloat16Tensor)
 
     models = []
+    for i in range(0, start_idx):
+        models.append(None)
+
+    print('start idx: ', start_idx)
     for i in range(start_idx, end_idx + 1):
-        #print('i: ', i)
+        print('i: ', i)
+        #print('check point list [i]: ', checkpoint_list[i])
         if i == 0:
             models.append(LlamaForCausalLM_emb(config))
             models[i].load_state_dict(checkpoint_list[i], strict=True)
@@ -304,7 +309,7 @@ def get_server_statistic_from_q():
         calculate_opt.comm_statistics = rtt - server_comp_time
         print('server_side: ', [start_idx, server_comp_time, rtt])
 
-def task1_data_receiving(args, inputs):
+def task1_data_receiving(args):
     pid = os.getpid()
     curr_thread = current_thread().name
     curr_process = current_process().name
@@ -312,7 +317,7 @@ def task1_data_receiving(args, inputs):
     print('T1 do nothing!')
 
     while 1:
-        http_receiver.run(port=args.server_port)
+        http_receiver.run(port=args.gateway_port)
 
 def task1_data_sending(args):
     while 1:
@@ -332,7 +337,7 @@ def task1_data_sending(args):
                 idx = incoming_queue.qsize()
                 timestamp_manager.start_times = (idx, start_time)
 
-                outgoing_queue_forward.put([0, incoming_queue.get(), None, None, idx])
+                outgoing_queue_forward.put([0, incoming_queue.get(), None, None, idx, 0])
                 end_time = time.time()
                 #print('client computation time: ', end_time - start_time)
                 # calculate_opt.client_comp_statistics = (-1, end_idx_buff, end_time - start_time)
@@ -345,17 +350,8 @@ def task1_data_sending(args):
         calculate_opt.outgoint_count = calculate_opt.outgoint_count + 1
         http_sender.send_data(args.server_ip, args.server_port, data, calculate_opt, timestamp_manager)
 
-def task1_data_receiving(args, inputs):
-    pid = os.getpid()
-    curr_thread = current_thread().name
-    curr_process = current_process().name
-    print(f'{pid} with thread {curr_thread}, with process: {curr_process} Started')
-    print('T1 do nothing!')
 
-    while 1:
-        http_receiver.run(port=args.gateway_port)
-
-def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, max_layer_amount, head_idx, tokenizer, device, is_dummy=True):
+def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end_idx_buff, max_layer_amount, head_idx, tokenizer, device, is_dummy=True):
     pid = os.getpid()
     curr_thread = current_thread().name
     curr_process = current_process().name
@@ -393,52 +389,38 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, max_l
         start_comp_time = time.time()
         # Forward pass through the model
         if start_idx == 0:
-            out, ids, mask = models[0](out)
-            #out, ids, mask = models[0](input)
-        else:
-            '''for i in range(0, 1024):
-                if len(ids[0]) <= i or ids[0][i].item() != i:
-                    zeros_row = torch.zeros((1, 1, out.last_hidden_state.size(2))).to(device)
-                    out.last_hidden_state = torch.cat((out.last_hidden_state[:, :i, :], zeros_row, out.last_hidden_state[:, i:, :]), dim=1)
-                    #out.last_hidden_state = torch.cat((zeros_row, out.last_hidden_state), dim=1)
+            #out, ids, mask = models[0](out)
+            outgoing_queue_forward.put([start_idx, out, ids, mask, idx]) # forward the original input to the server
 
-                    zeros_tensor = torch.tensor([[i]]).to(device)
-                    ids = torch.cat((ids[:, :i], zeros_tensor, ids[:, i:]), dim=1)
-                    #ids = torch.cat((zeros_tensor, ids), dim=1)
+        if start_idx > 0:
+            end_time = time.time()
+            #print('0: ', end_time - start_time)
+            for k in range(start_idx, end_idx + 1):
+                try:
+                    out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+                    if k == head_idx:
+                        try:
+                            is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, head_idx)
+                            print('is early: ', is_early_exit)
+                        except Exception as e:
+                            print('early oom!')
+                            is_oom = True
+                            is_early_exit = False
 
-                    zeros_row = torch.zeros((1, 1, 1, mask.size(3))).to(device)
-                    mask = torch.cat((mask[:, :, :i , :], zeros_row, mask[:, :, i:, :]), dim=2)
-                    #mask = torch.cat((zeros_row, mask), dim=2)'''
+                            end_idx = k
 
+                        if is_early_exit:
+                            timestamp_manager.end_times = (idx, time.time())
+                            break
 
-        end_time = time.time()
-        #print('0: ', end_time - start_time)
-        for k in range(start_idx, end_idx + 1):
-            try:
-                out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-                if k == head_idx:
-                    try:
-                        is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, head_idx)
-                        print('is early: ', is_early_exit)
-                    except Exception as e:
-                        print('early oom!')
-                        is_oom = True
-                        is_early_exit = False
+                except Exception as e:
+                    print('oom!!!')
+                    is_oom = True
 
-                        end_idx = k
+                    end_idx = k - 1
 
-                    if is_early_exit:
-                        timestamp_manager.end_times = (idx, time.time())
-                        break
-
-            except Exception as e:
-                print('oom!!!')
-                is_oom = True
-
-                end_idx = k - 1
-
-                #print('updated end idx: ', end_idx)
-                break
+                    #print('updated end idx: ', end_idx)
+                    break
 
         if not is_early_exit and end_idx >= 33:
             start_time = time.time()
@@ -474,7 +456,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, max_l
             http_receiver.set_outgoing_queue([start_idx, total_comp_time, idx])
 
 
-        if not is_early_exit and end_idx < 34:
+        if not is_early_exit and end_idx < 34 and start_idx != 0:
             cycle_count = cycle_count + 1
             input_count = input_count + 1
 
@@ -552,41 +534,27 @@ if __name__ == '__main__':
 
 
     end_idx_buff = args.end_idx_buff
+    early_idx_buff = args.early_idx_buff
     max_layer_amount = args.max_layer_amount
-    start_idx = 0
-    end_idx = 34
+    start_idx = args.start_idx
+    end_idx = args.end_idx
     head_idx = args.head_idx
 
     #allow_cuda = False
     #device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
     device = torch.device("cuda")
-    models = load_model(args.ckpt_dir_hf_sep, end_idx_buff, end_idx, device)
+    models = load_model(args.ckpt_dir_hf_sep, early_idx_buff, end_idx_buff, device)
     _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, head_idx, device, cache_dir="llm_weights")
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
 
-    inputs = get_dataset(tokenizer)
     print("loading success")
     # Create and start threads
 
 
-
-
-
-    incoming_queue.put(inputs[0])
-    thread3 = threading.Thread(target=task2_computation, args=[models, lm_models, start_idx, end_idx, end_idx_buff, max_layer_amount, head_idx, tokenizer, device, True])
-
-    thread3.start()
-    thread3.join()
-
-    max_layer_amount = args.max_layers_amount
-    start_idx = args.start_idx
-    end_idx = args.end_idx
-    end_idx_buff = args.end_idx_buff
-
     start_time = time.time()
-    thread1 = threading.Thread(target=task1_data_receiving, args=[args, inputs])
+    thread1 = threading.Thread(target=task1_data_receiving, args=[args])
     thread2 = threading.Thread(target=task1_data_sending, args=[args])
-    thread3 = threading.Thread(target=task2_computation, args=[models, lm_models, start_idx, end_idx, end_idx_buff, max_layer_amount, head_idx, tokenizer, device, False])
+    thread3 = threading.Thread(target=task2_computation, args=[models, lm_models, start_idx, end_idx, early_idx_buff, end_idx_buff, max_layer_amount, head_idx, tokenizer, device, False])
 
     thread1.start()
     thread2.start()
