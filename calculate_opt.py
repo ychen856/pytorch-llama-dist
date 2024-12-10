@@ -29,7 +29,7 @@ class Calcualte_opt(object):
         self._incoming_count = 0
         self._steady_state = False
 
-        self._gateway_opt_table = []    #[[gateway_start_idx, opt_gateway_layer_amount, opt_buff_idx, opt_comp_time], [], ...]
+        self._gateway_opt_table = []    #[[gateway_start_idx, gateway_end_idx, opt_gateway_layer_amount, opt_buff_idx, opt_comp_time], [], ...]
 
     @property
     def start_idx(self):
@@ -102,8 +102,8 @@ class Calcualte_opt(object):
 
     @gateway_comp_statistics.setter
     def gateway_comp_statistics(self, value): #[start_idx, end_dix, buff_end_idx, comp_time]
-        start_idx, end_idx, buff_end_idx, comp_time = value
-        self._gateway_comp_statistics.append([start_idx, end_idx, end_idx - start_idx, buff_end_idx, comp_time])
+        start_idx, end_idx, layer_amount, buff_end_idx, comp_time = value
+        self._gateway_comp_statistics.append([start_idx, end_idx, layer_amount, buff_end_idx, comp_time])
 
     @server_comp_statistics.setter
     def server_comp_statistics(self, value): #[start_idx, comp_time]
