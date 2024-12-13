@@ -447,7 +447,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
         end_time = time.time()
         #print('client computation time: ', end_time - start_time)
 
-
+        print('is early: ', is_early_exit)
 
 
         '''cycle_count = cycle_count + 1
