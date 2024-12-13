@@ -27,6 +27,7 @@ def get_in_queue_data():
     while incoming_queue.empty():
         time.sleep(0.05)
 
+    print('http receiver incoming queue size: ', incoming_queue.qsize())
     return incoming_queue.get()
 
 def get_out_queue_data():
@@ -37,6 +38,7 @@ def get_out_queue_data():
     while outgoing_queue.empty():
         time.sleep(0.005)
 
+    print('http receiver returning queue size: ', outgoing_queue.qsize())
     return outgoing_queue.get()
 
 def set_outgoing_queue(outputs):
@@ -69,7 +71,7 @@ class S(BaseHTTPRequestHandler):
 
         decrypt_data = pickle.loads(post_data)
         #print(decrypt_data)
-        print('http receiving: ', decrypt_data)
+        #print('http receiving: ', decrypt_data)
         incoming_queue.put(decrypt_data)
         #incoming_queue.append(decrypt_data)
         end_time = time.time()
@@ -100,12 +102,12 @@ class S(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', 'application/octet-stream')
         self.end_headers()
-        print('outgoing queue:')
+        #print('outgoing queue:')
         output_message = outgoing_queue.get()
-        print('http returning: ', output_message)
+        #print('http returning: ', output_message)
         #newx = pickle.dumps(output_message)
         newx = pickle.dumps('Data received successfully!')
-        print('sent data: ', newx)
+        #print('sent data: ', newx)
         self.wfile.write(newx)
         #outgoing_queue.pop(0)
         end_time = time.time()

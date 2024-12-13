@@ -319,7 +319,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
     #prune_wanda_allocation(args, models, tokenizer, testenc[0], device=torch.device("cuda:0"))
     # Loop through each batch
     #batch_count = 30
-    batch_count = 10
+    batch_count = 3
     cycle_count = 0
     input_count = 0
     count = 0
@@ -334,6 +334,8 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             #time.sleep(150)
             while len(timestamp_manager.end_times) < batch_size:
                 time.sleep(0.0001)
+
+            print('time: ', timestamp_manager)
             timestamp_manager.get_time_diff_every_n_inputs(10)
 
             print('early count: ', early_count)
@@ -393,7 +395,8 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
         count = count + 1
         #print('========================================')
         #print('input count: ', count)
-        #print('end idx: ', end_idx)
+        print('start idx: ', 0)
+        print('end idx: ', end_idx)
         #print('end idx buffer: ', end_idx_buff)
 
         idx = input_queue.qsize()
