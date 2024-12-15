@@ -593,7 +593,7 @@ if __name__ == '__main__':
     random.seed(datetime.now().timestamp())
     random.shuffle(temp)
     temp = temp[:5]
-    print('zz: ', temp)
+
     for i in range(0, batch_size):
         input_queue.put(temp[i])
 

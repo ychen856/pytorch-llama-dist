@@ -59,9 +59,6 @@ def pop_incoming_queue():
 
 
 def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
-    #text = 'fodge'
-    #text = [torch.rand(4, 1, 4096), torch.rand(4, 1, 4096), torch.rand(4, 1, 4096)]
-    #text = text[0]
     start_time = time.time()
     start_idx = text[0]
     idx = text[4]
@@ -81,7 +78,7 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     conn.endheaders()
 
 
-    #print('http sending: ', text)
+    print('http sending: ', text)
     #print('package size: ', total_size)
     #print(newx)
     conn.send(newx)
