@@ -501,6 +501,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             #print('statistic')
             #statistics_period = statistics_period + 5
             end_idx, new_buff_idx, statistics_period = calculate_opt.calclate_opt()
+            outgoing_queue.put([end_idx + 1, None, None, None, None, None])
             #while new_buff_idx < end_idx_buff:
             #    models, end_idx_buff = layer_reallocation(2, start_idx, end_idx_buff, max_layers, models)
 
