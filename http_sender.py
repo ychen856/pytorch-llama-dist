@@ -85,6 +85,7 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     end_time = time.time()
     #print('client sending time: ', end_time - start_time)
     if idx is None:
+        print('return!')
         return
 
     start_time2 = time.time()
@@ -125,8 +126,9 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     print('rrt: ', rtt)
     gc.collect()
 
+    #middle devices used only
     #if client_comp_time is not None:
-        #http_receiver.outgoing_queue.put([start_idx, rtt + client_comp_time, idx])
+    #    http_receiver.outgoing_queue.put([start_idx, rtt + client_comp_time, idx])
 
 
 
