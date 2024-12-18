@@ -124,8 +124,8 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     print('rrt: ', rtt)
     gc.collect()
 
-    if client_comp_time is not None:
-        http_receiver.outgoing_queue.put([start_idx, rtt + client_comp_time, idx])
+    #if client_comp_time is not None:
+    #    http_receiver.outgoing_queue.put([start_idx, rtt + client_comp_time, idx])
 
 
 
