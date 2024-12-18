@@ -62,6 +62,7 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     start_time = time.time()
     start_idx = text[0]
     idx = text[4]
+    input = text[2]
     client_comp_time = text[5]
     newx = pickle.dumps(text)
     total_size = len(newx)
@@ -84,7 +85,7 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     conn.send(newx)
     end_time = time.time()
     #print('client sending time: ', end_time - start_time)
-    if idx is None:
+    if input is None:
         print('return!')
         return
 
