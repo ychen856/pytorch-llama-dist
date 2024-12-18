@@ -318,8 +318,8 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
     is_oom = False
     #prune_wanda_allocation(args, models, tokenizer, testenc[0], device=torch.device("cuda:0"))
     # Loop through each batch
-    #batch_count = 30
-    batch_count = 10
+    batch_count = 30
+    #batch_count = 10
     cycle_count = 0
     input_count = 0
     count = 0
@@ -501,7 +501,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             #print('statistic')
             #statistics_period = statistics_period + 5
             end_idx, new_buff_idx, statistics_period = calculate_opt.calclate_opt()
-            #outgoing_queue.put([end_idx + 1, None, None, None, None, None])
+            outgoing_queue.put([end_idx + 1, None, None, None, None, None])
             #while new_buff_idx < end_idx_buff:
             #    models, end_idx_buff = layer_reallocation(2, start_idx, end_idx_buff, max_layers, models)
 
