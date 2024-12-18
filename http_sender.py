@@ -106,9 +106,10 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
         resp_message.append(rtt)    #resp_message = [start_idx, total_comp_time, idx, rtt(total time)]
         print('server side resp: ', resp_message)
 
-        timestamp_manager.end_times = (resp_message[2], end_time2)
+        if not resp_message[0] == -1:
+            timestamp_manager.end_times = (resp_message[2], end_time2)
 
-        if not resp_message[0] == 0:
+        if not (resp_message[0] == 0 or resp_message[0] == -1):
             print('data stored!')
             calculate_opt.incoming_count = calculate_opt.incoming_count + 1
             calculate_opt.server_comp_statistics = (resp_message[0], resp_message[3])
