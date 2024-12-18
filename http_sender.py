@@ -85,9 +85,9 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     conn.send(newx)
     end_time = time.time()
     #print('client sending time: ', end_time - start_time)
-    if input is None:
-        print('return!')
-        return
+    #if input is None:
+    #    print('return!')
+    #    return
 
     start_time2 = time.time()
     resp = conn.getresponse()
