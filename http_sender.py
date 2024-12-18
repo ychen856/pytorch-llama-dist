@@ -109,6 +109,7 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
         timestamp_manager.end_times = (resp_message[2], end_time2)
 
         if not resp_message[0] == 0:
+            print('data stored!')
             calculate_opt.incoming_count = calculate_opt.incoming_count + 1
             calculate_opt.server_comp_statistics = (resp_message[0], resp_message[3])
         #returning_queue.put(resp_message)
