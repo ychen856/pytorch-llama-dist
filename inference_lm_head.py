@@ -160,8 +160,8 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
     print('lm_head_idx: ', lm_head_idx)
 
     checkpoint_list = []
-    #checkpoints = sorted(Path(checkpoints_dir).glob("lm_head.*.pth"))
-    checkpoints = Path(checkpoints_dir).glob("lm_head.*.pth").sort(key=natural_keys)
+    checkpoints = sorted(Path(checkpoints_dir).glob("lm_head.*.pth"))
+    checkpoints = checkpoints.sort(key=natural_keys)
     print('zzzzzzzzzzz', checkpoints)
     assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
 
