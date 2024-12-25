@@ -316,7 +316,7 @@ def early_exit_lm_head(lm_models, out, lm_head):
         early_rate = 0.84'''
 
     #return True, logits_linear
-
+    print('rate????: ', early_count / 1024)
     if early_count / 1024 > early_rate:
         return True, logits_linear
     else:
