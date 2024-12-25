@@ -13,7 +13,7 @@ import argparse
 from data import get_loaders
 import torch.nn as nn
 import safetensors
-
+import re
 from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
 
@@ -134,6 +134,18 @@ def get_lm_head_idx(end_idx):
     lm_head_idx = lm_head_idx + 1
 
     return lm_head, lm_head_idx
+
+def atoi(text):
+    return int(text) if text.isdigit() else text
+
+def natural_keys(text):
+    '''
+    alist.sort(key=natural_keys) sorts in human order
+    http://nedbatchelder.com/blog/200712/human_sorting.html
+    (See Toothy's implementation in the comments)
+    '''
+    return [ atoi(c) for c in re.split(r'(\d+)', text) ]
+
 def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
     config, kwargs = AutoConfig.from_pretrained(
         args.ckpt_dir_hf,
@@ -148,7 +160,8 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
     print('lm_head_idx: ', lm_head_idx)
 
     checkpoint_list = []
-    checkpoints = sorted(Path(checkpoints_dir).glob("lm_head.*.pth"))
+    #checkpoints = sorted(Path(checkpoints_dir).glob("lm_head.*.pth"))
+    checkpoints = Path(checkpoints_dir).glob("lm_head.*.pth").sort(key=natural_keys)
     print('zzzzzzzzzzz', checkpoints)
     assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
 
