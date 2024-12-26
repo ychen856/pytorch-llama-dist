@@ -162,7 +162,7 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
 
     checkpoint_list = []
     checkpoints = sorted(Path(checkpoints_dir).glob("lm_head.*.pth"))
-    natsorted(checkpoints)
+    checkpoints = natsorted(checkpoints)
     #checkpoints = checkpoints.sort(key=natural_keys)
     #checkpoints = sorted(Path(checkpoints_dir).glob("lm_head.*.pth"), key=lambda f: [int(n) for n in re.findall(r"\d+", f)])
     print('zzzzzzzzzzz', checkpoints)
