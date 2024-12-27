@@ -299,7 +299,7 @@ def early_exit_lm_head(lm_models, out, lm_head):
 
     #return logits_linear
 
-    early_rate = 0.8954140625
+    early_rate = 0.8944140625
     if lm_head == 8:
         early_rate = 0.8916015625
     elif lm_head == 6:
