@@ -180,7 +180,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
 
 def get_lm_head_idx(end_idx):
 
-    lm_heads = [1, 2, 4]
+    lm_heads = [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
     lm_head = 1
     lm_head_idx = 0
 
@@ -201,9 +201,10 @@ def get_lm_head_idx(end_idx):
 
 
     return lm_head, lm_head_idx
+
 def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
     config, kwargs = AutoConfig.from_pretrained(
-        args.ckpt_dir_hf_sep,
+        args.ckpt_dir_hf,
         return_unused_kwargs=True
     )
     #print('config: ', config)
