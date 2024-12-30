@@ -15,7 +15,7 @@ from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
 
 import sys
-
+from natsort import natsorted
 from eval_sep_hf import get_eval_data
 from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
     LlamaForCausalLM_linear
@@ -207,26 +207,27 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
         args.ckpt_dir_hf,
         return_unused_kwargs=True
     )
-    #print('config: ', config)
-    #print('??: ', end_idx)
+    print('config: ', config)
+    print('??: ', end_idx)
 
     lm_head, lm_head_idx = get_lm_head_idx(end_idx)
 
+    print('lm_head: ', lm_head)
+    print('lm_head_idx: ', lm_head_idx)
 
     checkpoint_list = []
     checkpoints = sorted(Path(checkpoints_dir).glob("lm_head.*.pth"))
+    checkpoints = natsorted(checkpoints)
+    #checkpoints = checkpoints.sort(key=natural_keys)
+    #checkpoints = sorted(Path(checkpoints_dir).glob("lm_head.*.pth"), key=lambda f: [int(n) for n in re.findall(r"\d+", f)])
+    print('zzzzzzzzzzz', checkpoints)
     assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
 
-    '''for checkpoint in checkpoints:
-        ckpt_path = checkpoint
-        print(f'Loading checkpoint "{ckpt_path}"')
-
-        checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))'''
 
     for i in range(0, len(checkpoints)):
         if i == 0 or i == lm_head_idx:
             ckpt_path = checkpoints[i]
-            #print(f'Loading checkpoint "{ckpt_path}"')
+            print(f'Loading checkpoint "{ckpt_path}"')
 
             checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
 
@@ -250,7 +251,6 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
             lm_models[i].load_state_dict(checkpoint_list[i], strict=True)
             lm_models[i].to(device)
 
-    gc.collect()
     return lm_head, lm_models
 
 
