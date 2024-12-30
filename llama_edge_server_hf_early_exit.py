@@ -24,7 +24,7 @@ from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_la
 import yaml
 from queue import Queue
 from prune_all import prune_wanda_allocation
-from calculate_opt import Calcualte_opt
+from calculate_opt import Calcualte_opt, find_row
 from early_exit import early_exit_cpu, early_exit_cuda, early_exit_lm_head
 from timestamp_manager import Timestamp_manager
 from threading import current_thread, Thread
@@ -111,8 +111,98 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
         #print('decrease buffer')
         models = models[:-1]
         end_idx_buff = end_idx_buff - 1
-    if type == 3:   #pruning
-        prune_wanda_allocation(args, models, tokenizer, device=torch.device("cuda:0"))
+    if type == 3:   #reallocate model
+        #print('increase buffer')
+        config, kwargs = AutoConfig.from_pretrained(
+            args.ckpt_dir_hf,
+            return_unused_kwargs=True
+        )
+        #print('config: ', config)
+
+        checkpoint_list = []
+        checkpoints = sorted(Path(args.ckpt_dir_hf_sep).glob("consolidated.*.pth"))
+        assert len(checkpoints) > 0, f"no checkpoint files found in {args.ckpt_dir_hf_sep}"
+
+        start_idx_buff = max(0, start_idx - 1)
+        checkpoints = checkpoints[start_idx_buff:max_layers]
+        checkpoint_idx = start_idx_buff
+        for checkpoint in checkpoints:
+            if checkpoint_idx > end_idx_buff:
+                ckpt_path = checkpoint
+                checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
+            elif models[checkpoint_idx] is None:
+                ckpt_path = checkpoint
+                checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
+
+            checkpoint_idx = checkpoint_idx + 1
+
+        end_idx_buff = max_layers
+
+
+        if device.type == 'cuda':
+            torch.set_default_tensor_type(torch.cuda.HalfTensor)
+        else:
+            torch.set_default_tensor_type(torch.BFloat16Tensor)
+
+        models = models[:end_idx_buff]
+
+        checkpoint_idx = 0
+        for i in range(0, end_idx_buff + 1):
+            if i < start_idx_buff:
+                models[i] = None
+                continue
+            #print('i: ', i)
+            load_layer = False
+            try:
+                if i == 0:
+                    if i >= len(models):
+                        models.append(LlamaForCausalLM_emb(config))
+                        load_layer = True
+                    elif models[i] is None:
+                        models[i] = LlamaForCausalLM_emb(config)
+                        load_layer = True
+
+                    if load_layer is True:
+                        models[i].load_state_dict(checkpoint_list[checkpoint_idx], strict=True)
+                        models[0].to(device)
+                        checkpoint_idx = checkpoint_idx + 1
+                elif i == 33:
+                    if i >= len(models):
+                        models.append((LlamaForCausalLM_norm(config)))
+                        load_layer = True
+                    elif models[i] is None:
+                        models[i] = LlamaForCausalLM_norm(config)
+                        load_layer = True
+
+                    if load_layer is True:
+                        models[i].load_state_dict(checkpoint_list[checkpoint_idx], strict=True)
+                        models[33].to(device)
+                elif i == 34:
+                    if i >= len(models):
+                        models.append((LlamaForCausalLM_linear(config)))
+                        load_layer = True
+                    elif models[i] is None:
+                        models[i] = LlamaForCausalLM_linear(config)
+                        load_layer = True
+
+                    if load_layer is True:
+                        models[i].load_state_dict(checkpoint_list[checkpoint_idx], strict=True)
+                        models[34].to(device)
+                else:
+                    if i >= len(models):
+                        models.append((LlamaForCausalLM_layer_0(config)))
+                        load_layer = True
+                    elif models[i] is None:
+                        models[i] = LlamaForCausalLM_layer_0(config)
+                        load_layer = True
+
+                    if load_layer is True:
+                        models[i].load_state_dict(checkpoint_list[checkpoint_idx], strict=True)
+                        models[i].to(device)
+            except:
+                end_idx_buff = i - 1
+                break
+        #prune_wanda_allocation(args, models, tokenizer, device=torch.device("cuda:0"))
     if type == 4:   #reload the whole model
         load_model(args.ckpt_dir_hf_sep, 0, end_idx_buff, torch.device("cuda:0"))
 
@@ -229,7 +319,7 @@ def get_dataset(tokenizer):
 
 def get_lm_head_idx(end_idx):
 
-    lm_heads = [1, 2, 4]
+    lm_heads = [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
     lm_head = 1
     lm_head_idx = 0
 
@@ -347,12 +437,11 @@ def task1_data_sending(args):
 
 
         data = outgoing_queue_forward.get()
-        print('data: ', data)
+        #print('data: ', data)
         calculate_opt.outgoint_count = calculate_opt.outgoint_count + 1
         http_sender.send_data(args.server_ip, args.server_port, data, calculate_opt, timestamp_manager)
 
-
-def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end_idx_buff, max_layer_amount, head_idx, tokenizer, device, is_dummy=True):
+def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end_idx_buff, max_layers, max_layer_amount, head_idx, tokenizer, device, is_dummy=True):
     pid = os.getpid()
     curr_thread = current_thread().name
     curr_process = current_process().name
@@ -361,8 +450,11 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
     cycle_count = 0
     input_count = 0
     layer_amount = end_idx - start_idx
+    start_idx_buff = start_idx
+    opt_layer_amount = 2
     statistics_period = calculate_opt.statistic_period
     while(1):
+        print('http sender outgoing queue size: ', outgoing_queue_forward.qsize())
         print('start time: ', time.time())
         start_time_0 = time.time()
         if is_dummy:
@@ -382,21 +474,40 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
         is_early_exit = False
         is_oom = False
 
+        if out is None:
+            http_receiver.set_outgoing_queue([-1, None, None])
+            max_layers = start_idx - 1 + max_layer_amount
+            models, end_idx_buff = layer_reallocation(3, start_idx, end_idx_buff, max_layers, models)
+            lm_head, _ = get_lm_head_idx(end_idx)
+            if not lm_head == head_idx:
+                head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx, device, cache_dir="llm_weights")
+            start_idx_buff = max(0, start_idx - 1)
+            end_idx = start_idx + opt_layer_amount
+            #http_receiver.set_outgoing_queue([-1, None, None])
+            continue
+
 
         print('start idx: ', start_idx)
+        print('end idx: ', end_idx)
         #input = http_receiver.get_in_queue_data()
-        print('start compute time: ', time.time())
+        #print('start compute time: ', time.time())
         start_time = time.time()
-        start_comp_time = time.time()
+
         # Forward pass through the model
-        if start_idx == 0:
+        if start_idx == 0 or start_idx > max_layers or start_idx < start_idx_buff:
             #out, ids, mask = models[0](out)
             outgoing_queue_forward.put([start_idx, out, ids, mask, idx, 0]) # forward the original input to the server
+            continue
 
-        if start_idx > 0:
+        start_comp_time = time.time()
+        if start_idx > 0 and start_idx <= max_layers and start_idx >= start_idx_buff:
+            #find opt
+            # TODO
+
             end_time = time.time()
             #print('0: ', end_time - start_time)
             for k in range(start_idx, end_idx + 1):
+                print('layer: ', k)
                 try:
                     out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
                     if k == head_idx:
@@ -463,13 +574,23 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
 
             outgoing_queue_forward.put([end_idx + 1, out, ids, mask, idx, total_comp_time])
             #print('outgoing queue PUT!')
+            #print('insert gateway statistics: ', [start_idx, end_idx, end_idx - start_idx, end_idx_buff, total_comp_time])
             calculate_opt.gateway_comp_statistics = (start_idx, end_idx, end_idx - start_idx, end_idx_buff, total_comp_time)
 
+            #existed_statistic = find_row(calculate_opt.gateway_comp_statistics, 0, start_idx)
+            existed_opt = find_row(calculate_opt.gateway_opt_table, 0, start_idx)
+
+
+
             if is_oom:
-                end_idx = max(1, math.ceil(end_idx - start_idx / 2 + start_idx))
+                end_idx = max(1, math.ceil((end_idx - start_idx) / 2 + start_idx))
+                layer_amount = end_idx - start_idx
                 is_oom = False
 
-            if (input_count) % 2 == 0 and input_count < 20 and layer_amount < max_layer_amount and statistics_period <= 10:
+            if len(existed_opt) == 0:
+                end_idx = start_idx + 2
+
+            if (input_count + 1) % 2 == 0 and input_count < 20 and end_idx < max_layers and statistics_period <= 10:
                 #print('testing higher value(i<30)')
                 calculate_opt.max_layer_amount = layer_amount
                 layer_amount = layer_amount + 1
@@ -478,16 +599,20 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
                 #print('testing lower value (i>30)')
                 layer_amount = max(1, layer_amount - 2)
 
-            if cycle_count > (statistics_period - 8) and input_count >= 20 and layer_amount < max_layer_amount and cycle_count % 2 == 0:
+            if cycle_count > (statistics_period - 8) and input_count >= 20 and end_idx < max_layers and cycle_count % 2 == 0:
                 #print('testing higher value (i>30): ')
                 calculate_opt.max_layer_amount = layer_amount
                 layer_amount = layer_amount + 1
+
+        end_idx = start_idx + layer_amount
 
         #if (input_count) % 10 == 0:
         if len(calculate_opt.server_comp_statistics) >= statistics_period:
             print('statistic')
             #statistics_period = statistics_period + 5
-            end_idx, new_buff_idx, statistics_period = calculate_opt.calclate_opt_gateway(start_idx)
+            end_idx, end_idx_buff, statistics_period = calculate_opt.calclate_opt_gateway(start_idx)
+            opt_layer_amount = end_idx - start_idx
+            end_idx_buff = min(max_layers, end_idx_buff)
             #while new_buff_idx < end_idx_buff:
             #    models, end_idx_buff = layer_reallocation(2, start_idx, end_idx_buff, max_layers, models)
 
@@ -496,7 +621,8 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
                 head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx, device, cache_dir="llm_weights")
             cycle_count = 0
 
-        max_layers = start_idx + max_layer_amount
+        #max_layers = start_idx + max_layer_amount
+
         #if end_idx_buff < end_idx and end_idx_buff + 3 <= max_layers:  #add buffer
         if end_idx_buff < end_idx and end_idx_buff < max_layers:
             models, end_idx_buff = layer_reallocation(1, start_idx, end_idx_buff, max_layers, models)
@@ -510,8 +636,190 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
 
 
 
-    print('round time: ', time.time() - start_time_0)
+    #print('round time: ', time.time() - start_time_0)
 
+
+'''def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end_idx_buff, max_layers, head_idx, tokenizer, device, is_dummy=True):
+    pid = os.getpid()
+    curr_thread = current_thread().name
+    curr_process = current_process().name
+    print(f'{pid} with thread {curr_thread}, with process: {curr_process} Started')
+    print('T2 computaton...')
+    cycle_count = 0
+    input_count = 0
+    layer_amount = end_idx - start_idx
+    statistics_period = calculate_opt.statistic_period
+    while(1):
+        print('http sender outgoing queue size: ', outgoing_queue_forward.qsize())
+        print('start time: ', time.time())
+        start_time_0 = time.time()
+        if is_dummy:
+            while incoming_queue.empty():
+                print('wait...')
+                time.sleep(0.01)
+
+            input = incoming_queue.get()
+        else:
+            input = http_receiver.get_in_queue_data()
+
+        start_idx = input[0]
+        out = input[1]
+        ids = input[2]
+        mask = input[3]
+        idx = input[4]
+        is_early_exit = False
+        is_oom = False
+
+
+        print('start idx: ', start_idx)
+        print('end idx: ', end_idx)
+        #input = http_receiver.get_in_queue_data()
+        #print('start compute time: ', time.time())
+        start_time = time.time()
+
+        # Forward pass through the model
+        if start_idx == 0 or start_idx > max_layers:
+            #out, ids, mask = models[0](out)
+            outgoing_queue_forward.put([start_idx, out, ids, mask, idx, 0]) # forward the original input to the server
+
+        start_comp_time = time.time()
+        if start_idx > 0 and start_idx <= max_layers:
+            #find opt
+            # TODO
+
+            end_time = time.time()
+            #print('0: ', end_time - start_time)
+            for k in range(start_idx, end_idx + 1):
+                print('layer: ', k)
+                try:
+                    out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+                    if k == head_idx:
+                        try:
+                            is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, head_idx)
+                            print('is early: ', is_early_exit)
+                        except Exception as e:
+                            print('early oom!')
+                            is_oom = True
+                            is_early_exit = False
+
+                            end_idx = k
+
+                        if is_early_exit:
+                            timestamp_manager.end_times = (idx, time.time())
+                            break
+
+                except Exception as e:
+                    print('oom!!!')
+                    is_oom = True
+
+                    end_idx = k - 1
+
+                    #print('updated end idx: ', end_idx)
+                    break
+
+        if not is_early_exit and end_idx >= 33:
+            start_time = time.time()
+            lm_logits = models[33](out.last_hidden_state)
+            end_time = time.time()
+
+            if end_idx >=34:
+                start_time = time.time()
+                lm_logits = models[34](lm_logits)
+                end_time = time.time()
+
+            #print('logits: ', lm_logits)
+            #print('logit size: ', lm_logits.size())
+
+        total_comp_time = time.time() - start_comp_time
+
+        # print('out: ', out)
+        print('end compute time: ', time.time())
+        print('total computation time: ', total_comp_time)
+
+        #total_comp_time = time.time() - start_comp_time
+
+        #print('out: ', out)
+        #print('end compute time: ', time.time())
+        #print('total computation time: ', total_comp_time)
+
+
+        if is_dummy:
+            break
+
+
+        if is_early_exit or end_idx >= 34:
+            http_receiver.set_outgoing_queue([start_idx, total_comp_time, idx])
+
+
+        if not is_early_exit and end_idx < 34 and start_idx != 0:
+            cycle_count = cycle_count + 1
+            input_count = input_count + 1
+
+            outgoing_queue_forward.put([end_idx + 1, out, ids, mask, idx, total_comp_time])
+            #print('outgoing queue PUT!')
+            #print('insert gateway statistics: ', [start_idx, end_idx, end_idx - start_idx, end_idx_buff, total_comp_time])
+            calculate_opt.gateway_comp_statistics = (start_idx, end_idx, end_idx - start_idx, end_idx_buff, total_comp_time)
+
+            #existed_statistic = find_row(calculate_opt.gateway_comp_statistics, 0, start_idx)
+            existed_opt = find_row(calculate_opt.gateway_opt_table, 0, start_idx)
+
+
+
+            if is_oom:
+                end_idx = max(1, math.ceil((end_idx - start_idx) / 2 + start_idx))
+                layer_amount = end_idx - start_idx
+                is_oom = False
+
+            if len(existed_opt) == 0:
+                end_idx = start_idx + 2
+
+            if (input_count + 1) % 2 == 0 and input_count < 20 and end_idx < max_layers and statistics_period <= 10:
+                #print('testing higher value(i<30)')
+                calculate_opt.max_layer_amount = layer_amount
+                layer_amount = layer_amount + 1
+
+            if cycle_count == (statistics_period - 8) and input_count > 20 and cycle_count % 2 == 0:
+                #print('testing lower value (i>30)')
+                layer_amount = max(1, layer_amount - 2)
+
+            if cycle_count > (statistics_period - 8) and input_count >= 20 and end_idx < max_layers and cycle_count % 2 == 0:
+                #print('testing higher value (i>30): ')
+                calculate_opt.max_layer_amount = layer_amount
+                layer_amount = layer_amount + 1
+
+        end_idx = start_idx + layer_amount
+
+        #if (input_count) % 10 == 0:
+        if len(calculate_opt.server_comp_statistics) >= statistics_period:
+            print('statistic')
+            #statistics_period = statistics_period + 5
+            end_idx, end_idx_buff, statistics_period = calculate_opt.calclate_opt_gateway(start_idx)
+            end_idx_buff = min(max_layers, end_idx_buff)
+            #while new_buff_idx < end_idx_buff:
+            #    models, end_idx_buff = layer_reallocation(2, start_idx, end_idx_buff, max_layers, models)
+
+            lm_head, _ = get_lm_head_idx(end_idx)
+            if not lm_head == head_idx:
+                head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx, device, cache_dir="llm_weights")
+            cycle_count = 0
+
+        #max_layers = start_idx + max_layer_amount
+
+        #if end_idx_buff < end_idx and end_idx_buff + 3 <= max_layers:  #add buffer
+        if end_idx_buff < end_idx and end_idx_buff < max_layers:
+            models, end_idx_buff = layer_reallocation(1, start_idx, end_idx_buff, max_layers, models)
+        while end_idx_buff > end_idx + 3:  #remove buffer
+            models, end_idx_buff = layer_reallocation(2, start_idx, end_idx_buff, max_layers, models)
+
+        torch.cuda.empty_cache()
+
+
+    calculate_opt.statistic_period = statistics_period
+
+
+
+    #print('round time: ', time.time() - start_time_0)
+'''
 
 def task3_summerizing(models, test_loader, bs, device):
     while 1:
@@ -537,6 +845,7 @@ if __name__ == '__main__':
     end_idx_buff = args.end_idx_buff
     early_idx_buff = args.early_idx_buff
     max_layer_amount = args.max_layer_amount
+    max_layers = args.max_layers
     start_idx = args.start_idx
     end_idx = args.end_idx
     head_idx = args.head_idx
@@ -555,7 +864,8 @@ if __name__ == '__main__':
     start_time = time.time()
     thread1 = threading.Thread(target=task1_data_receiving, args=[args])
     thread2 = threading.Thread(target=task1_data_sending, args=[args])
-    thread3 = threading.Thread(target=task2_computation, args=[models, lm_models, start_idx, end_idx, early_idx_buff, end_idx_buff, max_layer_amount, head_idx, tokenizer, device, False])
+    #(models, lm_models, start_idx, end_idx, early_idx_buff, end_idx_buff, max_layers, max_layer_amount, head_idx, tokenizer, device, is_dummy=True)
+    thread3 = threading.Thread(target=task2_computation, args=[models, lm_models, start_idx, end_idx, early_idx_buff, end_idx_buff, max_layers, max_layer_amount, head_idx, tokenizer, device, False])
 
     thread1.start()
     thread2.start()
