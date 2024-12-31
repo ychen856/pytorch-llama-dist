@@ -183,7 +183,7 @@ class Calcualte_opt(object):
         opt_splitting_point = 0
         client_count = 0
         server_count = 0
-        for i in range(0, len(client_comp_time_temp)):
+        for i in range(0, len(client_comp_time_temp) + 1):
             if client_end_idx == client_comp_time_temp[i][0]:
                 print('clientPPPPPP: ', client_comp_time_temp[i])
                 client_count = client_count + 1
