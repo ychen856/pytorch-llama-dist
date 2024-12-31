@@ -193,6 +193,9 @@ class Calcualte_opt(object):
                 server_count = 0
             else:
                 for j in range(0, len(server_comp_time_temp)):
+                    print('is match??')
+                    print('client data + 1: ', client_end_idx + 1)
+                    print('server data: ', server_comp_time_temp[j])
                     if server_comp_time_temp[j][0] == client_end_idx + 1:
                         print('serverVVVV: ', server_comp_time_temp[j])
                         server_count = server_count + 1
