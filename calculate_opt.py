@@ -185,7 +185,7 @@ class Calcualte_opt(object):
         server_count = 0
         for i in range(0, len(client_comp_time_temp)):
             if client_end_idx == client_comp_time_temp[i][0]:
-                #print('clientPPPPPP: ', client_comp_time_temp[i])
+                print('clientPPPPPP: ', client_comp_time_temp[i])
                 client_count = client_count + 1
                 avg_client_comp_time = avg_client_comp_time + client_comp_time_temp[i][2]
 
@@ -194,7 +194,7 @@ class Calcualte_opt(object):
             else:
                 for j in range(0, len(server_comp_time_temp)):
                     if server_comp_time_temp[j][0] == client_end_idx + 1:
-                        #print('serverVVVV: ', server_comp_time_temp[j])
+                        print('serverVVVV: ', server_comp_time_temp[j])
                         server_count = server_count + 1
                         avg_server_comp_time = avg_client_comp_time + server_comp_time_temp[j][1]
                 #print('client count: ', client_count)
