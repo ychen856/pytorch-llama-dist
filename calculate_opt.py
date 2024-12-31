@@ -1,11 +1,12 @@
 import gc
 import math
+import time
 
 
-def find_row(table, value):
+def find_row(table, idx, value):
     new_table = []
     for row in table:
-        if row[0] == value:
+        if row[idx] == value:
             new_table.append(row)
     return new_table
 
@@ -156,8 +157,8 @@ class Calcualte_opt(object):
 
     @gateway_opt_table.setter
     def gateway_opt_table(self, value):
-        start_idx, layer_amount, buff_idx, comp_time = value
-        self._gateway_opt_table.append([start_idx, layer_amount, buff_idx, comp_time])
+        start_idx, end_idx, layer_amount, buff_idx, comp_time = value
+        self._gateway_opt_table.append([start_idx, end_idx, layer_amount, buff_idx, comp_time])
 
 
     def calclate_opt(self):
@@ -166,6 +167,11 @@ class Calcualte_opt(object):
         #print('ZZZZZZZZZZZZZZZZZZZZ: ', self._server_comp_statistics)
         client_comp_time_temp = sorted(self._client_comp_statistics[:len(self._server_comp_statistics)], key=lambda x: x[0])
         server_comp_time_temp = self._server_comp_statistics
+
+        for client in client_comp_time_temp:
+            print('CLIENT SIDE!!!: ', client)
+        for server in server_comp_time_temp:
+            print('SERVER SIDE!!!: ', server)
 
         #print('fffffffffffffffffff: ', client_comp_time_temp)
         #print('zzzzzzzzzzzzzzzzzzz: ', server_comp_time_temp)
@@ -243,10 +249,10 @@ class Calcualte_opt(object):
         print('do opt')
         #print('FFFFFFFFFFFFFFFFFFFF: ', self._client_comp_statistics)
         #print('ZZZZZZZZZZZZZZZZZZZZ: ', self._server_comp_statistics)
-        gateway_comp_time_temp = sorted(self._gateway_comp_statistics[:len(self._server_comp_statistics)], key=lambda x: x[2])
+        gateway_comp_time_temp = sorted(self._gateway_comp_statistics[:len(self._server_comp_statistics)], key=lambda x: x[0])
         server_comp_time_temp = self._server_comp_statistics
 
-        #print('fffffffffffffffffff: ', client_comp_time_temp)
+        print('fffffffffffffffffff: ', gateway_comp_time_temp)
         #print('zzzzzzzzzzzzzzzzzzz: ', server_comp_time_temp)
 
         gateway_start_idx = gateway_comp_time_temp[0][0]
@@ -257,8 +263,13 @@ class Calcualte_opt(object):
         opt_splitting_point = 0
         client_count = 0
         server_count = 0
-        for i in range(0, len(gateway_comp_time_temp)):
-            gateway_sub_list = find_row(gateway_comp_time_temp, gateway_start_idx)
+
+        i = 0
+        while i < len(gateway_comp_time_temp):
+            gateway_start_idx = gateway_comp_time_temp[i][0]
+            print('gateway_start_idx: ', gateway_start_idx)
+            gateway_sub_list = find_row(gateway_comp_time_temp, 0, gateway_start_idx)
+            print('gateway sub list: ', gateway_sub_list)
             gateway_sub_list_temp = sorted(gateway_sub_list, key=lambda x: x[1])
             gateway_end_idx = gateway_sub_list_temp[0][1]
             for j in range(0, len(gateway_sub_list_temp)):
@@ -288,14 +299,33 @@ class Calcualte_opt(object):
 
             min_gateway_comp_time = 10000
             opt_buff_idx = 0
-            for i in range(0, len(gateway_sub_list_temp)):
-                if gateway_end_idx == gateway_sub_list_temp[i][1]:
-                    if gateway_sub_list_temp[i][4] < min_gateway_comp_time:
-                        min_gateway_comp_time = gateway_sub_list_temp[i][4]
-                        opt_buff_idx = gateway_sub_list_temp[i][3]
+            for n in range(0, len(gateway_sub_list_temp)):
+                if gateway_end_idx == gateway_sub_list_temp[n][1]:
+                    if gateway_sub_list_temp[n][4] < min_gateway_comp_time:
+                        min_gateway_comp_time = gateway_sub_list_temp[n][4]
+                        opt_buff_idx = gateway_sub_list_temp[n][3]
 
-            self.gateway_opt_table = [gateway_start_idx, opt_gateway_layer_amount, opt_buff_idx, opt_comp_time]
+            print('opt table: ', self._gateway_opt_table)
+            list_idx = 0
+            for opt_list in self._gateway_opt_table:
+                print('m: ', list_idx)
+                if self._gateway_opt_table[list_idx][0] == gateway_start_idx and self._gateway_opt_table[list_idx][1] == gateway_end_idx:
+                    print('pop')
+                    self._gateway_opt_table.pop(list_idx)
+                    list_idx = list_idx - 1
 
+                list_idx = list_idx + 1
+
+            self.gateway_opt_table = [gateway_start_idx, gateway_end_idx, opt_gateway_layer_amount, opt_buff_idx, opt_comp_time]
+
+            '''i = i + 1
+            gateway_start_idx = gateway_comp_time_temp[i + 1][0]
+            print('gateway_start_idx: ', gateway_start_idx)'''
+
+            i = i + len(gateway_sub_list)
+            print('next idx: ', i)
+
+            time.sleep(5)
 
         self._gateway_comp_statistics = self._gateway_comp_statistics[len(gateway_comp_time_temp) :]
         self._server_comp_statistics = self._server_comp_statistics[len(server_comp_time_temp) :]
@@ -304,7 +334,16 @@ class Calcualte_opt(object):
         #self._end_idx = opt_splitting_point
         #self._end_idx_buff = opt_buff_idx
 
-        #print('last opt: ', self._last_opt_calc_time)
+        print('opt table: ', self._gateway_opt_table)
+        print('start idx: ', start_idx)
+        opt_row = find_row(self._gateway_opt_table, 0, start_idx)
+
+        # the opt data haven't been discovered
+        if len(opt_row) == 0:
+            # return start_idx + opt_gateway_layer_amount, opt_buff_idx, self._statisitc_period
+            return start_idx + 2, start_idx + 5, self._statisitc_period
+
+            #print('last opt: ', self._last_opt_calc_time)
         #print('opt: ', opt_comp_time)
         if self._last_opt_calc_time * 1.5 < opt_comp_time:
             self._statisitc_period = max(10, self._statisitc_period - 4)
@@ -321,6 +360,9 @@ class Calcualte_opt(object):
         if self._statisitc_period > 20:
             self._steady_state = True
 
-        [gateway_start_idx, opt_gateway_layer_amount, opt_buff_idx, opt_comp_time] = find_row(self._gateway_opt_table, start_idx)
 
-        return start_idx + opt_gateway_layer_amount, opt_buff_idx, self._statisitc_period
+        #[gateway_start_idx, gateway_end_idx, opt_gateway_layer_amount, opt_buff_idx, opt_comp_time] = find_row(self._gateway_opt_table, start_idx)
+
+        #return start_idx + opt_gateway_layer_amount, opt_buff_idx, self._statisitc_period
+        print('FFFFFFFFFFFFFFFFF: ', opt_row)
+        return start_idx + opt_row[0][2], opt_row[0][3], self._statisitc_period
