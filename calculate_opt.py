@@ -183,8 +183,8 @@ class Calcualte_opt(object):
         opt_splitting_point = 0
         client_count = 0
         server_count = 0
-        for i in range(0, len(client_comp_time_temp) + 1):
-            if (i < len(client_comp_time_temp)) and client_end_idx == client_comp_time_temp[i][0]:
+        for i in range(0, len(client_comp_time_temp)):
+            if client_end_idx == client_comp_time_temp[i][0]:
                 print('clientPPPPPP: ', client_comp_time_temp[i])
                 client_count = client_count + 1
                 avg_client_comp_time = avg_client_comp_time + client_comp_time_temp[i][2]
@@ -211,6 +211,23 @@ class Calcualte_opt(object):
                 client_end_idx = client_comp_time_temp[i][0]
                 avg_client_comp_time = client_comp_time_temp[i][2]
                 client_count = 1
+
+        for j in range(0, len(server_comp_time_temp)):
+            print('is match??')
+            print('client data + 1: ', client_end_idx + 1)
+            print('server data: ', server_comp_time_temp[j])
+            if server_comp_time_temp[j][0] == client_end_idx + 1:
+                print('serverVVVV: ', server_comp_time_temp[j])
+                server_count = server_count + 1
+                avg_server_comp_time = avg_client_comp_time + server_comp_time_temp[j][1]
+        # print('client count: ', client_count)
+        # print('server count: ', server_count)
+        # print('+++ end idx: ', client_end_idx)
+        # print('+++ time: ', (avg_client_comp_time/ client_count + avg_server_comp_time/ server_count))
+        if client_count > 0 and server_count > 0 and (
+                avg_client_comp_time / client_count + avg_server_comp_time / server_count) < opt_comp_time:
+            opt_splitting_point = client_end_idx
+            opt_comp_time = avg_client_comp_time / client_count + avg_server_comp_time / server_count
 
         min_client_comp_time = 10000
         opt_buff_idx = 0
