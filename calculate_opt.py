@@ -205,6 +205,7 @@ class Calcualte_opt(object):
                 #print('+++ end idx: ', client_end_idx)
                 #print('+++ time: ', (avg_client_comp_time/ client_count + avg_server_comp_time/ server_count))
                 if client_count > 0 and server_count > 0 and (avg_client_comp_time/client_count + avg_server_comp_time / server_count) < opt_comp_time:
+                    print('avg time: ', avg_client_comp_time/client_count + avg_server_comp_time / server_count)
                     opt_splitting_point = client_end_idx
                     opt_comp_time = avg_client_comp_time/client_count + avg_server_comp_time/server_count
 
@@ -224,8 +225,8 @@ class Calcualte_opt(object):
         # print('server count: ', server_count)
         # print('+++ end idx: ', client_end_idx)
         # print('+++ time: ', (avg_client_comp_time/ client_count + avg_server_comp_time/ server_count))
-        if client_count > 0 and server_count > 0 and (
-                avg_client_comp_time / client_count + avg_server_comp_time / server_count) < opt_comp_time:
+        if client_count > 0 and server_count > 0 and (avg_client_comp_time / client_count + avg_server_comp_time / server_count) < opt_comp_time:
+            print('avg time: ', avg_client_comp_time/client_count + avg_server_comp_time / server_count)
             opt_splitting_point = client_end_idx
             opt_comp_time = avg_client_comp_time / client_count + avg_server_comp_time / server_count
 
