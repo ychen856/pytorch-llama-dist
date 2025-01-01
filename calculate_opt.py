@@ -183,7 +183,9 @@ class Calcualte_opt(object):
         opt_splitting_point = 0
         client_count = 0
         server_count = 0
-        for i in range(0, len(client_comp_time_temp)):
+        i = 0
+        #for i in range(0, len(client_comp_time_temp)):
+        while i < len(client_comp_time_temp):
             if client_end_idx == client_comp_time_temp[i][0]:
                 print('clientPPPPPP: ', client_comp_time_temp[i])
                 client_count = client_count + 1
@@ -199,7 +201,7 @@ class Calcualte_opt(object):
                     if server_comp_time_temp[j][0] == client_end_idx + 1:
                         print('serverVVVV: ', server_comp_time_temp[j])
                         server_count = server_count + 1
-                        avg_server_comp_time = avg_client_comp_time + server_comp_time_temp[j][1]
+                        avg_server_comp_time = avg_server_comp_time + server_comp_time_temp[j][1]
                 #print('client count: ', client_count)
                 #print('server count: ', server_count)
                 #print('+++ end idx: ', client_end_idx)
@@ -210,8 +212,11 @@ class Calcualte_opt(object):
                     opt_comp_time = avg_client_comp_time/client_count + avg_server_comp_time/server_count
 
                 client_end_idx = client_comp_time_temp[i][0]
-                avg_client_comp_time = client_comp_time_temp[i][2]
+                #avg_client_comp_time = client_comp_time_temp[i][2]
+                avg_client_comp_time = 0
+                avg_server_comp_time = 0
                 client_count = 1
+                i = i + 1
 
         for j in range(0, len(server_comp_time_temp)):
             print('is match??')
