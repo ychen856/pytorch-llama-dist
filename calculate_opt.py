@@ -191,8 +191,8 @@ class Calcualte_opt(object):
                 client_count = client_count + 1
                 avg_client_comp_time = avg_client_comp_time + client_comp_time_temp[i][2]
 
-
                 server_count = 0
+                i = i + 1
             else:
                 for j in range(0, len(server_comp_time_temp)):
                     print('is match??')
@@ -215,8 +215,7 @@ class Calcualte_opt(object):
                 #avg_client_comp_time = client_comp_time_temp[i][2]
                 avg_client_comp_time = 0
                 avg_server_comp_time = 0
-                client_count = 1
-                i = i + 1
+                client_count = 0
 
         for j in range(0, len(server_comp_time_temp)):
             print('is match??')
