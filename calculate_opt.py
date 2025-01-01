@@ -225,8 +225,10 @@ class Calcualte_opt(object):
                 print('serverVVVV: ', server_comp_time_temp[j])
                 server_count = server_count + 1
                 avg_server_comp_time = avg_client_comp_time + server_comp_time_temp[j][1]
-        # print('client count: ', client_count)
-        # print('server count: ', server_count)
+        print('client count: ', client_count)
+        print('server count: ', server_count)
+        print('avg client: ', avg_client_comp_time)
+        print('avg server: ', avg_server_comp_time)
         # print('+++ end idx: ', client_end_idx)
         # print('+++ time: ', (avg_client_comp_time/ client_count + avg_server_comp_time/ server_count))
         if client_count > 0 and server_count > 0 and (avg_client_comp_time / client_count + avg_server_comp_time / server_count) < opt_comp_time:
@@ -278,7 +280,7 @@ class Calcualte_opt(object):
         server_comp_time_temp = self._server_comp_statistics
 
         print('fffffffffffffffffff: ', gateway_comp_time_temp)
-        #print('zzzzzzzzzzzzzzzzzzz: ', server_comp_time_temp)
+        print('zzzzzzzzzzzzzzzzzzz: ', server_comp_time_temp)
 
         gateway_start_idx = gateway_comp_time_temp[0][0]
         avg_gateway_comp_time = 0
@@ -315,6 +317,7 @@ class Calcualte_opt(object):
                     #print('+++ end idx: ', client_end_idx)
                     #print('+++ time: ', (avg_client_comp_time/ client_count + avg_server_comp_time/ server_count))
                     if client_count > 0 and server_count > 0 and (avg_gateway_comp_time/client_count + avg_server_comp_time / server_count) < opt_comp_time:
+                        print('avg: ', avg_gateway_comp_time/client_count + avg_server_comp_time / server_count)
                         opt_gateway_layer_amount = gateway_end_idx - gateway_start_idx
                         opt_comp_time = avg_gateway_comp_time/client_count + avg_server_comp_time/server_count
 
