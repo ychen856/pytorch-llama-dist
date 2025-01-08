@@ -10,7 +10,7 @@ from eval_sep_hf import get_eval_data
 from model_hf import LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, LlamaForCausalLM_linear
 import yaml
 import torch.nn.functional as F
-
+from natsort import natsorted
 parser = argparse.ArgumentParser()
 parser.add_argument('--selection', type=int)
 parser.add_argument('--config', default='config_server.yaml')
@@ -87,55 +87,37 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
     return models
 
 
-def get_lm_head_idx(end_idx):
-
-    lm_heads = [1, 2, 4]
-    lm_head = 1
-    lm_head_idx = 0
-
-    for i in range(0, len(lm_heads)):
-        if lm_heads[i] > end_idx:
-            #lm_head = lm_heads[i - 1]
-            #lm_head_idx = lm_head_idx - 1
-            break
-        elif lm_heads[i] == end_idx:
-            lm_head = lm_heads[i]
-            lm_head_idx = i
-            break
-
-        lm_head = lm_heads[i]
-        lm_head_idx = i
-
-    lm_head_idx = lm_head_idx + 1
-
-
-    return lm_head, lm_head_idx
-
 
 def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
     config, kwargs = AutoConfig.from_pretrained(
         args.ckpt_dir_hf,
         return_unused_kwargs=True
     )
-    #print('config: ', config)
-    #print('??: ', end_idx)
+    print('config: ', config)
+    print('??: ', end_idx)
 
     lm_head, lm_head_idx = get_lm_head_idx(end_idx)
 
-    #print('lm_head: ', lm_head)
-    #print('lm_head_idx: ', lm_head_idx)
+    print('lm_head: ', lm_head)
+    print('lm_head_idx: ', lm_head_idx)
 
     checkpoint_list = []
     checkpoints = sorted(Path(checkpoints_dir).glob("lm_head.*.pth"))
+    checkpoints = natsorted(checkpoints)
+    #checkpoints = checkpoints.sort(key=natural_keys)
+    #checkpoints = sorted(Path(checkpoints_dir).glob("lm_head.*.pth"), key=lambda f: [int(n) for n in re.findall(r"\d+", f)])
+    print('zzzzzzzzzzz', checkpoints)
     assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
 
 
     for i in range(0, len(checkpoints)):
         if i == 0 or i == lm_head_idx:
             ckpt_path = checkpoints[i]
-            #print(f'Loading checkpoint "{ckpt_path}"')
+            print(f'Loading checkpoint "{ckpt_path}"')
 
             checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
+
+
 
     if device.type == 'cuda':
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
@@ -160,7 +142,7 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
 
 def get_lm_head_idx(end_idx):
 
-    lm_heads = [1, 2, 4]
+    lm_heads = [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
     lm_head = 1
     lm_head_idx = 0
 
@@ -234,6 +216,9 @@ if __name__ == '__main__':
         input_list.append(inputs)
 
     batch_size = 10
+    if args.selection == 0:
+        end_idx_map = [[0, 2, 0, 0, 0, 0, 5, 3, 3, 3], [5, 5, 0, 0, 0, 0, 0, 0, 0, 4], [6, 6, 3, 3, 6, 6, 6, 3, 3, 3], [6, 6, 3, 3, 3, 0, 6, 0, 3, 3], [6, 6, 3, 3, 3, 0, 6, 3, 3, 3], [6, 6, 2, 2, 2, 0, 6, 2, 2, 2], [5, 5, 2, 2, 2, 5, 5, 2, 2, 2], [5, 5, 2, 2, 2, 5, 5, 2, 2, 2], [5, 5, 2, 2, 2, 5, 5, 2, 2, 2], [5, 5, 2, 2, 2, 5, 5, 2, 2, 2], [5, 5, 2, 2, 2, 3, 3, 3, 3, 2], [3, 3, 3, 3, 3, 3, 4, 4, 4, 4], [4, 2, 4, 1, 1, 1, 4, 4, 1, 1], [1, 4, 4, 1, 1, 1, 4, 4, 1, 1], [1, 4, 4, 1, 1, 1, 4, 4, 1, 1], [1, 4, 4, 1, 1, 1, 2, 2, 1, 1], [1, 2, 2, 1, 1, 1, 2, 2, 1, 1], [1, 2, 2, 1, 1, 1, 2, 2, 1, 1], [1, 2, 2, 1, 1, 1, 2, 2, 1, 1], [1, 2, 2, 2, 2, 2, 2, 3, 3, 3], [3, 3, 4, 4, 4, 4, 3, 2, 2, 2], [3, 3, 2, 2, 2, 3, 3, 2, 2, 2], [3, 3, 2, 2, 2, 3, 4, 2, 2, 2], [4, 4, 2, 2, 2, 5, 5, 2, 2, 2], [5, 5, 2, 2, 2, 6, 6, 2, 2, 2], [6, 6, 2, 2, 2, 7, 7, 2, 2, 2], [7, 7, 2, 2, 2, 8, 3, 2, 2, 2], [2, 3, 3, 3, 3, 3, 4, 4, 4, 4], [4, 4, 3, 3, 3, 4, 4, 3, 3, 3], [4, 4, 3, 3, 3, 4, 4, 3, 3, 3]]
+        batch_size = 10
     # batch 10 - 2
     if args.selection == 1:
         end_idx_map =  [[5, 5, 5, 5, 6, 6, 7, 7, 8, 8], [9, 9, 9, 9, 10, 10, 5, 5, 5, 5], [5, 5, 5, 5, 5, 5, 5, 5, 3, 3], [4, 4, 4, 4, 5, 5, 6, -1, -1, -1], [3, 3, 3, 3, 3, 3, 3, 3, 3, 3], [3, 3, 3, 3, 3, 3, 3, 3, 3, 3], [3, 3, 3, 3, 3, 3, 1, 1, 2, 2], [2, 2, 2, 3, 3, 4, 4, 5, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 2, 2, 3, 3, 4, 4], [4, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 2], [2, 2, 2, 3, 3, 4, 4, 5, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 2, 2], [2, 2, 3, 3, 4, 4, 5, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 2, 2, 3], [3, 3, 3, 4, 4, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
