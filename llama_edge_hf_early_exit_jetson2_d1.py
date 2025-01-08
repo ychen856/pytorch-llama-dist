@@ -392,6 +392,8 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
             repeated = repeated + 1
 
+        cycle_count = 0
+
         is_early_exit = False
         count = count + 1
         #print('========================================')
@@ -474,6 +476,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             cycle_count = cycle_count + 1
             input_count = input_count + 1
 
+            print('cycle count: ', cycle_count)
+            print('input count: ', input_count)
+
             outgoing_queue.put([end_idx + 1, out, ids, mask, idx, end_time - start_time])
             print('outgoing queue PUT!')
             calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
@@ -488,11 +493,11 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 calculate_opt.max_end_idx = end_idx
                 end_idx = end_idx + 1
 
-            if cycle_count == (statistics_period - 6) and input_count > 4 and cycle_count % 2 == 0:
+            if cycle_count == (statistics_period - 6) and input_count >= 12 and cycle_count % 2 == 0:
                 #print('testing lower value (i>30)')
                 end_idx = max(1, end_idx - 1)
 
-            if cycle_count > (statistics_period - 6) and input_count >= 4 and end_idx < max_layers and cycle_count % 2 == 0:
+            if cycle_count > (statistics_period - 6) and input_count >= 12 and end_idx < max_layers and cycle_count % 2 == 0:
                 #print('testing higher value (i>30): ')
                 calculate_opt.max_end_idx = end_idx
                 end_idx = end_idx + 1
