@@ -392,8 +392,6 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
             repeated = repeated + 1
 
-        cycle_count = 0
-
         is_early_exit = False
         count = count + 1
         #print('========================================')
@@ -517,6 +515,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             lm_head, _ = get_lm_head_idx(end_idx)
             if not lm_head == head_idx:
                 head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx, device, cache_dir="llm_weights")
+
             cycle_count = 0
 
         #if end_idx_buff < end_idx and end_idx_buff + 3 <= max_layers:  #add buffer
