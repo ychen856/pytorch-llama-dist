@@ -9,12 +9,13 @@ import time
 from pathlib import Path
 import argparse
 import random
-import http_sender
+import http_sender_gateway
 from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
 
 from multiprocessing import set_start_method
 import sys
+from natsort import natsorted
 import os
 from data import get_loaders
 
@@ -126,7 +127,13 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
         start_idx_buff = max(0, start_idx - 1)
         checkpoints = checkpoints[start_idx_buff:max_layers]
         checkpoint_idx = start_idx_buff
+
+        print('start idxzzzz: ', start_idx_buff)
+        for layer in models:
+            print('layer: ', layer)
+
         for checkpoint in checkpoints:
+            print('checkpoint idx: ', checkpoint_idx)
             if checkpoint_idx > end_idx_buff:
                 ckpt_path = checkpoint
                 checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
@@ -345,26 +352,27 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
         args.ckpt_dir_hf,
         return_unused_kwargs=True
     )
-    #print('config: ', config)
-    #print('??: ', end_idx)
+    print('config: ', config)
+    print('??: ', end_idx)
 
     lm_head, lm_head_idx = get_lm_head_idx(end_idx)
 
+    print('lm_head: ', lm_head)
+    print('lm_head_idx: ', lm_head_idx)
 
     checkpoint_list = []
     checkpoints = sorted(Path(checkpoints_dir).glob("lm_head.*.pth"))
+    checkpoints = natsorted(checkpoints)
+    #checkpoints = checkpoints.sort(key=natural_keys)
+    #checkpoints = sorted(Path(checkpoints_dir).glob("lm_head.*.pth"), key=lambda f: [int(n) for n in re.findall(r"\d+", f)])
+    print('zzzzzzzzzzz', checkpoints)
     assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
 
-    '''for checkpoint in checkpoints:
-        ckpt_path = checkpoint
-        print(f'Loading checkpoint "{ckpt_path}"')
-
-        checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))'''
 
     for i in range(0, len(checkpoints)):
         if i == 0 or i == lm_head_idx:
             ckpt_path = checkpoints[i]
-            #print(f'Loading checkpoint "{ckpt_path}"')
+            print(f'Loading checkpoint "{ckpt_path}"')
 
             checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
 
@@ -388,13 +396,12 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
             lm_models[i].load_state_dict(checkpoint_list[i], strict=True)
             lm_models[i].to(device)
 
-    gc.collect()
     return lm_head, lm_models
 
 
 def get_server_statistic_from_q():
-    while not http_sender.returning_queue.empty():
-        [start_idx, server_comp_time, rtt] = http_sender.returning_queue.get()
+    while not http_sender_gateway.returning_queue.empty():
+        [start_idx, server_comp_time, rtt] = http_sender_gateway.returning_queue.get()
         calculate_opt.server_comp_statistics = (start_idx, server_comp_time)
         calculate_opt.comm_statistics = rtt - server_comp_time
         print('server_side: ', [start_idx, server_comp_time, rtt])
@@ -427,7 +434,7 @@ def task1_data_sending(args):
                 idx = incoming_queue.qsize()
                 timestamp_manager.start_times = (idx, start_time)
 
-                outgoing_queue_forward.put([0, incoming_queue.get(), None, None, idx, 0])
+                outgoing_queue_forward.put([0, incoming_queue.get(), None, None, idx, 0, 0])
                 end_time = time.time()
                 #print('client computation time: ', end_time - start_time)
                 # calculate_opt.client_comp_statistics = (-1, end_idx_buff, end_time - start_time)
@@ -439,7 +446,7 @@ def task1_data_sending(args):
         data = outgoing_queue_forward.get()
         #print('data: ', data)
         calculate_opt.outgoint_count = calculate_opt.outgoint_count + 1
-        http_sender.send_data(args.server_ip, args.server_port, data, calculate_opt, timestamp_manager)
+        http_sender_gateway.send_data(args.server_ip, args.server_port, data, calculate_opt, timestamp_manager)
 
 def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end_idx_buff, max_layers, max_layer_amount, head_idx, tokenizer, device, is_dummy=True):
     pid = os.getpid()
@@ -449,7 +456,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
     print('T2 computaton...')
     cycle_count = 0
     input_count = 0
-    layer_amount = end_idx - start_idx
+    layer_amount = 2
     start_idx_buff = start_idx
     opt_layer_amount = 2
     statistics_period = calculate_opt.statistic_period
@@ -483,6 +490,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
                 head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx, device, cache_dir="llm_weights")
             start_idx_buff = max(0, start_idx - 1)
             end_idx = start_idx + opt_layer_amount
+            layer_amount = opt_layer_amount
             #http_receiver.set_outgoing_queue([-1, None, None])
             continue
 
@@ -495,8 +503,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
 
         # Forward pass through the model
         if start_idx == 0 or start_idx > max_layers or start_idx < start_idx_buff:
+            print('direct sent!')
             #out, ids, mask = models[0](out)
-            outgoing_queue_forward.put([start_idx, out, ids, mask, idx, 0]) # forward the original input to the server
+            outgoing_queue_forward.put([start_idx, out, ids, mask, idx, 0, start_idx + 1]) # forward the original input to the server
             continue
 
         start_comp_time = time.time()
@@ -513,7 +522,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
                     if k == head_idx:
                         try:
                             is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, head_idx)
-                            print('is early: ', is_early_exit)
+                            #print('is early: ', is_early_exit)
                         except Exception as e:
                             print('early oom!')
                             is_oom = True
@@ -533,6 +542,8 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
 
                     #print('updated end idx: ', end_idx)
                     break
+
+            print('is early: ', is_early_exit)
 
         if not is_early_exit and end_idx >= 33:
             start_time = time.time()
@@ -569,16 +580,16 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
 
 
         if not is_early_exit and end_idx < 34 and start_idx != 0:
-            cycle_count = cycle_count + 1
-            input_count = input_count + 1
-
-            outgoing_queue_forward.put([end_idx + 1, out, ids, mask, idx, total_comp_time])
+            outgoing_queue_forward.put([end_idx + 1, out, ids, mask, idx, total_comp_time, start_idx])
             #print('outgoing queue PUT!')
             #print('insert gateway statistics: ', [start_idx, end_idx, end_idx - start_idx, end_idx_buff, total_comp_time])
             calculate_opt.gateway_comp_statistics = (start_idx, end_idx, end_idx - start_idx, end_idx_buff, total_comp_time)
 
             #existed_statistic = find_row(calculate_opt.gateway_comp_statistics, 0, start_idx)
             existed_opt = find_row(calculate_opt.gateway_opt_table, 0, start_idx)
+            if len(existed_opt) > 0:
+                input_count = input_count + 1
+                cycle_count = cycle_count + 1
 
 
 
@@ -589,22 +600,25 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
 
             if len(existed_opt) == 0:
                 end_idx = start_idx + 2
+            else:
+                if (input_count + 1) % 2 == 0 and input_count < 20 and end_idx < max_layers and statistics_period <= 10:
+                #if (input_count + 1) % 3 == 0 and input_count < 20 and end_idx < max_layers and statistics_period <= 20:
+                    #print('testing higher value(i<30)')
+                    calculate_opt.max_layer_amount = layer_amount
+                    layer_amount = layer_amount + 1
 
-            if (input_count + 1) % 2 == 0 and input_count < 20 and end_idx < max_layers and statistics_period <= 10:
-                #print('testing higher value(i<30)')
-                calculate_opt.max_layer_amount = layer_amount
-                layer_amount = layer_amount + 1
+                if cycle_count == (statistics_period - 8) and input_count > 20 and cycle_count % 2 == 0:
+                #if cycle_count == (statistics_period - 12) and input_count > 20 and cycle_count % 3 == 0:
+                    #print('testing lower value (i>30)')
+                    layer_amount = max(1, layer_amount - 2)
 
-            if cycle_count == (statistics_period - 8) and input_count > 20 and cycle_count % 2 == 0:
-                #print('testing lower value (i>30)')
-                layer_amount = max(1, layer_amount - 2)
+                if cycle_count > (statistics_period - 8) and input_count >= 20 and end_idx < max_layers and cycle_count % 2 == 0:
+                #if cycle_count > (statistics_period - 12) and input_count >= 20 and end_idx < max_layers and cycle_count % 3 == 0:
+                    #print('testing higher value (i>30): ')
+                    calculate_opt.max_layer_amount = layer_amount
+                    layer_amount = layer_amount + 1
 
-            if cycle_count > (statistics_period - 8) and input_count >= 20 and end_idx < max_layers and cycle_count % 2 == 0:
-                #print('testing higher value (i>30): ')
-                calculate_opt.max_layer_amount = layer_amount
-                layer_amount = layer_amount + 1
-
-        end_idx = start_idx + layer_amount
+                end_idx = start_idx + layer_amount
 
         #if (input_count) % 10 == 0:
         if len(calculate_opt.server_comp_statistics) >= statistics_period:
@@ -612,6 +626,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             #statistics_period = statistics_period + 5
             end_idx, end_idx_buff, statistics_period = calculate_opt.calclate_opt_gateway(start_idx)
             opt_layer_amount = end_idx - start_idx
+            layer_amount = opt_layer_amount
             end_idx_buff = min(max_layers, end_idx_buff)
             #while new_buff_idx < end_idx_buff:
             #    models, end_idx_buff = layer_reallocation(2, start_idx, end_idx_buff, max_layers, models)
@@ -823,8 +838,8 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
 
 def task3_summerizing(models, test_loader, bs, device):
     while 1:
-        while not http_sender.returning_queue.empty():
-            [start_idx, server_comp_time, rtt] = http_sender.returning_queue.get()
+        while not http_sender_gateway.returning_queue.empty():
+            [start_idx, server_comp_time, rtt] = http_sender_gateway.returning_queue.get()
             calculate_opt.server_comp_statistics = (start_idx, server_comp_time)
             calculate_opt.comm_statistics = rtt - server_comp_time
             print('server_side: ',  [start_idx, server_comp_time, rtt])
@@ -841,7 +856,7 @@ if __name__ == '__main__':
     torch.manual_seed(0)
 
 
-
+    calculate_opt.statistic_period = 20
     end_idx_buff = args.end_idx_buff
     early_idx_buff = args.early_idx_buff
     max_layer_amount = args.max_layer_amount

@@ -61,26 +61,31 @@ class S(BaseHTTPRequestHandler):
         self._set_headers()
 
     def do_POST(self):
-        print('receive POST:')
+        #print('receive POST:')
         start_time = time.time()
         content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length)
         self._set_headers()
-        print('length: ', content_length)
+        #print('length: ', content_length)
         #print(post_data)
 
         decrypt_data = pickle.loads(post_data)
         #print(decrypt_data)
-        #print('http receiving: ', decrypt_data)
+        print('http receiving: ', decrypt_data)
         incoming_queue.put(decrypt_data)
         #incoming_queue.append(decrypt_data)
         end_time = time.time()
-        print('server receiving time: ', end_time - start_time)
+        #print('server receiving time: ', end_time - start_time)
         # Process the received data here:
+        #if decrypt_data[1] is not None:
+
         self.send_response(200)
         self.end_headers()
 
-        newx = pickle.dumps([get_out_queue_data(), 'Data received successfully!'])
+        output_message = outgoing_queue.get()
+        print('http returning: ', output_message)
+
+        newx = pickle.dumps([output_message, 'Data received successfully!'])
         self.wfile.write(newx)
 
         #self.return_message()
@@ -104,7 +109,7 @@ class S(BaseHTTPRequestHandler):
         self.end_headers()
         #print('outgoing queue:')
         output_message = outgoing_queue.get()
-        #print('http returning: ', output_message)
+        print('http returning: ', output_message)
         #newx = pickle.dumps(output_message)
         newx = pickle.dumps('Data received successfully!')
         #print('sent data: ', newx)
