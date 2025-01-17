@@ -69,6 +69,8 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
 
     #start_time = time.time()
 
+    print('server_ip: ', server_ip)
+    print('server_port: ', server_port)
     conn = http.client.HTTPConnection(server_ip, server_port)
     conn.connect()
 
