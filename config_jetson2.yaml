@@ -63,4 +63,4 @@ communication:
     #server_port: 8000
     #gateway_ip: 10.147.17.35
     gateway_ip: 10.7.48.14
-    gateway_port: 5080
+    gateway_port: 8000
