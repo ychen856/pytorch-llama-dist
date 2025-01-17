@@ -37,6 +37,19 @@ model_config:
   use_cache: true
   vocab_size: 32000
 
+edge_layer_setting:
+  #max_layers: 10
+  #start_idx: 0
+  #end_idx_buff: 8
+  #end_idx: 5
+  max_layer_amount: 6
+  max_layers: 6
+  start_idx: 0
+  early_idx_buff: 1
+  end_idx_buff: 6
+  end_idx: 5
+  head_idx: 4
+
 llama_2_7b:
   ckpt_dir: /home/ubuntu/llama-dist/llama-2-7b-sep/
   tokenizer_path: /home/ubuntu/llama-dist/llama-2-7b-sep/tokenizer.model
