@@ -124,7 +124,7 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
         checkpoints = sorted(Path(args.ckpt_dir_hf_sep).glob("consolidated.*.pth"))
         assert len(checkpoints) > 0, f"no checkpoint files found in {args.ckpt_dir_hf_sep}"
 
-        start_idx_buff = max(0, start_idx - 1)
+        start_idx_buff = max(0, start_idx - 3)
         checkpoints = checkpoints[start_idx_buff:max_layers]
         checkpoint_idx = start_idx_buff
 
@@ -485,7 +485,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
         if out is None:
             http_receiver.set_outgoing_queue([-1, None, None])
             max_layers = start_idx - 3 + max_layer_amount
-            models, end_idx_buff = layer_reallocation(3, start_idx - 3, end_idx_buff, max_layers, models)
+            models, end_idx_buff = layer_reallocation(3, start_idx, end_idx_buff, max_layers, models)
             lm_head, _ = get_lm_head_idx(end_idx)
             if not lm_head == head_idx:
                 head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx, device, cache_dir="llm_weights")
