@@ -168,10 +168,10 @@ class Calcualte_opt(object):
         client_comp_time_temp = sorted(self._client_comp_statistics[:len(self._server_comp_statistics)], key=lambda x: x[0])
         server_comp_time_temp = self._server_comp_statistics
 
-        for client in client_comp_time_temp:
+        '''for client in client_comp_time_temp:
             print('CLIENT SIDE!!!: ', client)
         for server in server_comp_time_temp:
-            print('SERVER SIDE!!!: ', server)
+            print('SERVER SIDE!!!: ', server)'''
 
         #print('fffffffffffffffffff: ', client_comp_time_temp)
         #print('zzzzzzzzzzzzzzzzzzz: ', server_comp_time_temp)
@@ -187,7 +187,7 @@ class Calcualte_opt(object):
         #for i in range(0, len(client_comp_time_temp)):
         while i < len(client_comp_time_temp):
             if client_end_idx == client_comp_time_temp[i][0]:
-                print('clientPPPPPP: ', client_comp_time_temp[i])
+                #print('clientPPPPPP: ', client_comp_time_temp[i])
                 client_count = client_count + 1
                 avg_client_comp_time = avg_client_comp_time + client_comp_time_temp[i][2]
 
@@ -195,11 +195,11 @@ class Calcualte_opt(object):
                 i = i + 1
             else:
                 for j in range(0, len(server_comp_time_temp)):
-                    print('is match??')
-                    print('client data + 1: ', client_end_idx + 1)
-                    print('server data: ', server_comp_time_temp[j])
+                    #print('is match??')
+                    #print('client data + 1: ', client_end_idx + 1)
+                    #print('server data: ', server_comp_time_temp[j])
                     if server_comp_time_temp[j][0] == client_end_idx + 1:
-                        print('serverVVVV: ', server_comp_time_temp[j])
+                        #print('serverVVVV: ', server_comp_time_temp[j])
                         server_count = server_count + 1
                         avg_server_comp_time = avg_server_comp_time + server_comp_time_temp[j][1]
                 #print('client count: ', client_count)
@@ -218,11 +218,11 @@ class Calcualte_opt(object):
                 client_count = 0
 
         for j in range(0, len(server_comp_time_temp)):
-            print('is match??')
-            print('client data + 1: ', client_end_idx + 1)
-            print('server data: ', server_comp_time_temp[j])
+            #print('is match??')
+            #print('client data + 1: ', client_end_idx + 1)
+            #print('server data: ', server_comp_time_temp[j])
             if server_comp_time_temp[j][0] == client_end_idx + 1:
-                print('serverVVVV: ', server_comp_time_temp[j])
+                #print('serverVVVV: ', server_comp_time_temp[j])
                 server_count = server_count + 1
                 avg_server_comp_time = avg_server_comp_time + server_comp_time_temp[j][1]
         print('client count: ', client_count)
@@ -279,8 +279,8 @@ class Calcualte_opt(object):
         gateway_comp_time_temp = sorted(self._gateway_comp_statistics[:len(self._server_comp_statistics)], key=lambda x: x[0])
         server_comp_time_temp = self._server_comp_statistics
 
-        print('fffffffffffffffffff: ', gateway_comp_time_temp)
-        print('zzzzzzzzzzzzzzzzzzz: ', server_comp_time_temp)
+        #print('fffffffffffffffffff: ', gateway_comp_time_temp)
+        #print('zzzzzzzzzzzzzzzzzzz: ', server_comp_time_temp)
 
         gateway_start_idx = gateway_comp_time_temp[0][0]
         avg_gateway_comp_time = 0
@@ -294,9 +294,9 @@ class Calcualte_opt(object):
         i = 0
         while i < len(gateway_comp_time_temp):
             gateway_start_idx = gateway_comp_time_temp[i][0]
-            print('gateway_start_idx: ', gateway_start_idx)
+            #print('gateway_start_idx: ', gateway_start_idx)
             gateway_sub_list = find_row(gateway_comp_time_temp, 0, gateway_start_idx)
-            print('gateway sub list: ', gateway_sub_list)
+            #print('gateway sub list: ', gateway_sub_list)
             gateway_sub_list_temp = sorted(gateway_sub_list, key=lambda x: x[1])
             gateway_end_idx = gateway_sub_list_temp[0][1]
             for j in range(0, len(gateway_sub_list_temp)):
@@ -333,12 +333,12 @@ class Calcualte_opt(object):
                         min_gateway_comp_time = gateway_sub_list_temp[n][4]
                         opt_buff_idx = gateway_sub_list_temp[n][3]
 
-            print('opt table: ', self._gateway_opt_table)
+            #print('opt table: ', self._gateway_opt_table)
             list_idx = 0
             for opt_list in self._gateway_opt_table:
-                print('m: ', list_idx)
+                #print('m: ', list_idx)
                 if self._gateway_opt_table[list_idx][0] == gateway_start_idx and self._gateway_opt_table[list_idx][1] == gateway_end_idx:
-                    print('pop')
+                    #print('pop')
                     self._gateway_opt_table.pop(list_idx)
                     list_idx = list_idx - 1
 
@@ -351,7 +351,7 @@ class Calcualte_opt(object):
             print('gateway_start_idx: ', gateway_start_idx)'''
 
             i = i + len(gateway_sub_list)
-            print('next idx: ', i)
+            #print('next idx: ', i)
 
             time.sleep(5)
 
@@ -362,8 +362,8 @@ class Calcualte_opt(object):
         #self._end_idx = opt_splitting_point
         #self._end_idx_buff = opt_buff_idx
 
-        print('opt table: ', self._gateway_opt_table)
-        print('start idx: ', start_idx)
+        #print('opt table: ', self._gateway_opt_table)
+        #print('start idx: ', start_idx)
         opt_row = find_row(self._gateway_opt_table, 0, start_idx)
 
         # the opt data haven't been discovered
@@ -392,5 +392,5 @@ class Calcualte_opt(object):
         #[gateway_start_idx, gateway_end_idx, opt_gateway_layer_amount, opt_buff_idx, opt_comp_time] = find_row(self._gateway_opt_table, start_idx)
 
         #return start_idx + opt_gateway_layer_amount, opt_buff_idx, self._statisitc_period
-        print('FFFFFFFFFFFFFFFFF: ', opt_row)
+        #print('FFFFFFFFFFFFFFFFF: ', opt_row)
         return start_idx + opt_row[0][2], opt_row[0][3], self._statisitc_period
