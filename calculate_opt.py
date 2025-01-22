@@ -325,26 +325,26 @@ class Calcualte_opt(object):
                     avg_gateway_comp_time = gateway_comp_time_temp[j][3]
                     client_count = 1
 
-            min_gateway_comp_time = 10000
-            opt_buff_idx = 0
-            for n in range(0, len(gateway_sub_list_temp)):
-                if gateway_end_idx == gateway_sub_list_temp[n][1]:
-                    if gateway_sub_list_temp[n][4] < min_gateway_comp_time:
-                        min_gateway_comp_time = gateway_sub_list_temp[n][4]
-                        opt_buff_idx = gateway_sub_list_temp[n][3]
+                min_gateway_comp_time = 10000
+                opt_buff_idx = 0
+                for n in range(0, len(gateway_sub_list_temp)):
+                    if gateway_end_idx == gateway_sub_list_temp[n][1]:
+                        if gateway_sub_list_temp[n][4] < min_gateway_comp_time:
+                            min_gateway_comp_time = gateway_sub_list_temp[n][4]
+                            opt_buff_idx = gateway_sub_list_temp[n][3]
 
-            #rint('opt table: ', self._gateway_opt_table)
-            list_idx = 0
-            for opt_list in self._gateway_opt_table:
-                #print('m: ', list_idx)
-                if self._gateway_opt_table[list_idx][0] == gateway_start_idx and self._gateway_opt_table[list_idx][1] == gateway_end_idx:
-                    #print('pop')
-                    self._gateway_opt_table.pop(list_idx)
-                    list_idx = list_idx - 1
+                #rint('opt table: ', self._gateway_opt_table)
+                list_idx = 0
+                for opt_list in self._gateway_opt_table:
+                    #print('m: ', list_idx)
+                    if self._gateway_opt_table[list_idx][0] == gateway_start_idx and self._gateway_opt_table[list_idx][1] == gateway_end_idx:
+                        #print('pop')
+                        self._gateway_opt_table.pop(list_idx)
+                        list_idx = list_idx - 1
 
-                list_idx = list_idx + 1
+                    list_idx = list_idx + 1
 
-            self.gateway_opt_table = [gateway_start_idx, gateway_end_idx, opt_gateway_layer_amount, opt_buff_idx, opt_comp_time]
+                self.gateway_opt_table = [gateway_start_idx, gateway_end_idx, opt_gateway_layer_amount, opt_buff_idx, opt_comp_time]
 
             '''i = i + 1
             gateway_start_idx = gateway_comp_time_temp[i + 1][0]
