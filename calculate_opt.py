@@ -294,9 +294,9 @@ class Calcualte_opt(object):
         i = 0
         while i < len(gateway_comp_time_temp):
             gateway_start_idx = gateway_comp_time_temp[i][0]
-            #print('gateway_start_idx: ', gateway_start_idx)
+            print('gateway_start_idx: ', gateway_start_idx)
             gateway_sub_list = find_row(gateway_comp_time_temp, 0, gateway_start_idx)
-            #print('gateway sub list: ', gateway_sub_list)
+            print('gateway sub list: ', gateway_sub_list)
             gateway_sub_list_temp = sorted(gateway_sub_list, key=lambda x: x[1])
             gateway_end_idx = gateway_sub_list_temp[0][1]
             for j in range(0, len(gateway_sub_list_temp)):
@@ -309,11 +309,11 @@ class Calcualte_opt(object):
                 else:
                     for k in range(0, len(server_comp_time_temp)):
                         if server_comp_time_temp[k][0] == gateway_end_idx + 1:
-                            #print('serverVVVV: ', server_comp_time_temp[j])
+                            print('serverVVVV: ', server_comp_time_temp[j])
                             server_count = server_count + 1
                             avg_server_comp_time = avg_server_comp_time + server_comp_time_temp[k][1]
-                    #print('client count: ', client_count)
-                    #print('server count: ', server_count)
+                    print('client count: ', client_count)
+                    print('server count: ', server_count)
                     #print('+++ end idx: ', client_end_idx)
                     #print('+++ time: ', (avg_client_comp_time/ client_count + avg_server_comp_time/ server_count))
                     if client_count > 0 and server_count > 0 and (avg_gateway_comp_time/client_count + avg_server_comp_time / server_count) < opt_comp_time:
