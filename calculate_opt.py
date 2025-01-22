@@ -333,7 +333,7 @@ class Calcualte_opt(object):
                         min_gateway_comp_time = gateway_sub_list_temp[n][4]
                         opt_buff_idx = gateway_sub_list_temp[n][3]
 
-            #print('opt table: ', self._gateway_opt_table)
+            #rint('opt table: ', self._gateway_opt_table)
             list_idx = 0
             for opt_list in self._gateway_opt_table:
                 #print('m: ', list_idx)
@@ -362,7 +362,7 @@ class Calcualte_opt(object):
         #self._end_idx = opt_splitting_point
         #self._end_idx_buff = opt_buff_idx
 
-        #print('opt table: ', self._gateway_opt_table)
+        print('opt table: ', self._gateway_opt_table)
         #print('start idx: ', start_idx)
         opt_row = find_row(self._gateway_opt_table, 0, start_idx)
 
