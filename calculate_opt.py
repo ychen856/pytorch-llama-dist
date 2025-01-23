@@ -274,16 +274,17 @@ class Calcualte_opt(object):
 
     def calclate_opt_gateway(self, start_idx):
         print('do opt')
-        #print('FFFFFFFFFFFFFFFFFFFF: ', self._client_comp_statistics)
-        #print('ZZZZZZZZZZZZZZZZZZZZ: ', self._server_comp_statistics)
+        print('FFFFFFFFFFFFFFFFFFFF: ', self._gateway_comp_statistics)
+        print('ZZZZZZZZZZZZZZZZZZZZ: ', self._server_comp_statistics)
         gateway_comp_time_temp = sorted(self._gateway_comp_statistics[:len(self._server_comp_statistics)], key=lambda x: x[0])
         server_comp_time_temp = self._server_comp_statistics
 
         print('# gateway data: ', len(gateway_comp_time_temp))
         print('# server data: ', len(server_comp_time_temp))
 
-        #print('fffffffffffffffffff: ', gateway_comp_time_temp)
-        #print('zzzzzzzzzzzzzzzzzzz: ', server_comp_time_temp)
+
+        print('fffffffffffffffffff: ', gateway_comp_time_temp)
+        print('zzzzzzzzzzzzzzzzzzz: ', server_comp_time_temp)
 
         gateway_start_idx = gateway_comp_time_temp[0][0]
         avg_gateway_comp_time = 0
