@@ -354,8 +354,8 @@ class Calcualte_opt(object):
             gateway_start_idx = gateway_comp_time_temp[i + 1][0]
             print('gateway_start_idx: ', gateway_start_idx)'''
 
-            i = len(gateway_sub_list)
-            #i = i + len(gateway_sub_list)
+            #i = len(gateway_sub_list)
+            i = i + len(gateway_sub_list)
             print('next idx: ', i)
 
             time.sleep(5)
