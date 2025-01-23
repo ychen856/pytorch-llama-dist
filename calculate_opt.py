@@ -304,16 +304,22 @@ class Calcualte_opt(object):
             gateway_sub_list_temp = sorted(gateway_sub_list, key=lambda x: x[1])
             gateway_end_idx = gateway_sub_list_temp[i][1]
             for j in range(0, len(gateway_sub_list_temp)):
-                if gateway_end_idx == gateway_comp_time_temp[j][1]:
-                    print('clientPPPPPP: ', gateway_comp_time_temp[i])
+                if gateway_end_idx == gateway_sub_list_temp[j][1]:
+                    print('clientPPPPPP: ', gateway_sub_list_temp[j])
                     client_count = client_count + 1
-                    avg_gateway_comp_time = avg_gateway_comp_time + gateway_comp_time_temp[i][3]
+                    avg_gateway_comp_time = avg_gateway_comp_time + gateway_sub_list_temp[i][3]
 
                     server_count = 0
+                    '''if gateway_end_idx == gateway_comp_time_temp[j][1]:
+                        print('clientPPPPPP: ', gateway_comp_time_temp[j])
+                        client_count = client_count + 1
+                        avg_gateway_comp_time = avg_gateway_comp_time + gateway_comp_time_temp[i][3]
+
+                        server_count = 0'''
                 else:
                     for k in range(0, len(server_comp_time_temp)):
                         if server_comp_time_temp[k][0] == gateway_end_idx + 1:
-                            print('serverVVVV: ', server_comp_time_temp[j])
+                            print('serverVVVV: ', server_comp_time_temp[k])
                             server_count = server_count + 1
                             avg_server_comp_time = avg_server_comp_time + server_comp_time_temp[k][1]
                     print('client count: ', client_count)
