@@ -369,6 +369,9 @@ class Calcualte_opt(object):
 
         self._gateway_comp_statistics = self._gateway_comp_statistics[len(gateway_comp_time_temp) :]
         self._server_comp_statistics = self._server_comp_statistics[len(server_comp_time_temp) :]
+
+        print('left over gateway: ', self._gateway_comp_statistics)
+        print('left over server: ', self._server_comp_statistics)
         #self.comm_statistics = [max(len(self._server_comp_statistics), 10) :]
 
         #self._end_idx = opt_splitting_point
