@@ -307,7 +307,7 @@ class Calcualte_opt(object):
                 if gateway_end_idx == gateway_sub_list_temp[j][1]:
                     print('clientPPPPPP: ', gateway_sub_list_temp[j])
                     client_count = client_count + 1
-                    avg_gateway_comp_time = avg_gateway_comp_time + gateway_sub_list_temp[i][3]
+                    avg_gateway_comp_time = avg_gateway_comp_time + gateway_sub_list_temp[j][3]
 
                     server_count = 0
                     '''if gateway_end_idx == gateway_comp_time_temp[j][1]:
