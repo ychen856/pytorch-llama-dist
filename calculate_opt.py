@@ -302,6 +302,7 @@ class Calcualte_opt(object):
             gateway_sub_list = find_row(gateway_comp_time_temp, 0, gateway_start_idx)
             print('gateway sub list: ', gateway_sub_list)
             gateway_sub_list_temp = sorted(gateway_sub_list, key=lambda x: x[1])
+            print('gateway sub list temp: ', gateway_sub_list_temp)
             gateway_end_idx = gateway_sub_list_temp[i][1]
             for j in range(0, len(gateway_sub_list_temp)):
                 if gateway_end_idx == gateway_sub_list_temp[j][1]:
