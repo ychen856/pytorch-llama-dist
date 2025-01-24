@@ -253,7 +253,7 @@ class Calcualte_opt(object):
 
         #print('last opt: ', self._last_opt_calc_time)
         #print('opt: ', opt_comp_time)
-        if self._last_opt_calc_time * 1.5 < opt_comp_time:
+        if self._last_opt_calc_time * 1.3 < opt_comp_time:
             self._statisitc_period = max(10, self._statisitc_period - 4)
         elif self._last_opt_calc_time * 1.3 > opt_comp_time:
             self._statisitc_period = min(300, self._statisitc_period + 8)
@@ -366,7 +366,7 @@ class Calcualte_opt(object):
             i = i + len(gateway_sub_list)
             print('next idx: ', i)
 
-            time.sleep(5)
+            #time.sleep(5)
 
         self._gateway_comp_statistics = self._gateway_comp_statistics[len(gateway_comp_time_temp) :]
         self._server_comp_statistics = self._server_comp_statistics[len(server_comp_time_temp) :]
@@ -389,7 +389,7 @@ class Calcualte_opt(object):
 
             #print('last opt: ', self._last_opt_calc_time)
         #print('opt: ', opt_comp_time)
-        if self._last_opt_calc_time * 1.5 < opt_comp_time:
+        if self._last_opt_calc_time * 1.3 < opt_comp_time:
             self._statisitc_period = max(10, self._statisitc_period - 4)
         elif self._last_opt_calc_time * 1.3 > opt_comp_time:
             self._statisitc_period = min(300, self._statisitc_period + 8)
