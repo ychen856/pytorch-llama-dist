@@ -62,7 +62,8 @@ communication:
     #server_ip: 104.171.203.49
     #server_port: 8000
     #gateway_ip: 10.147.17.35
-    gateway_ip: 10.7.48.14
+    #gateway_ip: 10.7.48.14
+    gateway_ip: 192.168.0.136
     gateway_port: 8000
     #gateway_ip: test-service.nrp-nautilus.io
     #gateway_port: 80
