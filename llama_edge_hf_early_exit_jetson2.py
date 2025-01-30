@@ -310,7 +310,7 @@ def task1_data_sending(args):
         data = outgoing_queue.get()
         calculate_opt.outgoint_count = calculate_opt.outgoint_count + 1
         #http_sender.send_data(args.server_ip, args.server_port, data, calculate_opt, timestamp_manager)
-        http_sender.send_data(args.gateway_ip, args.gateway_port, data, calculate_opt, timestamp_manager)
+        http_sender.send_data(args.server_ip, args.server_port, data, calculate_opt, timestamp_manager)
 
 
 def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_idx, max_layers, device):
