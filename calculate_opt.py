@@ -29,8 +29,10 @@ class Calcualte_opt(object):
         self._outgoint_count = 0
         self._incoming_count = 0
         self._steady_state = False
-
         self._gateway_opt_table = []    #[[gateway_start_idx, gateway_end_idx, opt_gateway_layer_amount, opt_buff_idx, opt_comp_time], [], ...]
+
+        self._hist_client_opt_table = [None, None, math.inf] # [end_idx, buff_idx, time]
+        self._hist_gateway_opt_table = [] #[gateway_start_idx, gateway_end_idx, time]
 
     @property
     def start_idx(self):
@@ -96,6 +98,14 @@ class Calcualte_opt(object):
     def gateway_opt_table(self):
         return self._gateway_opt_table
 
+    @property
+    def hist_client_opt_table(self):
+        return self._hist_client_opt_table
+
+    @property
+    def hist_gateway_opt_table(self):
+        return self._hist_gateway_opt_table
+
     @client_comp_statistics.setter
     def client_comp_statistics(self, value): #[end_idx, buff_end_idx, comp_time]
         end_idx, buff_end_idx, comp_time = value
@@ -160,6 +170,10 @@ class Calcualte_opt(object):
         start_idx, end_idx, layer_amount, buff_idx, comp_time = value
         self._gateway_opt_table.append([start_idx, end_idx, layer_amount, buff_idx, comp_time])
 
+    @hist_client_opt_table.setter
+    def hist_client_opt_table(self, value):
+        end_idx, buff_idx, comp_time = value
+        self._hist_client_opt_table = ([end_idx, buff_idx, comp_time])
 
     def calclate_opt(self):
         print('do opt')
@@ -247,6 +261,16 @@ class Calcualte_opt(object):
         self._client_comp_statistics = self._client_comp_statistics[len(client_comp_time_temp) :]
         self._server_comp_statistics = self._server_comp_statistics[len(server_comp_time_temp) :]
         #self.comm_statistics = [max(len(self._server_comp_statistics), 10) :]
+
+        p = 0.5
+        q = 0.5
+        if self._hist_client_opt_table[0] is None:
+            self.hist_client_opt_table = [opt_splitting_point, opt_buff_idx, min_client_comp_time]
+        elif self._hist_client_opt_table[2] >= min_client_comp_time:
+            self._hist_client_opt_table = [opt_splitting_point, opt_buff_idx, min_client_comp_time]
+        elif self._hist_client_opt_table[2] < min_client_comp_time:
+            opt_splitting_point = math.floor(p * opt_splitting_point + q * self._hist_client_opt_table[0])
+            opt_buff_idx = math.floor(p * opt_buff_idx + q * self._hist_client_opt_table[1])
 
         self._end_idx = opt_splitting_point
         self._end_idx_buff = opt_buff_idx
