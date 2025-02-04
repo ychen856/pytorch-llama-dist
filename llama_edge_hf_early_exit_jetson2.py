@@ -335,6 +335,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             while len(timestamp_manager.end_times) < batch_size:
                 time.sleep(0.0001)
             timestamp_manager.get_time_diff_every_n_inputs(10)
+            print('ZZZZZZZZZZZZZ: ', timestamp_manager.end_times)
 
             print('early count: ', early_count)
             early_count = 0
