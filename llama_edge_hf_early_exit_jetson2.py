@@ -486,7 +486,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
             if cycle_count == (statistics_period - 4) and input_count > 6 and cycle_count % 2 == 0:
                 #print('testing lower value (i>30)')
-                end_idx = max(0, end_idx - 2)
+                end_idx = max(1, end_idx - 2)
 
             if cycle_count > (statistics_period - 4) and input_count >= 6 and end_idx < max_layers and cycle_count % 2 == 0:
                 #print('testing higher value (i>30): ')
