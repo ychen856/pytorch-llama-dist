@@ -31,6 +31,8 @@ class Timestamp_manager(object):
         start_times = sorted(self._start_times, key=lambda x: x[1], reverse=True)
         end_times = sorted(self._end_times, key=lambda  x: x[1], reverse=True)
 
+        print('start time: ', start_times)
+        print('end time: ', end_times)
         idx = 0
         batch_start_time = 0
         batch_end_time = 0
