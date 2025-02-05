@@ -285,8 +285,8 @@ def task1_data_sending(args):
             time.sleep(0.0001)'''
 
         #print('zzz', calculate_opt.steady_state)
-        #while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
-        while outgoing_queue.empty() and input_queue.qsize() > 0:
+        while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
+        #while outgoing_queue.empty() and input_queue.qsize() > 0:
         #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0 and calculate_opt.steady_state:
         #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0:
             timeout_count = timeout_count + 1
@@ -335,7 +335,6 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             while len(timestamp_manager.end_times) < batch_size:
                 time.sleep(0.0001)
             timestamp_manager.get_time_diff_every_n_inputs(10)
-            print('ZZZZZZZZZZZZZ: ', timestamp_manager.end_times)
 
             print('early count: ', early_count)
             early_count = 0
