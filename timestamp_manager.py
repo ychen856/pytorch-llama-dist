@@ -28,8 +28,8 @@ class Timestamp_manager(object):
 
     def get_time_diff_every_n_inputs(self, n_inputs):
         print('timestamp manager... ')
-        start_times = sorted(self._start_times, key=lambda x: x[1], reverse=True)
-        end_times = sorted(self._end_times, key=lambda  x: x[1], reverse=True)
+        start_times = sorted(self._start_times, key=lambda x: x[1], reverse=False)
+        end_times = sorted(self._end_times, key=lambda  x: x[1], reverse=False)
 
         print('start time: ', start_times)
         print('end time: ', end_times)
