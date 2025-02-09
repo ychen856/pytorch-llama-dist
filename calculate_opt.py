@@ -262,8 +262,8 @@ class Calcualte_opt(object):
         self._server_comp_statistics = self._server_comp_statistics[len(server_comp_time_temp) :]
         #self.comm_statistics = [max(len(self._server_comp_statistics), 10) :]
 
-        p = 0.3 #current opt
-        q = 0.7 # history opt
+        p = 0.7 #current opt
+        q = 0.3 # history opt
         if self._hist_client_opt_table[0] is None:
             self.hist_client_opt_table = [opt_splitting_point, opt_buff_idx, min_client_comp_time]
         elif self._hist_client_opt_table[2] >= min_client_comp_time:
