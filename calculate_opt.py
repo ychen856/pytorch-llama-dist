@@ -175,6 +175,11 @@ class Calcualte_opt(object):
         end_idx, buff_idx, comp_time = value
         self._hist_client_opt_table = ([end_idx, buff_idx, comp_time])
 
+    @hist_gateway_opt_table.setter
+    def hist_gateway_opt_table(self, value):
+        start_idx, end_idx, layer_amount, buff_idx_camp_time = value
+        self._hist_gateway_opt_table.append([start_idx, end_idx, layer_amount, buff_idx_camp_time])
+
     def calclate_opt(self):
         print('do opt')
         #print('FFFFFFFFFFFFFFFFFFFF: ', self._client_comp_statistics)
@@ -262,8 +267,8 @@ class Calcualte_opt(object):
         self._server_comp_statistics = self._server_comp_statistics[len(server_comp_time_temp) :]
         #self.comm_statistics = [max(len(self._server_comp_statistics), 10) :]
 
-        p = 0.3 #current opt
-        q = 0.7 # history opt
+        p = 0.7 #current opt
+        q = 0.3 # history opt
         if self._hist_client_opt_table[0] is None:
             self.hist_client_opt_table = [opt_splitting_point, opt_buff_idx, min_client_comp_time]
         elif self._hist_client_opt_table[2] >= min_client_comp_time:
@@ -397,10 +402,6 @@ class Calcualte_opt(object):
 
         print('left over gateway: ', self._gateway_comp_statistics)
         print('left over server: ', self._server_comp_statistics)
-        #self.comm_statistics = [max(len(self._server_comp_statistics), 10) :]
-
-        #self._end_idx = opt_splitting_point
-        #self._end_idx_buff = opt_buff_idx
 
         print('opt table: ', self._gateway_opt_table)
         #print('start idx: ', start_idx)
@@ -410,6 +411,10 @@ class Calcualte_opt(object):
         if len(opt_row) == 0:
             # return start_idx + opt_gateway_layer_amount, opt_buff_idx, self._statisitc_period
             return start_idx + 2, start_idx + 5, self._statisitc_period
+
+        # start_idx, end_idx, layer_amount, buff_idx, comp_time
+        print('opt row: ', opt_row)
+
 
             #print('last opt: ', self._last_opt_calc_time)
         #print('opt: ', opt_comp_time)
