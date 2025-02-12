@@ -295,7 +295,7 @@ def task1_data_sending(args):
             start_time = time.time()
             #print('outgoing queue size: ', outgoing_queue.qsize())
 
-            if input_queue.qsize() > 0 and calculate_opt.incoming_count + 2 >= calculate_opt.outgoint_count:
+            if input_queue.qsize() > 0: #and calculate_opt.incoming_count + 2 >= calculate_opt.outgoint_count:
                 idx = input_queue.qsize()
                 timestamp_manager.start_times = (idx, start_time)
 
