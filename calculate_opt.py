@@ -177,8 +177,8 @@ class Calcualte_opt(object):
 
     @hist_gateway_opt_table.setter
     def hist_gateway_opt_table(self, value):
-        start_idx, end_idx, layer_amount, buff_idx_camp_time = value
-        self._hist_gateway_opt_table.append([start_idx, end_idx, layer_amount, buff_idx_camp_time])
+        start_idx, end_idx, layer_amount, buff_end_idx, buff_idx_camp_time = value
+        self._hist_gateway_opt_table.append([start_idx, end_idx, layer_amount, buff_end_idx, buff_idx_camp_time])
 
     def calclate_opt(self):
         print('do opt')
@@ -412,11 +412,30 @@ class Calcualte_opt(object):
             # return start_idx + opt_gateway_layer_amount, opt_buff_idx, self._statisitc_period
             return start_idx + 2, start_idx + 5, self._statisitc_period
 
+        opt_start_idx = opt_row[0][0]
+        opt_end_idx = opt_row[0][1]
+        opt_layer_amount = opt_row[0][2]
+        opt_buff_idx = opt_row[0][3]
+        opt_comp_time = opt_row[0][4]
+
+        p = 0.5
+        q = 0.5
+
         # start_idx, end_idx, layer_amount, buff_idx, comp_time
         print('opt row: ', opt_row)
+        hist_opt_row = find_row(self._hist_gateway_opt_table, 0, start_idx)
+        if len(hist_opt_row) == 0:
+            self.hist_gateway_opt_table = [opt_start_idx, opt_end_idx, opt_layer_amount, opt_buff_idx, opt_comp_time]
+        elif hist_opt_row[0][4] >= opt_comp_time:
+            self.hist_gateway_opt_table = [opt_start_idx, opt_end_idx, opt_layer_amount, opt_buff_idx, opt_comp_time]
+        elif hist_opt_row[0][4] < opt_comp_time:
+            opt_end_idx = math.floor(p * hist_opt_row[0][1] + q * opt_end_idx)
+            opt_buff_idx = math.floor(p * hist_opt_row[0][3] + q * opt_buff_idx)
+            opt_layer_amount = opt_end_idx - opt_start_idx
 
 
-            #print('last opt: ', self._last_opt_calc_time)
+
+        #print('last opt: ', self._last_opt_calc_time)
         #print('opt: ', opt_comp_time)
         if self._last_opt_calc_time * 1.1 < opt_comp_time:
             self._statisitc_period = max(10, self._statisitc_period - 4)
@@ -438,4 +457,5 @@ class Calcualte_opt(object):
 
         #return start_idx + opt_gateway_layer_amount, opt_buff_idx, self._statisitc_period
         #print('FFFFFFFFFFFFFFFFF: ', opt_row)
-        return start_idx + opt_row[0][2], opt_row[0][3], self._statisitc_period
+        #return start_idx + opt_row[0][2], opt_row[0][3], self._statisitc_period
+        return opt_end_idx, opt_buff_idx, self._statisitc_period

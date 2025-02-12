@@ -286,9 +286,9 @@ def task1_data_sending(args):
             time.sleep(0.0001)'''
 
         #print('zzz', calculate_opt.steady_state)
-        while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
+        #while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
         #while outgoing_queue.empty() and input_queue.qsize() > 0:
-        #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0 and calculate_opt.steady_state:
+        while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0 and calculate_opt.steady_state:
         #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0:
             timeout_count = timeout_count + 1
 
@@ -493,7 +493,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
             if cycle_count == (statistics_period - 6) and input_count >= 12 and cycle_count % 2 == 0:
                 #print('testing lower value (i>30)')
-                end_idx = max(0, end_idx - 1)
+                end_idx = max(1, end_idx - 1)
 
             if cycle_count > (statistics_period - 6) and input_count >= 12 and end_idx < max_layers and cycle_count % 2 == 0:
                 #print('testing higher value (i>30): ')
