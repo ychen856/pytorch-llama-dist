@@ -15,7 +15,7 @@ def get_eval_data(tokenizer):
     # Print status
     print(f"evaluating on {dataset}")
 
-    random.seed(datetime.now().timestamp())
+    #random.seed(datetime.now().timestamp())
     # Get the test loader
     _, testloader = get_loaders(
         dataset, seed=random.random(), seqlen=seqlen, tokenizer=tokenizer
