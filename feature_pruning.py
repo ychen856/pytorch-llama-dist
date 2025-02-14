@@ -1,12 +1,18 @@
+import torch
+
 def get_outlier(tensor_data):
-    q1 = tensor_data.quantile(0.25, dim=2, keepdim=True)
-    q3 = tensor_data.quantile(0.75, dim=2, keepdim=True)
-    iqr = q3 - q1
+    # Flatten the tensor
+    flat_tensor = tensor_data.flatten()
 
-    # Outlier threshold
-    lower_bound = q1 - 1.5 * iqr
-    upper_bound = q3 + 1.5 * iqr
+    # Compute mean and standard deviation
+    mean = flat_tensor.mean()
+    std = flat_tensor.std()
 
-    outliers = (tensor_data < lower_bound) | (tensor_data > upper_bound)
+    # Compute Z-score
+    z_scores = (flat_tensor - mean) / std
 
-    print(outliers)  # Boolean mask of outliers
+    # Define a threshold (e.g., |Z| > 3 is often considered an outlier)
+    threshold = 3
+    outliers = flat_tensor[torch.abs(z_scores) > threshold]
+
+    print("Outliers:", outliers)
