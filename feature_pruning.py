@@ -15,5 +15,18 @@ def get_outlier(flat_tensor):
     threshold = 3
     outliers = flat_tensor[torch.abs(z_scores) > threshold]
 
-    print("Outliers:", outliers)
     return outliers
+
+#input shape [1, 1, 1024, 40926]
+def get_pruning_rate(tensor_data):
+    outlier_number_list = []
+    pruning_rate_list = []
+    for flatten_tensor in tensor_data:
+        outliers = get_outlier(flatten_tensor).shape
+        outlier_number_list.append(outliers)
+        pruning_rate_list.append(1/outliers)
+
+    print('outliers: ', outlier_number_list)
+    print('rate: ', pruning_rate_list)
+
+
