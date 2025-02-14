@@ -506,7 +506,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
         if start_idx == 0 or start_idx > max_layers or start_idx < start_idx_buff:
             print('direct sent!')
             #out, ids, mask = models[0](out)
-            outgoing_queue_forward.put([start_idx, out, ids, mask, idx, 0, start_idx + 1]) # forward the original input to the server
+            outgoing_queue_forward.put([start_idx, out, ids, mask, idx, 0, start_idx]) # forward the original input to the server
             continue
 
         start_comp_time = time.time()

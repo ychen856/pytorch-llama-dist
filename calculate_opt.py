@@ -303,17 +303,17 @@ class Calcualte_opt(object):
 
     def calclate_opt_gateway(self, start_idx):
         print('do opt')
-        print('FFFFFFFFFFFFFFFFFFFF: ', self._gateway_comp_statistics)
-        print('ZZZZZZZZZZZZZZZZZZZZ: ', self._server_comp_statistics)
+        #print('FFFFFFFFFFFFFFFFFFFF: ', self._gateway_comp_statistics)
+        #print('ZZZZZZZZZZZZZZZZZZZZ: ', self._server_comp_statistics)
         gateway_comp_time_temp = sorted(self._gateway_comp_statistics[:len(self._server_comp_statistics)], key=lambda x: x[0])
         server_comp_time_temp = self._server_comp_statistics
 
-        print('# gateway data: ', len(gateway_comp_time_temp))
-        print('# server data: ', len(server_comp_time_temp))
+        #print('# gateway data: ', len(gateway_comp_time_temp))
+        #print('# server data: ', len(server_comp_time_temp))
 
 
-        print('fffffffffffffffffff: ', gateway_comp_time_temp)
-        print('zzzzzzzzzzzzzzzzzzz: ', server_comp_time_temp)
+        #print('fffffffffffffffffff: ', gateway_comp_time_temp)
+        #print('zzzzzzzzzzzzzzzzzzz: ', server_comp_time_temp)
 
         gateway_start_idx = gateway_comp_time_temp[0][0]
         avg_gateway_comp_time = 0
@@ -327,15 +327,15 @@ class Calcualte_opt(object):
         i = 0
         while i < len(gateway_comp_time_temp):
             gateway_start_idx = gateway_comp_time_temp[i][0]
-            print('gateway_start_idx: ', gateway_start_idx)
+            #print('gateway_start_idx: ', gateway_start_idx)
             gateway_sub_list = find_row(gateway_comp_time_temp, 0, gateway_start_idx)
-            print('gateway sub list: ', gateway_sub_list)
+            #print('gateway sub list: ', gateway_sub_list)
             gateway_sub_list_temp = sorted(gateway_sub_list, key=lambda x: x[1])
-            print('gateway sub list temp: ', gateway_sub_list_temp)
+            #print('gateway sub list temp: ', gateway_sub_list_temp)
             gateway_end_idx = gateway_comp_time_temp[i][1]
             for j in range(0, len(gateway_sub_list_temp)):
                 if gateway_end_idx == gateway_sub_list_temp[j][1]:
-                    print('clientPPPPPP: ', gateway_sub_list_temp[j])
+                    #print('clientPPPPPP: ', gateway_sub_list_temp[j])
                     client_count = client_count + 1
                     avg_gateway_comp_time = avg_gateway_comp_time + gateway_sub_list_temp[j][3]
 
@@ -349,15 +349,15 @@ class Calcualte_opt(object):
                 else:
                     for k in range(0, len(server_comp_time_temp)):
                         if server_comp_time_temp[k][0] == gateway_end_idx + 1:
-                            print('serverVVVV: ', server_comp_time_temp[k])
+                            #print('serverVVVV: ', server_comp_time_temp[k])
                             server_count = server_count + 1
                             avg_server_comp_time = avg_server_comp_time + server_comp_time_temp[k][1]
-                    print('client count: ', client_count)
-                    print('server count: ', server_count)
+                    #print('client count: ', client_count)
+                    #print('server count: ', server_count)
                     #print('+++ end idx: ', client_end_idx)
                     #print('+++ time: ', (avg_client_comp_time/ client_count + avg_server_comp_time/ server_count))
                     if client_count > 0 and server_count > 0 and (avg_gateway_comp_time/client_count + avg_server_comp_time / server_count) < opt_comp_time:
-                        print('avg: ', avg_gateway_comp_time/client_count + avg_server_comp_time / server_count)
+                        #print('avg: ', avg_gateway_comp_time/client_count + avg_server_comp_time / server_count)
                         opt_gateway_layer_amount = gateway_end_idx - gateway_start_idx
                         opt_comp_time = avg_gateway_comp_time/client_count + avg_server_comp_time/server_count
 
@@ -393,17 +393,17 @@ class Calcualte_opt(object):
 
             #i = len(gateway_sub_list)
             i = i + len(gateway_sub_list)
-            print('next idx: ', i)
+            #print('next idx: ', i)
 
             #time.sleep(5)
 
         self._gateway_comp_statistics = self._gateway_comp_statistics[len(gateway_comp_time_temp) :]
         self._server_comp_statistics = self._server_comp_statistics[len(server_comp_time_temp) :]
 
-        print('left over gateway: ', self._gateway_comp_statistics)
-        print('left over server: ', self._server_comp_statistics)
+        #print('left over gateway: ', self._gateway_comp_statistics)
+        #print('left over server: ', self._server_comp_statistics)
 
-        print('opt table: ', self._gateway_opt_table)
+        #print('opt table: ', self._gateway_opt_table)
         #print('start idx: ', start_idx)
         opt_row = find_row(self._gateway_opt_table, 0, start_idx)
 
