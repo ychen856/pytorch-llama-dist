@@ -453,7 +453,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
         print('outlier number: ', outlier)
         print('rate: ', rate)
         pruned_feature_vector = prune_feature_vector(out.last_hidden_state, rate)
-        dense_to_CSR(pruned_feature_vector)
+        dense_to_CSR(pruned_feature_vector[0])
         #print('outlier shape: ', get_outlier(out.last_hidden_state).shape)
         end_time = time.time()
         #print('client computation time: ', end_time - start_time)
