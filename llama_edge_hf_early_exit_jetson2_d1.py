@@ -445,17 +445,20 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 #print('updated end idx: ', end_idx)
                 break
 
-        dense_to_CSR(mask[0][0])
 
-        outlier = get_outlier(out.last_hidden_state.flatten())
-        rate = 50/outlier
-        pruned_feature_vector = prune_feature_vector(out.last_hidden_state, rate)
-        dense_to_CSR(pruned_feature_vector[0])
-        #print('outlier shape: ', get_outlier(out.last_hidden_state).shape)
         end_time = time.time()
-        #print('client computation time: ', end_time - start_time)
 
         print('is early: ', is_early_exit)
+
+        csr_mask = dense_to_CSR(mask[0][0])
+
+        print('out: ', out)
+        outlier = get_outlier(out.last_hidden_state.flatten())
+        rate = 50 / outlier
+        pruned_feature_vector = prune_feature_vector(out.last_hidden_state, rate)
+        csr_out = dense_to_CSR(pruned_feature_vector[0])
+
+
 
 
         '''cycle_count = cycle_count + 1
@@ -484,7 +487,8 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             print('cycle count: ', cycle_count)
             print('input count: ', input_count)
 
-            outgoing_queue.put([end_idx + 1, out, ids, mask, idx, end_time - start_time])
+            outgoing_queue.put([end_idx + 1, csr_out, ids, csr_mask, idx, end_time - start_time])
+            #outgoing_queue.put([end_idx + 1, out, ids, mask, idx, end_time - start_time])
             print('outgoing queue PUT!')
             calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
 
