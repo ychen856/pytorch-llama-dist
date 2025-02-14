@@ -450,7 +450,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
         print('mask shape: ', mask.shape)
         print('out flatten: ', out.last_hidden_state.flatten(start_dim=1).shape)
         for flatten_tensor in out.last_hidden_state.flatten(start_dim=1):
-            print('outlier: ', get_outlier(flatten_tensor.shape))
+            print('outlier: ', get_outlier(flatten_tensor))
         #print('outlier shape: ', get_outlier(out.last_hidden_state).shape)
         end_time = time.time()
         #print('client computation time: ', end_time - start_time)
