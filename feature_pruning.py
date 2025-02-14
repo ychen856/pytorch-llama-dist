@@ -30,3 +30,35 @@ def get_pruning_rate(tensor_data):
     print('rate: ', pruning_rate_list)
 
 
+def prune_feature_vector(tensor_data, rate):
+    # Get the mean of the tensor
+    mean_val = tensor_data.mean()
+
+    # Flatten the tensor while keeping the first dimension
+    flat_tensor = tensor_data.view(1, -1)
+
+    # Compute absolute distances from mean
+    distances = torch.abs(flat_tensor - mean_val)
+
+    # Get indices of the top n farthest values
+    _, indices = torch.topk(distances, 1024 * 4096 * rate, dim=1)
+
+    # Create a mask and set selected elements to zero
+    flat_tensor[0, indices[0]] = 0
+
+    print('after pruning... ', flat_tensor.view_as(tensor_data))
+    # Reshape back to original shape
+    return flat_tensor.view_as(tensor_data)
+
+
+# Create a sample tensor of size [1, 1024, 4096]
+tensor_data = torch.randn(1, 1024, 4096)
+
+# Number of farthest elements to set to zero
+n = 10
+
+# Apply function
+modified_tensor = zero_farthest_elements(tensor_data, n)
+
+# Check result
+print(modified_tensor)
