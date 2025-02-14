@@ -448,7 +448,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
         print('mask: ', mask)
         print('out shape: ', out.last_hidden_state.shape)
         print('mask shape: ', mask.shape)
-        outlier = out.last_hidden_state.flatten()
+        outlier = get_outlier(out.last_hidden_state.flatten())
         rate = 1/outlier
         print('outlier number: ', outlier)
         print('rate: ', rate)
