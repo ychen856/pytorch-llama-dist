@@ -1,5 +1,5 @@
 import torch
-
+import math
 def get_outlier(flat_tensor):
     # Flatten the tensor
     #flat_tensor = tensor_data.flatten()
@@ -41,7 +41,7 @@ def prune_feature_vector(tensor_data, rate):
     distances = torch.abs(flat_tensor - mean_val)
 
     # Get indices of the top n farthest values
-    _, indices = torch.topk(distances, 1024 * 4096 * rate, dim=1)
+    _, indices = torch.topk(distances, round(1024 * 4096 * rate), dim=1)
 
     # Create a mask and set selected elements to zero
     flat_tensor[0, indices[0]] = 0
