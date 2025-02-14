@@ -448,7 +448,10 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
         print('mask: ', mask)
         print('out shape: ', out.last_hidden_state.shape)
         print('mask shape: ', mask.shape)
-        get_pruning_rate(out.last_hidden_state)
+        outlier = out.last_hidden_state.flatten()
+        rate = 1/outlier
+        print('outlier number: ', outlier)
+        print('rate: ', rate)
         #print('outlier shape: ', get_outlier(out.last_hidden_state).shape)
         end_time = time.time()
         #print('client computation time: ', end_time - start_time)
