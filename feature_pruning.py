@@ -61,5 +61,10 @@ def dense_to_CSR(tensor_data):
     print('CSR size 2: ', csr_tensor.col_indices().shape)
     print('CSR size 3: ',  csr_tensor.values().shape)
 
+    print('CSR size 11: ', csr_tensor.crow_indices())
+    print('CSR size 22: ', csr_tensor.col_indices())
+    print('CSR size 33: ', csr_tensor.values())
+
+
 
 
