@@ -16,3 +16,4 @@ def get_outlier(tensor_data):
     outliers = flat_tensor[torch.abs(z_scores) > threshold]
 
     print("Outliers:", outliers)
+    return outliers
