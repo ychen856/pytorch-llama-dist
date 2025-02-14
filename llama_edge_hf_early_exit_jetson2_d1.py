@@ -25,7 +25,7 @@ from prune_all import prune_wanda_allocation
 from calculate_opt import Calcualte_opt
 from early_exit import early_exit_cpu, early_exit_cuda, early_exit_lm_head
 from timestamp_manager import Timestamp_manager
-
+from feature_pruning import *
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
 parser.add_argument('--config', default='config_server.yaml')
@@ -445,9 +445,8 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 #print('updated end idx: ', end_idx)
                 break
         print('out: ', out.last_hidden_state)
-        print('out size: ', out.shape)
-        print('mask size: ', mask.shape)
-        print('fffff: ', mask)
+        print('mask: ', mask)
+        print('outlier: ', get_outlier(out.last_hidden_state))
         end_time = time.time()
         #print('client computation time: ', end_time - start_time)
 
