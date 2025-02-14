@@ -51,14 +51,4 @@ def prune_feature_vector(tensor_data, rate):
     return flat_tensor.view_as(tensor_data)
 
 
-# Create a sample tensor of size [1, 1024, 4096]
-tensor_data = torch.randn(1, 1024, 4096)
 
-# Number of farthest elements to set to zero
-n = 10
-
-# Apply function
-modified_tensor = zero_farthest_elements(tensor_data, n)
-
-# Check result
-print(modified_tensor)
