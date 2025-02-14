@@ -446,6 +446,8 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 break
         print('out: ', out.last_hidden_state)
         print('mask: ', mask)
+        print('out shape: ', out.last_hidden_state.shape)
+        print('mask shape: ', mask.shape)
         print('outlier: ', get_outlier(out.last_hidden_state))
         end_time = time.time()
         #print('client computation time: ', end_time - start_time)
