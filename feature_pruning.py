@@ -1,8 +1,8 @@
 import torch
 
-def get_outlier(tensor_data):
+def get_outlier(flat_tensor):
     # Flatten the tensor
-    flat_tensor = tensor_data.flatten()
+    #flat_tensor = tensor_data.flatten()
 
     # Compute mean and standard deviation
     mean = flat_tensor.mean()
