@@ -50,5 +50,16 @@ def prune_feature_vector(tensor_data, rate):
     # Reshape back to original shape
     return flat_tensor.view_as(tensor_data)
 
+def dense_to_CSR(tensor_data):
+    #Convert to sparse tensor
+    sparse_tensor = tensor_data.to_sparse()
+
+    #Convert sparse tensor to CSR format
+    csr_tensor = sparse_tensor.to_sparse_csr()
+
+    print('CSR size 1: ', csr_tensor.crow_indices().shape)
+    print('CSR size 2: ', csr_tensor.col_indices().shape)
+    print('CSR size 3: ',  csr_tensor.values().shape)
+
 
 
