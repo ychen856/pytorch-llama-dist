@@ -305,7 +305,8 @@ def task1_data_sending(args):
                 pruned_feature_vector = prune_feature_vector(input_queue.get().last_hidden_state, rate)
                 csr_out = dense_to_CSR(pruned_feature_vector[0])
 
-                outgoing_queue.put([0, csr_out, None, None, idx, 0])
+
+                outgoing_queue.put([0, [csr_out.crow_indices(), csr_out.col_indices(), csr_out.values()], None, None, idx, 0])
 
                 #outgoing_queue.put([0, input_queue.get(), None, None, idx, 0])
                 end_time = time.time()
