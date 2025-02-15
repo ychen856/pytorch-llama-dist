@@ -5,8 +5,8 @@ def get_outlier(flat_tensor):
     #flat_tensor = tensor_data.flatten()
 
     # Compute mean and standard deviation
-    mean = flat_tensor.mean()
-    std = flat_tensor.std()
+    mean = flat_tensor.double().mean()
+    std = flat_tensor.double().std()
 
     # Compute Z-score
     z_scores = (flat_tensor - mean) / std
