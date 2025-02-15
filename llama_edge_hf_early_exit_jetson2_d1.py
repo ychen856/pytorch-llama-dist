@@ -300,9 +300,9 @@ def task1_data_sending(args):
                 timestamp_manager.start_times = (idx, start_time)
 
                 #print('out: ', out)
-                outlier = get_outlier(input_queue.get().last_hidden_state.flatten())
+                outlier = get_outlier(input_queue.get().flatten())
                 rate = 50 / outlier
-                pruned_feature_vector = prune_feature_vector(input_queue.get().last_hidden_state, rate)
+                pruned_feature_vector = prune_feature_vector(input_queue.get(), rate)
                 csr_out = dense_to_CSR(pruned_feature_vector[0])
 
 
