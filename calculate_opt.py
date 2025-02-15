@@ -283,7 +283,8 @@ class Calcualte_opt(object):
         #print('last opt: ', self._last_opt_calc_time)
         #print('opt: ', opt_comp_time)
         if self._last_opt_calc_time * 1.1 < opt_comp_time:
-            self._statisitc_period = max(10, self._statisitc_period - 4)
+            self._statisitc_period = max(10, math.floor(self._statisitc_period * 2 / 3))
+            #self._statisitc_period = max(10, self._statisitc_period - 4)
         elif self._last_opt_calc_time * 1.1 > opt_comp_time:
             self._statisitc_period = min(100, self._statisitc_period + 6)
 
