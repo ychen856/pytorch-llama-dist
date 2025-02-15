@@ -299,10 +299,16 @@ def task1_data_sending(args):
                 idx = input_queue.qsize()
                 timestamp_manager.start_times = (idx, start_time)
 
-                outgoing_queue.put([0, input_queue.get(), None, None, idx, 0])
+                #print('out: ', out)
+                outlier = get_outlier(input_queue.get().last_hidden_state.flatten())
+                rate = 50 / outlier
+                pruned_feature_vector = prune_feature_vector(input_queue.get().last_hidden_state, rate)
+                csr_out = dense_to_CSR(pruned_feature_vector[0])
+
+                outgoing_queue.put([0, csr_out, None, None, idx, 0])
+
+                #outgoing_queue.put([0, input_queue.get(), None, None, idx, 0])
                 end_time = time.time()
-                #print('client computation time: ', end_time - start_time)
-                # calculate_opt.client_comp_statistics = (-1, end_idx_buff, end_time - start_time)
                 print('server idle!')
             else:
                 break
