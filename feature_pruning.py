@@ -37,7 +37,7 @@ def get_pruning_rate(tensor_data):
 
 def prune_feature_vector(tensor_data, rate):
     # Get the mean of the tensor
-    mean_val = tensor_data.mean()
+    mean_val = tensor_data.double().mean()
 
     # Flatten the tensor while keeping the first dimension
     flat_tensor = tensor_data.view(1, -1)
