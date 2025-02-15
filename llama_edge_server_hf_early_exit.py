@@ -9,6 +9,9 @@ import time
 from pathlib import Path
 import argparse
 import random
+
+from transformers.modeling_outputs import BaseModelOutputWithPast
+
 from feature_pruning import *
 
 import http_sender_gateway
@@ -27,7 +30,6 @@ from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_la
 import yaml
 from queue import Queue
 
-from modeling_outputs import BaseModelOutputWithPast
 from prune_all import prune_wanda_allocation
 from calculate_opt import Calcualte_opt, find_row
 from early_exit import early_exit_cpu, early_exit_cuda, early_exit_lm_head
