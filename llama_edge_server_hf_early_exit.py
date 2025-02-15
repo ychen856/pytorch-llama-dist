@@ -9,6 +9,8 @@ import time
 from pathlib import Path
 import argparse
 import random
+from feature_pruning import *
+
 import http_sender_gateway
 from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
@@ -24,6 +26,8 @@ from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_la
     LlamaForCausalLM_linear
 import yaml
 from queue import Queue
+
+from modeling_outputs import BaseModelOutputWithPast
 from prune_all import prune_wanda_allocation
 from calculate_opt import Calcualte_opt, find_row
 from early_exit import early_exit_cpu, early_exit_cuda, early_exit_lm_head
@@ -475,12 +479,19 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             input = http_receiver.get_in_queue_data()
 
         start_idx = input[0]
-        out = input[1]
+        csr_out = input[1]
         ids = input[2]
         mask = input[3]
         idx = input[4]
         is_early_exit = False
         is_oom = False
+
+        out = BaseModelOutputWithPast()
+        out.last_hidden_state = csr_to_dense(csr_out).unsqueeze(0)
+        out.past_key_values = None
+        out.hidden_states = None
+        out.attentions = None
+
 
         if out is None:
             http_receiver.set_outgoing_queue([-1, None, None])
