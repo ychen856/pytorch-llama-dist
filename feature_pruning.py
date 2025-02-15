@@ -69,6 +69,7 @@ def dense_to_CSR(tensor_data):
 
 
 def csr_to_dense(csr_data):
+    print('csr_data: ', csr_data)
     csr_tensor = torch.sparse_csr_tensor(
         crow_indices = csr_data[0],  # Row offsets
         col_indices = csr_data[1],  # Column indices (empty)
