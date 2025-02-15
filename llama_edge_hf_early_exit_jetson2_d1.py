@@ -301,7 +301,10 @@ def task1_data_sending(args):
 
                 #print('out: ', out)
                 outlier = get_outlier(input_queue.get().flatten())
-                rate = 50 / outlier
+                if outlier > 0:
+                    rate = 50 / outlier
+                else:
+                    rate = 0.5
                 pruned_feature_vector = prune_feature_vector(input_queue.get(), rate)
                 csr_out = dense_to_CSR(pruned_feature_vector[0])
 

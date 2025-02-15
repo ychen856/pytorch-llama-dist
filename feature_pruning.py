@@ -8,8 +8,8 @@ def get_outlier(flat_tensor):
     mean = flat_tensor.double().mean()
     std = flat_tensor.double().std()
 
-    print('mean: ', mean)
-    print('std: ', std)
+    #print('mean: ', mean)
+    #print('std: ', std)
 
     # Compute Z-score
     z_scores = (flat_tensor - mean) / std
@@ -18,7 +18,7 @@ def get_outlier(flat_tensor):
     threshold = 3
     outliers = flat_tensor[torch.abs(z_scores) > threshold]
 
-    print('outliers: ', outliers)
+    #print('outliers: ', outliers)
 
     return outliers.shape[0]
 
