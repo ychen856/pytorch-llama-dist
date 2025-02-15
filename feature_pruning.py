@@ -57,13 +57,13 @@ def dense_to_CSR(tensor_data):
     #Convert sparse tensor to CSR format
     csr_tensor = sparse_tensor.to_sparse_csr()
 
-    print('CSR size 1: ', csr_tensor.crow_indices().shape)
+    '''print('CSR size 1: ', csr_tensor.crow_indices().shape)
     print('CSR size 2: ', csr_tensor.col_indices().shape)
     print('CSR size 3: ',  csr_tensor.values().shape)
 
     print('CSR size 11: ', csr_tensor.crow_indices())
     print('CSR size 22: ', csr_tensor.col_indices())
-    print('CSR size 33: ', csr_tensor.values())
+    print('CSR size 33: ', csr_tensor.values())'''
 
     return csr_tensor
 
