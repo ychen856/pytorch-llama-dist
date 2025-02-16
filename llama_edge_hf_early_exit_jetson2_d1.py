@@ -487,7 +487,8 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 rate = 50 / outlier
             else:
                 rate = 0.5
-            
+
+            print('rate: ', rate)
             pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
             csr_out = dense_to_CSR(pruned_feature_vector[0])
 

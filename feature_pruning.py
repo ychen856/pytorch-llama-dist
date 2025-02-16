@@ -32,7 +32,7 @@ def get_pruning_rate(tensor_data):
         pruning_rate_list.append(1/outliers)
 
     #print('outliers: ', outlier_number_list)
-    print('rate: ', pruning_rate_list)
+    #print('rate: ', pruning_rate_list)
 
 
 def prune_feature_vector(tensor_data, mean, rate):
