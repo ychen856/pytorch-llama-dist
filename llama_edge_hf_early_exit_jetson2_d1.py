@@ -299,13 +299,15 @@ def task1_data_sending(args):
                 idx = input_queue.qsize()
                 timestamp_manager.start_times = (idx, start_time)
 
-                #print('out: ', out)
-                outlier = get_outlier(input_queue.get().flatten())
+                output = input_queue.get()
+                print('out: ', output)
+
+                outlier = get_outlier(output.flatten())
                 if outlier > 0:
                     rate = 50 / outlier
                 else:
                     rate = 0.5
-                pruned_feature_vector = prune_feature_vector(input_queue.get(), rate)
+                pruned_feature_vector = prune_feature_vector(output.flatten(), rate)
                 csr_out = dense_to_CSR(pruned_feature_vector[0])
 
 
