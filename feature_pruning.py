@@ -48,7 +48,7 @@ def prune_feature_vector(tensor_data, mean, rate):
     # Create a mask and set selected elements to zero
     flat_tensor[0, indices[0]] = 0
 
-    print('after pruning... ', flat_tensor.view_as(tensor_data))
+    #print('after pruning... ', flat_tensor.view_as(tensor_data))
     # Reshape back to original shape
     return flat_tensor.view_as(tensor_data)
 
