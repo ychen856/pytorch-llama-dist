@@ -489,7 +489,6 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
         is_oom = False
 
         print('csr out: ', csr_out)
-        print('len(csr_out): ', len(csr_out))
 
         if csr_out is None:
             http_receiver.set_outgoing_queue([-1, None, None])
@@ -504,12 +503,16 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             #http_receiver.set_outgoing_queue([-1, None, None])
             continue
         elif len(csr_out) > 1:
+
+            print('len(csr_out): ', len(csr_out))
             out = BaseModelOutputWithPast()
             out.last_hidden_state = csr_to_dense(csr_out).unsqueeze(0)
             out.past_key_values = None
             out.hidden_states = None
             out.attentions = None
         else:
+
+            print('len(csr_out): ', len(csr_out))
             out = csr_out
 
 
