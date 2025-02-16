@@ -128,9 +128,11 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
 
         checkpoint_list = []
         checkpoints = sorted(Path(args.ckpt_dir_hf_sep).glob("consolidated.*.pth"))
+        checkpoints = natsorted(checkpoints)
         assert len(checkpoints) > 0, f"no checkpoint files found in {args.ckpt_dir_hf_sep}"
 
         start_idx_buff = max(0, start_idx - 3)
+        print('FFFFFFFFFFff: ', max_layers)
         checkpoints = checkpoints[start_idx_buff:max_layers]
         checkpoint_idx = start_idx_buff
 
