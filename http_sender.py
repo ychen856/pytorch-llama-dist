@@ -66,6 +66,7 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     client_comp_time = text[5]
     newx = pickle.dumps(text)
     total_size = len(newx)
+    print('communication size: ', total_size)
 
     #start_time = time.time()
 
