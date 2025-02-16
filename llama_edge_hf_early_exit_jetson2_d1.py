@@ -478,12 +478,14 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             print('cycle count: ', cycle_count)
             print('input count: ', input_count)
 
-            '''print('out: ', out)
+            print('out: ', out)
             outlier = get_outlier(out.last_hidden_state.flatten())
+
             if outlier > 0:
                 rate = 50 / outlier
             else:
                 rate = 0.5
+            '''
             pruned_feature_vector = prune_feature_vector(out.last_hidden_state, rate)
             csr_out = dense_to_CSR(pruned_feature_vector[0])'''
 
