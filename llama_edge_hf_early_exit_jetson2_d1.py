@@ -304,6 +304,8 @@ def task1_data_sending(args):
 
                 #outgoing_queue.put([0, input_queue.get(), None, None, idx, 0])
                 end_time = time.time()
+
+                print('rate: ', 0)
                 print('server idle!')
             else:
                 break
@@ -478,7 +480,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             print('cycle count: ', cycle_count)
             print('input count: ', input_count)
 
-            print('out: ', out)
+            #print('out: ', out)
             mean, outlier = get_outlier(out.last_hidden_state.flatten())
 
             if outlier > 0:

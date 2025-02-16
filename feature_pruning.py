@@ -31,7 +31,7 @@ def get_pruning_rate(tensor_data):
         outlier_number_list.append(outliers)
         pruning_rate_list.append(1/outliers)
 
-    print('outliers: ', outlier_number_list)
+    #print('outliers: ', outlier_number_list)
     print('rate: ', pruning_rate_list)
 
 

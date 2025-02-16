@@ -70,8 +70,8 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
 
     #start_time = time.time()
 
-    print('server_ip: ', server_ip)
-    print('server_port: ', server_port)
+    #print('server_ip: ', server_ip)
+    #print('server_port: ', server_port)
     conn = http.client.HTTPConnection(server_ip, server_port)
     conn.connect()
 
@@ -82,7 +82,7 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     conn.endheaders()
 
 
-    print('http sending: ', text)
+    #print('http sending: ', text)
     #print('package size: ', total_size)
     #print(newx)
     conn.send(newx)
@@ -110,7 +110,7 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
 
         resp_message = resp_message[0]
         resp_message.append(rtt)    #resp_message = [start_idx, total_comp_time, idx, rtt(total time)]
-        print('server side resp: ', resp_message)
+        #print('server side resp: ', resp_message)
 
         if not resp_message[0] == -1:
             timestamp_manager.end_times = (resp_message[2], end_time2)
