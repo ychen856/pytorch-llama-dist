@@ -20,7 +20,7 @@ def get_outlier(flat_tensor):
 
     #print('outliers: ', outliers)
 
-    return outliers.shape[0]
+    return mean, outliers.shape[0]
 
 #input shape [1, 1024, 4096]
 def get_pruning_rate(tensor_data):
@@ -35,7 +35,7 @@ def get_pruning_rate(tensor_data):
     print('rate: ', pruning_rate_list)
 
 
-def prune_feature_vector(tensor_data, rate):
+def prune_feature_vector(tensor_data, mean, rate):
     # Get the mean of the tensor
     mean_val = tensor_data.double().mean()
 
