@@ -300,18 +300,7 @@ def task1_data_sending(args):
                 timestamp_manager.start_times = (idx, start_time)
 
                 output = input_queue.get()
-                print('outzzz: ', output)
-
-                outlier = get_outlier(output.flatten())
-                if outlier > 0:
-                    rate = 50 / outlier
-                else:
-                    rate = 0.5
-                pruned_feature_vector = prune_feature_vector(output.flatten(), rate)
-                csr_out = dense_to_CSR(pruned_feature_vector[0])
-
-
-                outgoing_queue.put([0, [csr_out.crow_indices(), csr_out.col_indices(), csr_out.values()], None, None, idx, 0])
+                outgoing_queue.put([0, output, None, None, idx, 0])
 
                 #outgoing_queue.put([0, input_queue.get(), None, None, idx, 0])
                 end_time = time.time()
