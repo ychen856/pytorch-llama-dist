@@ -479,15 +479,15 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             print('input count: ', input_count)
 
             print('out: ', out)
-            outlier = get_outlier(out.last_hidden_state.flatten())
+            mean, outlier = get_outlier(out.last_hidden_state.flatten())
 
             if outlier > 0:
                 rate = 50 / outlier
             else:
                 rate = 0.5
             
-            pruned_feature_vector = prune_feature_vector(out.last_hidden_state, rate)
-            #csr_out = dense_to_CSR(pruned_feature_vector[0])
+            pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
+            csr_out = dense_to_CSR(pruned_feature_vector[0])
 
             #outgoing_queue.put([end_idx + 1, [csr_out.crow_indices(), csr_out.col_indices(), csr_out.values()], ids, mask, idx, end_time - start_time])
             outgoing_queue.put([end_idx + 1, out, ids, mask, idx, end_time - start_time])
