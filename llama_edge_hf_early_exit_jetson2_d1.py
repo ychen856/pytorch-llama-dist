@@ -300,7 +300,7 @@ def task1_data_sending(args):
                 timestamp_manager.start_times = (idx, start_time)
 
                 output = input_queue.get()
-                print('out: ', output)
+                print('outzzz: ', output)
 
                 outlier = get_outlier(output.flatten())
                 if outlier > 0:
