@@ -484,15 +484,17 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             mean, outlier = get_outlier(out.last_hidden_state.flatten())
 
             if outlier > 0:
-                rate = 70 / outlier
+                rate = 70 / outlier #50, 30
             else:
                 rate = 0.5
 
             print('rate: ', rate)
             pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
-            csr_out = dense_to_CSR(pruned_feature_vector[0])
+            #csr_out = dense_to_CSR(pruned_feature_vector[0])
+            csc_out = dense_to_CSC(pruned_feature_vector[0])
 
-            outgoing_queue.put([end_idx + 1, [csr_out.crow_indices(), csr_out.col_indices(), csr_out.values()], ids, mask, idx, end_time - start_time])
+            #outgoing_queue.put([end_idx + 1, [csr_out.crow_indices(), csr_out.col_indices(), csr_out.values()], ids, mask, idx, end_time - start_time])
+            outgoing_queue.put([end_idx + 1, [csc_out.ccol_indices(), csc_out.row_indices(), csc_out.values()], ids, mask, idx, end_time - start_time])
             #outgoing_queue.put([end_idx + 1, out, ids, mask, idx, end_time - start_time])
             print('outgoing queue PUT!')
             calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)

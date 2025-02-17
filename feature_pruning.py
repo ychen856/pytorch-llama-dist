@@ -86,3 +86,26 @@ def csr_to_dense(csr_data):
     return recovered_dense_tensor
 
 
+def dense_to_CSC(tensor_data):
+    # Convert to sparse tensor
+    sparse_tensor = tensor_data.to_sparse()
+
+    # Convert sparse tensor to CSR format
+    csc_tensor = sparse_tensor.to_sparse_csc()
+
+    return csc_tensor
+
+def csc_to_dense(csc_data):
+    print('csr_data: ', csc_data)
+    csc_tensor = torch.sparse_csc_tensor(
+        ccol_indices = csc_data[0],  # Row offsets
+        row_indices = csc_data[1],  # Column indices (empty)
+        values = csc_data[2])
+
+    # Recover the sparse tensor from CSR
+    recovered_sparse_tensor = csc_tensor.to_sparse()
+
+    # Convert back to dense tensor to verify correctness
+    recovered_dense_tensor = recovered_sparse_tensor.to_dense()
+
+    return recovered_dense_tensor

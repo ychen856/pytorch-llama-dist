@@ -507,10 +507,11 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             #http_receiver.set_outgoing_queue([-1, None, None])
             continue
         elif len(csr_out) > 1:
-
             print('len(csr_out): ', len(csr_out))
+            #recover from csr/csc
             out = BaseModelOutputWithPast()
-            out.last_hidden_state = csr_to_dense(csr_out).unsqueeze(0)
+            #out.last_hidden_state = csr_to_dense(csr_out).unsqueeze(0)
+            out.last_hidden_state = csc_to_dense(csr_out).unsqueeze(0)
             out.past_key_values = None
             out.hidden_states = None
             out.attentions = None
