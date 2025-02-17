@@ -87,6 +87,7 @@ def csr_to_dense(csr_data):
 
 
 def dense_to_CSC(tensor_data):
+    print('origial shape: ', tensor_data.shape)
     # Step 2: Extract nonzero values and their indices
     values = tensor_data[tensor_data != 0]  # Nonzero values
     row_indices = tensor_data.nonzero()[:, 0]  # Row indices of nonzero values
@@ -99,6 +100,9 @@ def dense_to_CSC(tensor_data):
     for col in range(num_cols):
         ccol_indices[col + 1] = (col_indices == col).sum() + ccol_indices[col]
 
+    print('csc - col: ', ccol_indices.shape)
+    print('csc - row: ', row_indices.shape)
+    print('csc - values: ', values.shape)
     # Step 4: Create the CSC tensor
     csc_tensor = [ccol_indices, row_indices, values]
     #csc_tensor = torch.sparse_csc_tensor(ccol_indices, row_indices, values, size=tensor_data.shape)
