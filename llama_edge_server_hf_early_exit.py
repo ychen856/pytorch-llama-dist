@@ -512,6 +512,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             out = BaseModelOutputWithPast()
             #out.last_hidden_state = csr_to_dense(csr_out).unsqueeze(0)
             out.last_hidden_state = csc_to_dense(csr_out).unsqueeze(0)
+            print('ZZZZZZZZZZZZZZZZZZ: ', out.last_hidden_state.shape)
             out.past_key_values = None
             out.hidden_states = None
             out.attentions = None
