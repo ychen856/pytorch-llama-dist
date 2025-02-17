@@ -493,8 +493,8 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             #csr_out = dense_to_CSR(pruned_feature_vector[0])
             csc_out = dense_to_CSC(pruned_feature_vector[0])
 
-            out2 = csc_to_dense(csc_out)
-            print('out2 size: ', out2.shape)
+            #out2 = csc_to_dense(csc_out)
+            #print('out2 size: ', out2.shape)
 
             #outgoing_queue.put([end_idx + 1, [csr_out.crow_indices(), csr_out.col_indices(), csr_out.values()], ids, mask, idx, end_time - start_time])
             outgoing_queue.put([end_idx + 1, [csc_out.ccol_indices(), csc_out.row_indices(), csc_out.values()], ids, mask, idx, end_time - start_time])
