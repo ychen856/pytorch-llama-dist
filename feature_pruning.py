@@ -104,7 +104,8 @@ def dense_to_CSC(tensor_data):
     print('csc - row: ', row_indices.shape)
     print('csc - values: ', values.shape)
     # Step 4: Create the CSC tensor
-    csc_tensor = [ccol_indices, row_indices, values]
+    #csc_tensor = [ccol_indices, row_indices, values]
+    csc_tensor = pack_tensors([ccol_indices, row_indices, values])
     #csc_tensor = torch.sparse_csc_tensor(ccol_indices, row_indices, values, size=tensor_data.shape)
 
     # Print results
@@ -125,3 +126,34 @@ def csc_to_dense(csc_data):
     recovered_dense_tensor = recovered_sparse_tensor.to_dense()
 
     return recovered_dense_tensor
+
+
+def pack_tensors(tensor_list, padding_value = 0.0):
+    # Step 1: Get the maximum tensor length
+    max_size = max(tensor.size(0) for tensor in tensor_list)
+
+    # Step 2: Pad all tensors to the same length
+    padded_tensors = [
+        torch.nn.functional.pad(tensor, (0, max_size - tensor.size(0)), value=padding_value)
+        for tensor in tensor_list
+    ]
+
+    # Step 3: Stack into a single tensor
+    packed_tensor = torch.stack(padded_tensors, dim=0)  # Shape: [num_tensors, max_size]
+
+
+    return packed_tensor
+
+
+def unpack_tensors(packed_tensor, original_sizes = 3):
+    """
+    Unpacks a single packed tensor back into a list of tensors.
+
+    Args:
+        packed_tensor (torch.Tensor): The packed tensor (padded).
+        original_sizes (torch.Tensor): Tensor storing the original sizes.
+
+    Returns:
+        list of torch.Tensor: The unpacked tensors.
+    """
+    return [packed_tensor[i, :size] for i, size in enumerate(original_sizes)]
