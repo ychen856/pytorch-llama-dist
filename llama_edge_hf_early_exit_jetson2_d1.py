@@ -497,7 +497,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             #print('out2 size: ', out2.shape)
 
             #outgoing_queue.put([end_idx + 1, [csr_out.crow_indices(), csr_out.col_indices(), csr_out.values()], ids, mask, idx, end_time - start_time])
-            outgoing_queue.put([end_idx + 1, [csc_out.ccol_indices(), csc_out.row_indices(), csc_out.values()], ids, mask, idx, end_time - start_time])
+            outgoing_queue.put([end_idx + 1, csc_out, ids, mask, idx, end_time - start_time])
             #outgoing_queue.put([end_idx + 1, out, ids, mask, idx, end_time - start_time])
             print('outgoing queue PUT!')
             calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
