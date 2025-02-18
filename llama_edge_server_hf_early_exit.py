@@ -508,6 +508,8 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             continue
         elif len(csr_out) == 2:
             print('len(csr_out): ', len(csr_out))
+            print('???: ', csr_out[0])
+            print('!!!: ', csr_out[1])
             unpacked_out = unpack_tensors(csr_out[0], csr_out[1])
             print('EEEEE: ', unpacked_out)
             #recover from csr/csc
