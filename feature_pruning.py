@@ -144,10 +144,10 @@ def pack_tensors(tensor_list, padding_value = 0.0):
     original_sizes = torch.tensor([tensor.size(0) for tensor in tensor_list], dtype=torch.int32)
     print('original size: ', original_sizes)
 
-    return packed_tensor
+    return [packed_tensor, original_sizes]
 
 
-def unpack_tensors(packed_tensor, original_sizes = 3):
+def unpack_tensors(packed_tensor, original_sizes):
     """
     Unpacks a single packed tensor back into a list of tensors.
 
