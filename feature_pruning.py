@@ -141,6 +141,8 @@ def pack_tensors(tensor_list, padding_value = 0.0):
     # Step 3: Stack into a single tensor
     packed_tensor = torch.stack(padded_tensors, dim=0)  # Shape: [num_tensors, max_size]
     print('packed_tensor: ', packed_tensor)
+    original_sizes = torch.tensor([tensor.size(0) for tensor in tensor_list], dtype=torch.int32)
+    print('original size: ', original_sizes)
 
     return packed_tensor
 
