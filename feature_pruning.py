@@ -103,6 +103,8 @@ def dense_to_CSC(tensor_data):
     print('csc - col: ', ccol_indices.shape)
     print('csc - row: ', row_indices.shape)
     print('csc - values: ', values.shape)
+
+    print('???: ', ccol_indices[0 : 4097])
     # Step 4: Create the CSC tensor
     #csc_tensor = [ccol_indices, row_indices, values]
     csc_tensor = pack_tensors([ccol_indices, row_indices, values])
@@ -158,4 +160,12 @@ def unpack_tensors(packed_tensor, original_sizes):
     Returns:
         list of torch.Tensor: The unpacked tensors.
     """
-    return [packed_tensor[i, :size] for i, size in enumerate(original_sizes)]
+
+    print('eoieofejowjoefijioewf: ', packed_tensor[0].shape)
+    print('oifiajfoijad: ', original_sizes[0].item())
+
+    ccol_indices = packed_tensor[0][0: 4097]
+    row_indices = packed_tensor[1][0: original_sizes[1].item()]
+    values = packed_tensor[2][0: original_sizes[2].item()]
+    #return [packed_tensor[i, :size] for i, size in enumerate(original_sizes)]
+    return [ccol_indices, row_indices, values]
