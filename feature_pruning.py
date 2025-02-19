@@ -106,8 +106,8 @@ def dense_to_CSC(tensor_data):
 
     print('???: ', ccol_indices[0 : 4097])
     # Step 4: Create the CSC tensor
-    #csc_tensor = [ccol_indices, row_indices, values]
-    csc_tensor = pack_tensors([ccol_indices, row_indices, values])
+    csc_tensor = [ccol_indices, row_indices, values]
+    #csc_tensor = pack_tensors([ccol_indices, row_indices, values])
     #csc_tensor = torch.sparse_csc_tensor(ccol_indices, row_indices, values, size=tensor_data.shape)
 
     # Print results
