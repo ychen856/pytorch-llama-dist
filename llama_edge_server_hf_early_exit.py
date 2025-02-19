@@ -507,15 +507,11 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             #http_receiver.set_outgoing_queue([-1, None, None])
             continue
         elif len(csr_out) == 2:
-            print('len(csr_out): ', len(csr_out))
-            print('???: ', csr_out[0])
-            print('!!!: ', csr_out[1])
-            unpacked_out = unpack_tensors(csr_out[0], csr_out[1])
-            print('EEEEE: ', unpacked_out)
+            #unpacked_out = unpack_tensors(csr_out[0], csr_out[1])
             #recover from csr/csc
             out = BaseModelOutputWithPast()
-            #out.last_hidden_state = csr_to_dense(csr_out).unsqueeze(0)
-            out.last_hidden_state = csc_to_dense(unpacked_out).unsqueeze(0)
+            out.last_hidden_state = csr_to_dense(csr_out).unsqueeze(0)
+            #out.last_hidden_state = csc_to_dense(unpacked_out).unsqueeze(0)
             print('ZZZZZZZZZZZZZZZZZZ: ', out.last_hidden_state.shape)
             out.past_key_values = None
             out.hidden_states = None

@@ -67,8 +67,8 @@ def dense_to_CSR(tensor_data):
     print('CSR size 22: ', csr_tensor.col_indices())
     print('CSR size 33: ', csr_tensor.values())'''
 
-    return csr_tensor
-
+    #return csr_tensor
+    return [csr_tensor.crow_indices(), csr_tensor.col_indices(), csr_tensor.values()]
 
 def csr_to_dense(csr_data):
     print('csr_data: ', csr_data)
@@ -78,10 +78,10 @@ def csr_to_dense(csr_data):
         values = csr_data[2])
 
     # Recover the sparse tensor from CSR
-    recovered_sparse_tensor = csr_tensor.to_sparse()
+    #recovered_sparse_tensor = csr_tensor.to_sparse()
 
     # Convert back to dense tensor to verify correctness
-    recovered_dense_tensor = recovered_sparse_tensor.to_dense()
+    recovered_dense_tensor = csr_tensor.to_dense()
 
     return recovered_dense_tensor
 
