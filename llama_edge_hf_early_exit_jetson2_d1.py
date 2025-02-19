@@ -398,10 +398,6 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
         is_early_exit = False
         count = count + 1
         #print('========================================')
-        #print('input count: ', count)
-        print('start idx: ', 0)
-        print('end idx: ', end_idx)
-        #print('end idx buffer: ', end_idx_buff)
 
         idx = input_queue.qsize()
         input = input_queue.get()
@@ -414,6 +410,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
         timestamp_manager.start_times = (idx, start_time)
 
 
+        print('start idx: ', 0)
         # Forward pass through the model
         try:
             out, ids, mask = models[0](input)
@@ -436,6 +433,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                         end_idx = k
 
                     if is_early_exit:
+                        print('end idx: ', k)
                         timestamp_manager.end_times = (idx, time.time())
                         break
 
@@ -450,6 +448,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
 
         end_time = time.time()
+
+        if is_early_exit:
+            print('end idx: ', end_idx)
 
         print('is early: ', is_early_exit)
 
