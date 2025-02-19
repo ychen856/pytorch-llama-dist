@@ -485,7 +485,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             mean, outlier = get_outlier(out.last_hidden_state.flatten())
 
             if outlier > 0:
-                rate = 50 / outlier #50, 30, 70
+                rate = 30 / outlier #50, 30, 70
             else:
                 rate = 0.5
 
@@ -497,7 +497,6 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             #out2 = csc_to_dense(csc_out)
             #print('out2 size: ', out2.shape)
 
-            #outgoing_queue.put([end_idx + 1, [csr_out.crow_indices(), csr_out.col_indices(), csr_out.values()], ids, mask, idx, end_time - start_time])
             outgoing_queue.put([end_idx + 1, csc_out, ids, mask, idx, end_time - start_time])
             #outgoing_queue.put([end_idx + 1, out, ids, mask, idx, end_time - start_time])
             print('outgoing queue PUT!')
