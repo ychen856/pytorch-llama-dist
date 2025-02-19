@@ -485,7 +485,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             mean, outlier = get_outlier(out.last_hidden_state.flatten())
 
             if outlier > 0:
-                rate = 50 / outlier #50, 30
+                rate = 50 / outlier #50, 30, 70
             else:
                 rate = 0.5
 

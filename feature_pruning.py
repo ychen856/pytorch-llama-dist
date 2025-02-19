@@ -77,10 +77,10 @@ def csr_to_dense(csr_data):
         values = csr_data[2])
 
     # Recover the sparse tensor from CSR
-    #recovered_sparse_tensor = csr_tensor.to_sparse()
+    recovered_sparse_tensor = csr_tensor.to_sparse()
 
     # Convert back to dense tensor to verify correctness
-    recovered_dense_tensor = csr_tensor.to_dense()
+    recovered_dense_tensor = recovered_sparse_tensor.to_dense()
 
     return recovered_dense_tensor
 
