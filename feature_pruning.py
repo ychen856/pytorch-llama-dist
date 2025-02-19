@@ -1,3 +1,4 @@
+import tensorboard.compat.tensorflow_stub.dtypes
 import torch
 import math
 def get_outlier(flat_tensor):
@@ -119,7 +120,7 @@ def csc_to_dense(csc_data):
     csc_tensor = torch.sparse_csc_tensor(
         ccol_indices = csc_data[0],  # Row offsets
         row_indices = csc_data[1],  # Column indices (empty)
-        values = csc_data[2])
+        values = csc_data[2].to(torch.float32))
 
     # Recover the sparse tensor from CSR
     recovered_sparse_tensor = csc_tensor.to_sparse()
@@ -164,8 +165,8 @@ def unpack_tensors(packed_tensor, original_sizes):
     print('eoieofejowjoefijioewf: ', packed_tensor[0].shape)
     print('oifiajfoijad: ', original_sizes[0].item())
 
-    ccol_indices = packed_tensor[0][0: 4097]
-    row_indices = packed_tensor[1][0: original_sizes[1].item()]
+    ccol_indices = packed_tensor[0].to(torch.int32)[0: original_sizes[0].item()]
+    row_indices = packed_tensor[1].to(torch.int32)[0: original_sizes[1].item()]
     values = packed_tensor[2][0: original_sizes[2].item()]
     #return [packed_tensor[i, :size] for i, size in enumerate(original_sizes)]
     return [ccol_indices, row_indices, values]
