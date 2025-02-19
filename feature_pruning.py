@@ -1,4 +1,3 @@
-import tensorboard.compat.tensorflow_stub.dtypes
 import torch
 import math
 def get_outlier(flat_tensor):
