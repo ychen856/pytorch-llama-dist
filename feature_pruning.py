@@ -119,7 +119,7 @@ def csc_to_dense(csc_data):
     csc_tensor = torch.sparse_csc_tensor(
         ccol_indices = csc_data[0],  # Row offsets
         row_indices = csc_data[1],  # Column indices (empty)
-        values = csc_data[2].to(torch.float32))
+        values = csc_data[2])
 
     # Recover the sparse tensor from CSR
     recovered_sparse_tensor = csc_tensor.to_sparse()
