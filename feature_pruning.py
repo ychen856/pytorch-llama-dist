@@ -71,7 +71,6 @@ def dense_to_CSR(tensor_data):
     return [csr_tensor.crow_indices(), csr_tensor.col_indices(), csr_tensor.values()]
 
 def csr_to_dense(csr_data):
-    print('csr_data: ', csr_data)
     csr_tensor = torch.sparse_csr_tensor(
         crow_indices = csr_data[0],  # Row offsets
         col_indices = csr_data[1],  # Column indices (empty)
@@ -87,7 +86,6 @@ def csr_to_dense(csr_data):
 
 
 def dense_to_CSC(tensor_data):
-    print('origial shape: ', tensor_data.shape)
     # Step 2: Extract nonzero values and their indices
     values = tensor_data[tensor_data != 0]  # Nonzero values
     row_indices = tensor_data.nonzero()[:, 0]  # Row indices of nonzero values
@@ -100,11 +98,6 @@ def dense_to_CSC(tensor_data):
     for col in range(num_cols):
         ccol_indices[col + 1] = (col_indices == col).sum() + ccol_indices[col]
 
-    print('csc - col: ', ccol_indices.shape)
-    print('csc - row: ', row_indices.shape)
-    print('csc - values: ', values.shape)
-
-    print('???: ', ccol_indices[0 : 4097])
     # Step 4: Create the CSC tensor
     csc_tensor = [ccol_indices, row_indices, values]
     #csc_tensor = pack_tensors([ccol_indices, row_indices, values])
@@ -115,7 +108,6 @@ def dense_to_CSC(tensor_data):
     return csc_tensor
 
 def csc_to_dense(csc_data):
-    print('csr_data: ', csc_data)
     csc_tensor = torch.sparse_csc_tensor(
         ccol_indices = csc_data[0],  # Row offsets
         row_indices = csc_data[1],  # Column indices (empty)
@@ -142,9 +134,7 @@ def pack_tensors(tensor_list, padding_value = 0.0):
 
     # Step 3: Stack into a single tensor
     packed_tensor = torch.stack(padded_tensors, dim=0)  # Shape: [num_tensors, max_size]
-    print('packed_tensor: ', packed_tensor)
     original_sizes = torch.tensor([tensor.size(0) for tensor in tensor_list], dtype=torch.int32)
-    print('original size: ', original_sizes)
 
     return [packed_tensor, original_sizes]
 
@@ -160,9 +150,6 @@ def unpack_tensors(packed_tensor, original_sizes):
     Returns:
         list of torch.Tensor: The unpacked tensors.
     """
-
-    print('eoieofejowjoefijioewf: ', packed_tensor[0].shape)
-    print('oifiajfoijad: ', original_sizes[0].item())
 
     ccol_indices = packed_tensor[0].to(torch.int32)[0: original_sizes[0].item()]
     row_indices = packed_tensor[1].to(torch.int32)[0: original_sizes[1].item()]

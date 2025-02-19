@@ -449,7 +449,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
         end_time = time.time()
 
-        if is_early_exit:
+        if not is_early_exit:
             print('end idx: ', end_idx)
 
         print('is early: ', is_early_exit)
@@ -493,7 +493,6 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
             #csr_out = dense_to_CSR(pruned_feature_vector[0])
             csc_out = dense_to_CSC(pruned_feature_vector[0])
-            print('ZZZZZZZZZZ: ', csc_out)
 
             #out2 = csc_to_dense(csc_out)
             #print('out2 size: ', out2.shape)
