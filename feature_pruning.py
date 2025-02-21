@@ -68,7 +68,7 @@ def dense_to_CSR(tensor_data):
     print('CSR size 33: ', csr_tensor.values())'''
 
     #return csr_tensor
-    return [csr_tensor.crow_indices().numpy().tobytes(), csr_tensor.col_indices().numpy().tobytes(), csr_tensor.values().numpy().tobytes()]
+    return [csr_tensor.crow_indices().cpu().numpy().tobytes(), csr_tensor.col_indices().cpu().numpy().tobytes(), csr_tensor.values().cpu().numpy().tobytes()]
 
 def csr_to_dense(csr_data):
     csr_tensor = torch.sparse_csr_tensor(
