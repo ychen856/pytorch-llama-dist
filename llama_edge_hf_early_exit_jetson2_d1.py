@@ -269,7 +269,7 @@ def task1_data_sending(args):
         #print('zzz', calculate_opt.steady_state)
         #while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
         #while outgoing_queue.empty() and input_queue.qsize() > 0:
-        '''while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0 and calculate_opt.steady_state:
+        while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0 and calculate_opt.steady_state:
         #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0:
             timeout_count = timeout_count + 1
 
@@ -280,7 +280,8 @@ def task1_data_sending(args):
                 idx = input_queue.qsize()
                 timestamp_manager.start_times = (idx, start_time)
 
-                output = input_queue.get()
+                #output = input_queue.get()
+                output = input_queue.get().numpy().tobytes()
                 outgoing_queue.put([0, output, None, None, idx, 0])
 
                 #outgoing_queue.put([0, input_queue.get(), None, None, idx, 0])
@@ -289,7 +290,7 @@ def task1_data_sending(args):
                 print('rate: ', 0)
                 print('server idle!')
             else:
-                break'''
+                break
 
 
         data = outgoing_queue.get()
