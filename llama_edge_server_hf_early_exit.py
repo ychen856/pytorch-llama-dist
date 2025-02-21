@@ -14,6 +14,7 @@ from transformers.modeling_outputs import BaseModelOutputWithPast
 
 from feature_pruning import *
 
+import http_receiver2 as http_receiver
 import http_sender_gateway
 from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
@@ -36,7 +37,6 @@ from early_exit import early_exit_cpu, early_exit_cuda, early_exit_lm_head
 from timestamp_manager import Timestamp_manager
 from threading import current_thread, Thread
 from multiprocessing import current_process
-import http_receiver
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
 parser.add_argument('--config', default='config_server.yaml')
@@ -505,10 +505,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             #http_receiver.set_outgoing_queue([-1, None, None])
             continue
         elif len(csr_out) == 3:
-            #unpacked_out = unpack_tensors(csr_out[0], csr_out[1])
             #recover from csr/csc
             out = BaseModelOutputWithPast()
-            out.last_hidden_state = csc_to_dense(csr_out).unsqueeze(0)
+            out.last_hidden_state = csr_to_dense(csr_out).unsqueeze(0)
             #out.last_hidden_state = csc_to_dense(unpacked_out).unsqueeze(0)
             out.past_key_values = None
             out.hidden_states = None

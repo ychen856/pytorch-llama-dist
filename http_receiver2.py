@@ -2,6 +2,8 @@
 import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import pickle
+import msgpack
+import lz4.frame
 import argparse
 import yaml
 import http_sender
@@ -31,10 +33,6 @@ def get_in_queue_data():
     return incoming_queue.get()
 
 def get_out_queue_data():
-    '''if len(incoming_queue) > 0:
-        return incoming_queue[0]
-    else:
-        return []'''
     while outgoing_queue.empty():
         time.sleep(0.005)
 
@@ -67,7 +65,9 @@ class S(BaseHTTPRequestHandler):
         post_data = self.rfile.read(content_length)
         self._set_headers()
 
-        decrypt_data = pickle.loads(post_data)
+        #decrypt_data = pickle.loads(post_data)
+        decompressed_data = lz4.frame.decompress(post_data)
+        decrypt_data = msgpack.unpackb(decompressed_data, raw=False)
         incoming_queue.put(decrypt_data)
         end_time = time.time()
         #print('server receiving time: ', end_time - start_time)
@@ -84,14 +84,6 @@ class S(BaseHTTPRequestHandler):
         #self.return_message()
 
     def return_message(self):
-        '''outgoing_data = []
-        while 1:
-            while not outgoing_queue.empty():
-                outgoing_data = outgoing_queue.get()
-
-            if len(outgoing_data) > 0:
-                break'''
-
         while outgoing_queue.empty():
             time.sleep(1.5)
         # Process the received data here:
