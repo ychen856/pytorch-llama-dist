@@ -265,31 +265,11 @@ def get_server_statistic_from_q():
 def task1_data_sending(args):
     while 1:
         timeout_count = 0
-        '''while outgoing_queue.empty():
-            timeout_count = timeout_count + 1
-
-            start_time = time.time()
-            #print('outgoing queue size: ', outgoing_queue.qsize())
-            if input_queue.qsize() > 0 and calculate_opt.incoming_count + 2 >= calculate_opt.outgoint_count and outgoing_queue.qsize() < 10:
-                idx = input_queue.qsize()
-                timestamp_manager.start_times = (idx, start_time)
-
-                outgoing_queue.put([0, input_queue.get(), None, None, idx])
-                end_time = time.time()
-                print('client computation time: ', end_time - start_time)
-                # calculate_opt.client_comp_statistics = (-1, end_idx_buff, end_time - start_time)
-                print('server idle!')
-
-            if timeout_count > 12000:
-                print('task 1 end...')
-                return
-
-            time.sleep(0.0001)'''
 
         #print('zzz', calculate_opt.steady_state)
         #while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
         #while outgoing_queue.empty() and input_queue.qsize() > 0:
-        while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0 and calculate_opt.steady_state:
+        '''while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0 and calculate_opt.steady_state:
         #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0:
             timeout_count = timeout_count + 1
 
@@ -309,7 +289,7 @@ def task1_data_sending(args):
                 print('rate: ', 0)
                 print('server idle!')
             else:
-                break
+                break'''
 
 
         data = outgoing_queue.get()
