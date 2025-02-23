@@ -161,6 +161,7 @@ def serialize_and_compress(start_idx, csr_out, ids, mask, idx, client_comp_time)
         "ccol": csr_out[0].cpu().numpy().tobytes(),
         "crow": csr_out[1].cpu().numpy().tobytes(),
         "value": csr_out[2].cpu().numpy().tobytes(),
+        "ids": ids.cpu().numpy.tobytes(),
         "mask": mask.cpu().numpy().tobytes()
     }
 
@@ -171,11 +172,11 @@ def serialize_and_compress(start_idx, csr_out, ids, mask, idx, client_comp_time)
             "ccol_shape": csr_out[0].shape,
             "crow_shape": csr_out[1].shape,
             "value_shape": csr_out[2].shape,
+            "ids_shape": ids.shape,
             "mask_shape": mask.shape,
             "dtype": str(csr_out[2].dtype),
             "data": tensor_data
         },
-        "ids": ids,  # Assuming it's a list
         "idx": idx,
         "client_comp_time": client_comp_time
     }
@@ -216,12 +217,16 @@ def decompress_and_deserialize(compressed_data):
 
     csr_out = [tensor_ccol, tensor_crow, tensor_value]
 
+    ids = torch.from_numpy(
+        np.frombuffer(unpacked_data["tensor"]["data"]["ids"], dtype=dtype).reshape(
+            unpacked_data["tensor"]["ids_shape"])
+    ).cuda()
 
     mask = torch.from_numpy(
         np.frombuffer(unpacked_data["tensor"]["data"]["mask"], dtype=dtype).reshape(
             unpacked_data["tensor"]["mask_shape"])
     ).cuda()
 
-    return [unpacked_data["start_idx"], csr_out, unpacked_data["ids"], mask, unpacked_data[
+    return [unpacked_data["start_idx"], csr_out, ids, mask, unpacked_data[
         "idx"], unpacked_data["client_comp_time"]]
 
