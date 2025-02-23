@@ -193,7 +193,8 @@ def decompress_and_deserialize(compressed_data):
     decompressed_data = lz4.frame.decompress(compressed_data)
     # Deserialize from MessagePack
     unpacked_data = msgpack.unpackb(decompressed_data, raw=False)
-    print('original: ', unpacked_data)
+    #print('original: ', unpacked_data)
+    print('start_idx', unpacked_data["start_idx"])
 
     torch_dtype_map = {
         "torch.float32": np.float32,
