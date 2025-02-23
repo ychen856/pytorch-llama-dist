@@ -211,6 +211,7 @@ def decompress_and_deserialize(compressed_data):
     # Reconstruct tensors
     dtype = torch_dtype_map[unpacked_data["tensor"]["dtype"]]
 
+    print('ccol: ', np.frombuffer(unpacked_data["tensor"]["data"]["ccol"], dtype=dtype))
     print('ccol: ', unpacked_data["tensor"]["ccol_shape"])
     tensor_ccol = torch.from_numpy(
         np.frombuffer(unpacked_data["tensor"]["data"]["ccol"], dtype=dtype).reshape(
