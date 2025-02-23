@@ -185,21 +185,25 @@ def serialize_and_compress(start_idx, csr_out, ids, mask, idx, client_comp_time)
         "client_comp_time": client_comp_time
     }
 
+    print('original: ', data_packet)
     # Serialize and compress
     packed_data = msgpack.packb(data_packet, use_bin_type=True)
+    print('packed_data: ', packed_data)
     compressed_data = lz4.frame.compress(packed_data)
-
+    print('compressed_data: ', compressed_data)
     return compressed_data
 
 
 def decompress_and_deserialize(compressed_data):
     """ Decompresses and deserializes data using LZ4 + MessagePack """
-
+    print('compressed_data: ', compressed_data)
     # Decompress data
     decompressed_data = lz4.frame.decompress(compressed_data)
 
+    print('packed_data: ', decompressed_data)
     # Deserialize from MessagePack
     unpacked_data = msgpack.unpackb(decompressed_data, raw=False)
+    print('original: ', unpacked_data)
 
     torch_dtype_map = {
         "torch.float32": np.float32,
