@@ -120,6 +120,7 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
         #returning_queue.put(resp_message)
     except:
         print('error')
+
     #print('return message: ', resp_message[0])
     #returning_queue.append(resp_message)
 
