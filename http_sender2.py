@@ -100,6 +100,9 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     rtt = end_time2 - start_time
 
     try:
+        print('KKKKKKKKKKKKKKKKKKKK')
+        print('KKKKKKKKKKKKKKKKKKKK')
+        print('KKKKKKKKKKKKKKKKKKKK')
         # resp_message = [start_idx, total_comp_time, idx]
         resp_message = pickle.loads(resp_str)
 
