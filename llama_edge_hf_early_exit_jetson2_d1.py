@@ -282,7 +282,9 @@ def task1_data_sending(args):
 
                 #output = input_queue.get()
                 output = input_queue.get()
-                outgoing_queue.put([0, output, None, None, idx, 0])
+                packed_data = serialize_and_compress(0, [None, None, output], None, None, idx, 0)
+                outgoing_queue.put(packed_data)
+                #outgoing_queue.put([0, output, None, None, idx, 0])
 
                 #outgoing_queue.put([0, input_queue.get(), None, None, idx, 0])
                 end_time = time.time()
