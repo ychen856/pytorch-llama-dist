@@ -198,8 +198,18 @@ def decompress_and_deserialize(compressed_data):
     # Deserialize from MessagePack
     unpacked_data = msgpack.unpackb(decompressed_data, raw=False)
 
+    torch_dtype_map = {
+        "torch.float32": np.float32,
+        "torch.float64": np.float64,
+        "torch.float16": np.float16,
+        "torch.int32": np.int32,
+        "torch.int64": np.int64,
+        "torch.uint8": np.uint8,
+    }
+
+
     # Reconstruct tensors
-    dtype = np.dtype(unpacked_data["tensor"]["dtype"])
+    dtype = torch_dtype_map[unpacked_data["tensor"]["dtype"]]
 
     tensor_ccol = torch.from_numpy(
         np.frombuffer(unpacked_data["tensor"]["data"]["ccol"], dtype=dtype).reshape(
