@@ -162,7 +162,7 @@ def serialize_and_compress(start_idx, csr_out, ids, mask, idx, client_comp_time)
         "ccol": csr_out[0].cpu().numpy().tobytes(),
         "crow": csr_out[1].cpu().numpy().tobytes(),
         "value": csr_out[2].cpu().numpy().tobytes(),
-        "ids": ids.cpu().numpy.tobytes(),
+        "ids": ids.cpu().numpy().tobytes(),
         "mask": mask.cpu().numpy().tobytes()
     }
 
