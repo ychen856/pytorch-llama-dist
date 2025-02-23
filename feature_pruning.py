@@ -179,11 +179,8 @@ def serialize_and_compress(start_idx, csr_out, ids, mask, idx, client_comp_time)
             "value_shape": csr_out[2].shape,
             "ids_shape": ids.shape,
             "mask_shape": mask.shape,
-            "ccol_dtype": str(csr_out[0].dtype),
-            "crow_dtype": str(csr_out[1].dtype),
-            "value_dtype": str(csr_out[2].dtype),
-            "idx_dtype": str(ids.dtype),
-            "mask_dtype": str(mask.dtype),
+            "index_dtype": str(csr_out[0].dtype),
+            "tensor_dtype": str(csr_out[2].dtype),
             "data": tensor_data
         },
         "idx": idx,
@@ -217,36 +214,33 @@ def decompress_and_deserialize(compressed_data):
 
 
     # Reconstruct tensors
-    ccol_dtype = torch_dtype_map[unpacked_data["tensor"]["ccol_dtype"]]
-    crow_dtype = torch_dtype_map[unpacked_data["tensor"]["ccrow_dtype"]]
-    value_dtype = torch_dtype_map[unpacked_data["tensor"]["value_dtype"]]
-    ids_dtype = torch_dtype_map[unpacked_data["tensor"]["ids_dtype"]]
-    mask_dtype = torch_dtype_map[unpacked_data["tensor"]["mask_dtype"]]
+    index_dtype = torch_dtype_map[unpacked_data["tensor"]["index_dtype"]]
+    tensor_dtype = torch_dtype_map[unpacked_data["tensor"]["tensor_dtype"]]
 
     tensor_ccol = torch.from_numpy(
-        np.frombuffer(unpacked_data["tensor"]["data"]["ccol"], dtype=ccol_dtype).reshape(
+        np.frombuffer(unpacked_data["tensor"]["data"]["ccol"], dtype=index_dtype).reshape(
             unpacked_data["tensor"]["ccol_shape"])
     ).cuda()
 
     tensor_crow = torch.from_numpy(
-        np.frombuffer(unpacked_data["tensor"]["data"]["crow"], dtype=crow_dtype).reshape(
+        np.frombuffer(unpacked_data["tensor"]["data"]["crow"], dtype=index_dtype).reshape(
             unpacked_data["tensor"]["crow_shape"])
     ).cuda()
 
     tensor_value = torch.from_numpy(
-        np.frombuffer(unpacked_data["tensor"]["data"]["value"], dtype=value_dtype).reshape(
+        np.frombuffer(unpacked_data["tensor"]["data"]["value"], dtype=tensor_dtype).reshape(
             unpacked_data["tensor"]["value_shape"])
     ).cuda()
 
     csr_out = [tensor_ccol, tensor_crow, tensor_value]
 
     ids = torch.from_numpy(
-        np.frombuffer(unpacked_data["tensor"]["data"]["ids"], dtype=ids_dtype).reshape(
+        np.frombuffer(unpacked_data["tensor"]["data"]["ids"], dtype=index_dtype).reshape(
             unpacked_data["tensor"]["ids_shape"])
     ).cuda()
 
     mask = torch.from_numpy(
-        np.frombuffer(unpacked_data["tensor"]["data"]["mask"], dtype=mask_dtype).reshape(
+        np.frombuffer(unpacked_data["tensor"]["data"]["mask"], dtype=tensor_dtype).reshape(
             unpacked_data["tensor"]["mask_shape"])
     ).cuda()
 
