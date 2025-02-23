@@ -85,7 +85,7 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     conn.putheader('Content-Length', str(total_size))
     conn.endheaders()
 
-    conn.send(compressed_data)
+    conn.send(text)
     end_time = time.time()
 
     start_time2 = time.time()
@@ -115,7 +115,7 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
             calculate_opt.server_comp_statistics = (resp_message[0], resp_message[3])
     except:
         print('error')
-    print('http receiving: ', start_idx, rtt)
+    #print('http receiving: ', start_idx, rtt)
     print('rrt: ', rtt)
     gc.collect()
 
