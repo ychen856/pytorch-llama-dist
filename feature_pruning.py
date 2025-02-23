@@ -158,6 +158,8 @@ def serialize_and_compress(start_idx, csr_out, ids, mask, idx, client_comp_time)
 
     print('ccol: ', csr_out[0].shape)
     print('ccol: ', csr_out[0])
+    print('crow: ', csr_out[1])
+    print('value: ', csr_out[2])
     # Convert tensors to CPU & byte buffers (for MessagePack compatibility)
     tensor_data = {
         "ccol": csr_out[0].cpu().numpy().tobytes(),
