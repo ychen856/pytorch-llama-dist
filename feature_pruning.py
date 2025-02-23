@@ -168,11 +168,11 @@ def serialize_and_compress(start_idx, csr_out, ids, mask, idx, client_comp_time)
     data_packet = {
         "start_idx": start_idx,
         "tensor": {
-            "ccol_shape": tensor_ccol.shape,
-            "crow_shape": tensor_crow.shape,
-            "value_shape": tensor_value.shape,
+            "ccol_shape": csr_out[0].shape,
+            "crow_shape": csr_out[1].shape,
+            "value_shape": csr_out[2].shape,
             "mask_shape": mask.shape,
-            "dtype": str(tensor_value.dtype),
+            "dtype": str(csr_out[2].dtype),
             "data": tensor_data
         },
         "ids": ids,  # Assuming it's a list
