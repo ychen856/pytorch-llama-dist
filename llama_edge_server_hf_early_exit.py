@@ -504,16 +504,16 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             layer_amount = opt_layer_amount
             #http_receiver.set_outgoing_queue([-1, None, None])
             continue
-        '''elif len(csr_out[0]) > 0:
+            '''elif len(csr_out[0]) > 0:
             #recover from csr/csc
             out = BaseModelOutputWithPast()
             out.last_hidden_state = csr_to_dense(csr_out).unsqueeze(0)
             #out.last_hidden_state = csc_to_dense(unpacked_out).unsqueeze(0)
             out.past_key_values = None
             out.hidden_states = None
-            out.attentions = None
+            out.attentions = None'''
         else:
-            out = csr_out'''
+            out = csr_out
 
 
         print('start idx: ', start_idx)
