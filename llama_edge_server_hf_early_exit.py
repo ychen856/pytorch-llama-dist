@@ -14,7 +14,8 @@ from transformers.modeling_outputs import BaseModelOutputWithPast
 
 from feature_pruning import *
 
-import http_receiver2 as http_receiver
+import http_receiver
+#import http_receiver2 as http_receiver
 import http_sender_gateway
 from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
@@ -376,7 +377,6 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
     checkpoints = natsorted(checkpoints)
     #checkpoints = checkpoints.sort(key=natural_keys)
     #checkpoints = sorted(Path(checkpoints_dir).glob("lm_head.*.pth"), key=lambda f: [int(n) for n in re.findall(r"\d+", f)])
-    print('zzzzzzzzzzz', checkpoints)
     assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
 
 
@@ -504,7 +504,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             layer_amount = opt_layer_amount
             #http_receiver.set_outgoing_queue([-1, None, None])
             continue
-        elif len(csr_out[0]) > 0:
+        '''elif len(csr_out[0]) > 0:
             #recover from csr/csc
             out = BaseModelOutputWithPast()
             out.last_hidden_state = csr_to_dense(csr_out).unsqueeze(0)
@@ -513,7 +513,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             out.hidden_states = None
             out.attentions = None
         else:
-            out = csr_out
+            out = csr_out'''
 
 
         print('start idx: ', start_idx)

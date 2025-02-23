@@ -10,8 +10,8 @@ import time
 from pathlib import Path
 import argparse
 
-#import http_sender
-import http_sender2 as http_sender
+import http_sender
+#import http_sender2 as http_sender
 from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
 
@@ -476,15 +476,12 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             print('rate: ', rate)
             pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
             #csr_out = dense_to_CSR(pruned_feature_vector[0])
-            csr_out = dense_to_CSR(pruned_feature_vector[0])
+            #csr_out = dense_to_CSR(pruned_feature_vector[0])
 
-            #out2 = csc_to_dense(csc_out)
-            #print('out2 size: ', out2.shape)
-
-            packed_data = serialize_and_compress(end_idx + 1, csr_out, ids, mask, idx, end_time - start_time)
+            #packed_data = serialize_and_compress(end_idx + 1, csr_out, ids, mask, idx, end_time - start_time)
             #outgoing_queue.put([end_idx + 1, csc_out, ids, mask, idx, end_time - start_time])
-            #outgoing_queue.put([end_idx + 1, out, ids, mask, idx, end_time - start_time])
-            outgoing_queue.put(packed_data)
+            outgoing_queue.put([end_idx + 1, out, ids, mask, idx, end_time - start_time])
+            #outgoing_queue.put(packed_data)
             print('outgoing queue PUT!')
             calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
 
