@@ -174,7 +174,7 @@ def serialize_and_compress(start_idx, csr_out, ids, mask, idx, client_comp_time)
             "value_shape": csr_out[2].shape,
             "ids_shape": ids.shape,
             "mask_shape": mask.shape,
-            "dtype": str(csr_out[2].dtype),
+            "dtype": str(csr_out[0].dtype),
             "data": tensor_data
         },
         "idx": idx,
