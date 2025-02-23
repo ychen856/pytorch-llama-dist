@@ -1,5 +1,9 @@
 import torch
 import math
+import msgpack
+import lz4.frame
+import numpy as np
+
 def get_outlier(flat_tensor):
     # Flatten the tensor
     #flat_tensor = tensor_data.flatten()
@@ -58,14 +62,6 @@ def dense_to_CSR(tensor_data):
 
     #Convert sparse tensor to CSR format
     csr_tensor = sparse_tensor.to_sparse_csr()
-
-    '''print('CSR size 1: ', csr_tensor.crow_indices().shape)
-    print('CSR size 2: ', csr_tensor.col_indices().shape)
-    print('CSR size 3: ',  csr_tensor.values().shape)
-
-    print('CSR size 11: ', csr_tensor.crow_indices())
-    print('CSR size 22: ', csr_tensor.col_indices())
-    print('CSR size 33: ', csr_tensor.values())'''
 
     #return csr_tensor
     return [csr_tensor.crow_indices().cpu().numpy().tobytes(), csr_tensor.col_indices().cpu().numpy().tobytes(), csr_tensor.values().cpu().numpy().tobytes()]
@@ -156,3 +152,76 @@ def unpack_tensors(packed_tensor, original_sizes):
     values = packed_tensor[2][0: original_sizes[2].item()]
     #return [packed_tensor[i, :size] for i, size in enumerate(original_sizes)]
     return [ccol_indices, row_indices, values]
+
+def serialize_and_compress(start_idx, csr_out, ids, mask, idx, client_comp_time):
+    """ Serializes and compresses data using MessagePack + LZ4 """
+
+    # Convert tensors to CPU & byte buffers (for MessagePack compatibility)
+    tensor_data = {
+        "ccol": csr_out[0].cpu().numpy().tobytes(),
+        "crow": csr_out[1].cpu().numpy().tobytes(),
+        "value": csr_out[2].cpu().numpy().tobytes(),
+        "mask": mask.cpu().numpy().tobytes()
+    }
+
+    # Store metadata for reconstruction
+    data_packet = {
+        "start_idx": start_idx,
+        "tensor": {
+            "ccol_shape": tensor_ccol.shape,
+            "crow_shape": tensor_crow.shape,
+            "value_shape": tensor_value.shape,
+            "mask_shape": mask.shape,
+            "dtype": str(tensor_value.dtype),
+            "data": tensor_data
+        },
+        "ids": ids,  # Assuming it's a list
+        "idx": idx,
+        "client_comp_time": client_comp_time
+    }
+
+    # Serialize and compress
+    packed_data = msgpack.packb(data_packet, use_bin_type=True)
+    compressed_data = lz4.frame.compress(packed_data)
+
+    return compressed_data
+
+
+def decompress_and_deserialize(compressed_data):
+    """ Decompresses and deserializes data using LZ4 + MessagePack """
+
+    # Decompress data
+    decompressed_data = lz4.frame.decompress(compressed_data)
+
+    # Deserialize from MessagePack
+    unpacked_data = msgpack.unpackb(decompressed_data, raw=False)
+
+    # Reconstruct tensors
+    dtype = np.dtype(unpacked_data["tensor"]["dtype"])
+
+    tensor_ccol = torch.from_numpy(
+        np.frombuffer(unpacked_data["tensor"]["data"]["ccol"], dtype=dtype).reshape(
+            unpacked_data["tensor"]["ccol_shape"])
+    ).cuda()
+
+    tensor_crow = torch.from_numpy(
+        np.frombuffer(unpacked_data["tensor"]["data"]["crow"], dtype=dtype).reshape(
+            unpacked_data["tensor"]["crow_shape"])
+    ).cuda()
+
+    tensor_value = torch.from_numpy(
+        np.frombuffer(unpacked_data["tensor"]["data"]["value"], dtype=dtype).reshape(
+            unpacked_data["tensor"]["value_shape"])
+    ).cuda()
+
+    csr_out = [tensor_ccol, tensor_crow, tensor_value]
+
+
+    mask = torch.from_numpy(
+        np.frombuffer(unpacked_data["tensor"]["data"]["mask"], dtype=dtype).reshape(
+            unpacked_data["tensor"]["mask_shape"])
+    ).cuda()
+
+    return [unpacked_data["start_idx"], csr_out, unpacked_data["ids"], mask, unpacked_data[
+        "idx"], unpacked_data["client_comp_time"]]
+

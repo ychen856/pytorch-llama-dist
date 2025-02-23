@@ -69,10 +69,10 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
 
     #newx = pickle.dumps(text)
     print('text: ',text)
-    packed_data = msgpack.packb(text, use_bin_type=True)
-    compressed_data = lz4.frame.compress(packed_data)
+    #packed_data = msgpack.packb(text, use_bin_type=True)
+    #compressed_data = lz4.frame.compress(packed_data)
 
-    total_size = len(compressed_data)
+    total_size = len(text)
     print('communication size: ', total_size)
 
     #start_time = time.time()

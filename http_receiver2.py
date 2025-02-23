@@ -9,6 +9,7 @@ import yaml
 import http_sender
 from queue import Queue
 import multiprocessing
+from feature_pruning import *
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
@@ -66,8 +67,8 @@ class S(BaseHTTPRequestHandler):
         self._set_headers()
 
         #decrypt_data = pickle.loads(post_data)
-        decompressed_data = lz4.frame.decompress(post_data)
-        decrypt_data = msgpack.unpackb(decompressed_data, raw=False)
+        decrypt_data = decompress_and_deserialize(post_data)
+
         incoming_queue.put(decrypt_data)
         end_time = time.time()
         #print('server receiving time: ', end_time - start_time)
