@@ -213,6 +213,13 @@ def decompress_and_deserialize(compressed_data):
 
     print('ccol: ', np.frombuffer(unpacked_data["tensor"]["data"]["ccol"], dtype=dtype))
     print('ccol: ', unpacked_data["tensor"]["ccol_shape"])
+
+    expected_size = np.prod(unpacked_data["tensor"]["ccol_shape"]) * np.dtype(dtype).itemsize
+    actual_size = len(unpacked_data["tensor"]["data"]["ccol"])
+    print('expect size: ', expected_size)
+    print('actual size: ', actual_size)
+
+
     tensor_ccol = torch.from_numpy(
         np.frombuffer(unpacked_data["tensor"]["data"]["ccol"], dtype=dtype).reshape(
             unpacked_data["tensor"]["ccol_shape"])
