@@ -154,6 +154,7 @@ def unpack_tensors(packed_tensor, original_sizes):
     return [ccol_indices, row_indices, values]
 
 def serialize_and_compress(start_idx, csr_out, ids, mask, idx, client_comp_time):
+    print('ids???: ', ids)
     """ Serializes and compresses data using MessagePack + LZ4 """
 
     # Convert tensors to CPU & byte buffers (for MessagePack compatibility)
