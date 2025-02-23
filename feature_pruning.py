@@ -156,6 +156,7 @@ def unpack_tensors(packed_tensor, original_sizes):
 def serialize_and_compress(start_idx, csr_out, ids, mask, idx, client_comp_time):
     """ Serializes and compresses data using MessagePack + LZ4 """
     # Convert tensors to CPU & byte buffers (for MessagePack compatibility)
+    print('type???: ', csr_out[0].cpu().dtype)
     tensor_data = {
         "ccol": csr_out[0].cpu().numpy().tobytes(),
         "crow": csr_out[1].cpu().numpy().tobytes(),
