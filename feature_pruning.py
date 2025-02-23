@@ -154,9 +154,9 @@ def unpack_tensors(packed_tensor, original_sizes):
     return [ccol_indices, row_indices, values]
 
 def serialize_and_compress(start_idx, csr_out, ids, mask, idx, client_comp_time):
-    print('ids???: ', ids)
     """ Serializes and compresses data using MessagePack + LZ4 """
 
+    print('ccol: ', csr_out[0].shape)
     # Convert tensors to CPU & byte buffers (for MessagePack compatibility)
     tensor_data = {
         "ccol": csr_out[0].cpu().numpy().tobytes(),
@@ -211,6 +211,7 @@ def decompress_and_deserialize(compressed_data):
     # Reconstruct tensors
     dtype = torch_dtype_map[unpacked_data["tensor"]["dtype"]]
 
+    print('ccol: ', unpacked_data["tensor"]["ccol_shape"])
     tensor_ccol = torch.from_numpy(
         np.frombuffer(unpacked_data["tensor"]["data"]["ccol"], dtype=dtype).reshape(
             unpacked_data["tensor"]["ccol_shape"])
