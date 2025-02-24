@@ -534,7 +534,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             out.hidden_states = None
             out.attentions = None
         else:
-            out = csr_out
+            out = csr_out[2]
 
 
         print('start idx: ', start_idx)
