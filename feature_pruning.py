@@ -186,6 +186,7 @@ def serialize_and_compress(start_idx, csr_out, ids, mask, idx, client_comp_time)
     # Serialize and compress
     packed_data = msgpack.packb(data_packet, use_bin_type=True)
     compressed_data = lz4.frame.compress(packed_data)
+
     return compressed_data
 
 

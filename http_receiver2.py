@@ -67,9 +67,9 @@ class S(BaseHTTPRequestHandler):
         self._set_headers()
 
         #decrypt_data = pickle.loads(post_data)
-        decrypt_data = decompress_and_deserialize(post_data)
+        #decrypt_data = decompress_and_deserialize(post_data)
 
-        incoming_queue.put(decrypt_data)
+        incoming_queue.put(post_data)
         end_time = time.time()
         #print('server receiving time: ', end_time - start_time)
 

@@ -14,8 +14,8 @@ from transformers.modeling_outputs import BaseModelOutputWithPast
 
 from feature_pruning import *
 
-import http_receiver
-#import http_receiver2 as http_receiver
+#import http_receiver
+import http_receiver2 as http_receiver
 import http_sender_gateway
 from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
@@ -445,7 +445,15 @@ def task1_data_sending(args):
                 idx = incoming_queue.qsize()
                 timestamp_manager.start_times = (idx, start_time)
 
-                outgoing_queue_forward.put([0, incoming_queue.get(), None, None, idx, 0, 0])
+                input = incoming_queue.get()
+                #outgoing_queue_forward.put([0, incoming_queue.get(), None, None, idx, 0, 0])
+
+
+                unpacked_data = decompress_and_deserialize(input)
+                csr_out = unpacked_data[1]
+
+                outgoing_queue_forward.put([0, csr_out, None, None, idx, 0, 0])
+
                 end_time = time.time()
                 #print('client computation time: ', end_time - start_time)
                 # calculate_opt.client_comp_statistics = (-1, end_idx_buff, end_time - start_time)
@@ -484,11 +492,21 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
         else:
             input = http_receiver.get_in_queue_data()
 
-        start_idx = input[0]
+
+        '''start_idx = input[0]
         csr_out = input[1]
         ids = input[2]
         mask = input[3]
         idx = input[4]
+        is_early_exit = False
+        is_oom = False'''
+
+        unpacked_data = decompress_and_deserialize(input)
+        start_idx = unpacked_data[0]
+        csr_out = unpacked_data[1]
+        ids = unpacked_data[2]
+        mask = unpacked_data[3]
+        idx = unpacked_data[4]
         is_early_exit = False
         is_oom = False
 
@@ -504,14 +522,14 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             layer_amount = opt_layer_amount
             #http_receiver.set_outgoing_queue([-1, None, None])
             continue
-            '''elif len(csr_out[0]) > 0:
+        elif len(csr_out[0]) > 0:
             #recover from csr/csc
             out = BaseModelOutputWithPast()
             out.last_hidden_state = csr_to_dense(csr_out).unsqueeze(0)
             #out.last_hidden_state = csc_to_dense(unpacked_out).unsqueeze(0)
             out.past_key_values = None
             out.hidden_states = None
-            out.attentions = None'''
+            out.attentions = None
         else:
             out = csr_out
 

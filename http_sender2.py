@@ -62,10 +62,10 @@ def pop_incoming_queue():
 
 def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     start_time = time.time()
-    start_idx = text[0]
+    '''start_idx = text[0]
     idx = text[4]
     input = text[1]
-    client_comp_time = text[5]
+    client_comp_time = text[5]'''
 
     #newx = pickle.dumps(text)
     #print('text: ',text)
