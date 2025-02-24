@@ -62,7 +62,7 @@ def pop_incoming_queue():
 
 def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     headers = {'Content-Type': 'application/octet-stream'}
-    response = requests.post("http://" + server_ip + ":" + server_port, data=text, headers=headers)
+    response = requests.post("http://" + server_ip + ":" + str(server_port), data=text, headers=headers)
 
     print('response: ', response)
 
