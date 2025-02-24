@@ -121,6 +121,7 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
         print('error')
     #print('http receiving: ', start_idx, rtt)
     print('rrt: ', rtt)
+    return
     gc.collect()
 
     #middle devices used only
