@@ -450,6 +450,7 @@ def task1_data_sending(args):
 
 
                 unpacked_data = decompress_and_deserialize(input)
+                print('received data: ', unpacked_data)
                 csr_out = unpacked_data[1]
 
                 outgoing_queue_forward.put([0, csr_out, None, None, idx, 0, 0])
@@ -502,6 +503,8 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
         is_oom = False'''
 
         unpacked_data = decompress_and_deserialize(input)
+        print('received data: ', unpacked_data)
+
         start_idx = unpacked_data[0]
         csr_out = unpacked_data[1]
         ids = unpacked_data[2]
