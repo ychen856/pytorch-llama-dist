@@ -80,7 +80,6 @@ class S(BaseHTTPRequestHandler):
         self.end_headers()
         print('c')
 
-
         output_message = outgoing_queue.get()
         print('d')
         print('http returning: ', output_message)
