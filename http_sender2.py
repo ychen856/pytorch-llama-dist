@@ -10,7 +10,7 @@ import torch
 import yaml
 import gc
 from queue import Queue
-
+import requests
 import http_receiver
 
 parser = argparse.ArgumentParser(
@@ -61,6 +61,12 @@ def pop_incoming_queue():
 
 
 def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
+    headers = {'Content-Type': 'application/octet-stream'}
+    response = requests.post("http://" + server_ip + ":" + server_port, data=text, headers=headers)
+
+    print('response: ', response)
+
+def send_data2(server_ip, server_port, text, calculate_opt, timestamp_manager):
     start_time = time.time()
     '''start_idx = text[0]
     idx = text[4]
@@ -91,8 +97,6 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     start_time2 = time.time()
     resp = conn.getresponse()
 
-    print('FFFFFFFFFFFF: ', resp)
-
     resp_data = resp.readlines()
     resp_str = b''
 
@@ -121,7 +125,7 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
         print('error')
     #print('http receiving: ', start_idx, rtt)
     print('rrt: ', rtt)
-    return
+
     gc.collect()
 
     #middle devices used only
