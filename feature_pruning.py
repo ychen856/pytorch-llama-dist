@@ -220,7 +220,7 @@ def decompress_and_deserialize(compressed_data):
     try:
         tensor_dtype = torch_dtype_map[unpacked_data["tensor"]["tensor_dtype"]]
     except Exception as e:
-        index_dtype = torch.float32
+        tensor_dtype = torch.float32
 
     def restore_tensor(key, dtype):
         if unpacked_data["tensor"]["data"][key] is None:
