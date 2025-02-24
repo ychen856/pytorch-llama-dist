@@ -88,8 +88,10 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     conn.send(text)
     end_time = time.time()
 
-    '''start_time2 = time.time()
+    start_time2 = time.time()
     resp = conn.getresponse()
+
+    print('FFFFFFFFFFFF: ', resp)
 
     resp_data = resp.readlines()
     resp_str = b''
@@ -119,7 +121,7 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
         print('error')
     #print('http receiving: ', start_idx, rtt)
     print('rrt: ', rtt)
-    gc.collect()'''
+    gc.collect()
 
     #middle devices used only
     #if client_comp_time is not None:
