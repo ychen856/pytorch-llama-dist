@@ -176,8 +176,8 @@ def serialize_and_compress(start_idx, csr_out, ids, mask, idx, client_comp_time)
             "value_shape": csr_out[2].shape if csr_out[2] is not None else None,
             "ids_shape": ids.shape if ids is not None else None,
             "mask_shape": mask.shape if mask is not None else None,
-            "index_dtype": str(csr_out[0].dtype),
-            "tensor_dtype": str(csr_out[2].dtype),
+            "index_dtype": str(csr_out[0].dtype) if csr_out[0] is not None else None,
+            "tensor_dtype": str(csr_out[2].dtype) if csr_out[2] is not None else None,
             "data": tensor_data
         },
         "idx": idx,
