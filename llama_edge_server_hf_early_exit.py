@@ -513,7 +513,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
         is_early_exit = False
         is_oom = False
 
-        if csr_out is None:
+        if csr_out[2] is None:
             http_receiver.set_outgoing_queue([-1, None, None])
             max_layers = start_idx - 3 + max_layer_amount
             models, end_idx_buff = layer_reallocation(3, start_idx, end_idx_buff, max_layers, models)

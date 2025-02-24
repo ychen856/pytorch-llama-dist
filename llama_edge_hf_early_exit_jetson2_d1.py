@@ -512,7 +512,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             print('opt end idx: ', end_idx)
             print('opt buff idx: ', new_buff_idx)
             print('opt statistics period: ', statistics_period)
-            outgoing_queue.put([end_idx + 1, None, None, None, None, None])
+            #outgoing_queue.put([end_idx + 1, None, None, None, None, None])
+            packed_data = serialize_and_compress(end_idx + 1, [None, None, None], None, None, None, None)
+            outgoing_queue.put(packed_data)
             #while new_buff_idx < end_idx_buff:
             #    models, end_idx_buff = layer_reallocation(2, start_idx, end_idx_buff, max_layers, models)
 
