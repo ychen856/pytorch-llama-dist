@@ -156,24 +156,26 @@ def unpack_tensors(packed_tensor, original_sizes):
 def serialize_and_compress(start_idx, csr_out, ids, mask, idx, client_comp_time):
     """ Serializes and compresses data using MessagePack + LZ4 """
     # Convert tensors to CPU & byte buffers (for MessagePack compatibility)
+    def tensor_to_bytes(tensor):
+        return None if tensor is None else tensor.cpu().numpy().tobytes()
 
     tensor_data = {
-        "ccol": csr_out[0].cpu().numpy().tobytes(),
-        "crow": csr_out[1].cpu().numpy().tobytes(),
-        "value": csr_out[2].cpu().numpy().tobytes(),
-        "ids": ids.cpu().numpy().tobytes(),
-        "mask": mask.cpu().numpy().tobytes()
+        "ccol": tensor_to_bytes(csr_out[0]),
+        "crow": tensor_to_bytes(csr_out[1]),
+        "value": tensor_to_bytes(csr_out[2]),
+        "ids": tensor_to_bytes(ids),
+        "mask": tensor_to_bytes(mask)
     }
 
     # Store metadata for reconstruction
     data_packet = {
         "start_idx": start_idx,
         "tensor": {
-            "ccol_shape": csr_out[0].shape,
-            "crow_shape": csr_out[1].shape,
-            "value_shape": csr_out[2].shape,
-            "ids_shape": ids.shape,
-            "mask_shape": mask.shape,
+            "ccol_shape": csr_out[0].shape if csr_out[0] is not None else None,
+            "crow_shape": csr_out[1].shape if csr_out[1] is not None else None,
+            "value_shape": csr_out[2].shape if csr_out[2] is not None else None,
+            "ids_shape": ids.shape if ids is not None else None,
+            "mask_shape": mask.shape if mask is not None else None,
             "index_dtype": str(csr_out[0].dtype),
             "tensor_dtype": str(csr_out[2].dtype),
             "data": tensor_data
@@ -213,32 +215,23 @@ def decompress_and_deserialize(compressed_data):
     index_dtype = torch_dtype_map[unpacked_data["tensor"]["index_dtype"]]
     tensor_dtype = torch_dtype_map[unpacked_data["tensor"]["tensor_dtype"]]
 
-    tensor_ccol = torch.from_numpy(
-        np.frombuffer(unpacked_data["tensor"]["data"]["ccol"], dtype=index_dtype).reshape(
-            unpacked_data["tensor"]["ccol_shape"])
-    ).cuda()
+    def restore_tensor(key, dtype):
+        if unpacked_data["tensor"]["data"][key] is None:
+            return None
+        return torch.from_numpy(
+            np.frombuffer(unpacked_data["tensor"]["data"][key], dtype=dtype).reshape(
+                unpacked_data["tensor"][f"{key}_shape"]
+            )
+        ).cuda()
 
-    tensor_crow = torch.from_numpy(
-        np.frombuffer(unpacked_data["tensor"]["data"]["crow"], dtype=index_dtype).reshape(
-            unpacked_data["tensor"]["crow_shape"])
-    ).cuda()
-
-    tensor_value = torch.from_numpy(
-        np.frombuffer(unpacked_data["tensor"]["data"]["value"], dtype=tensor_dtype).reshape(
-            unpacked_data["tensor"]["value_shape"])
-    ).cuda()
+    tensor_ccol = restore_tensor("ccol", index_dtype)
+    tensor_crow = restore_tensor("crow", index_dtype)
+    tensor_value = restore_tensor("value", tensor_dtype)
 
     csr_out = [tensor_ccol, tensor_crow, tensor_value]
 
-    ids = torch.from_numpy(
-        np.frombuffer(unpacked_data["tensor"]["data"]["ids"], dtype=index_dtype).reshape(
-            unpacked_data["tensor"]["ids_shape"])
-    ).cuda()
-
-    mask = torch.from_numpy(
-        np.frombuffer(unpacked_data["tensor"]["data"]["mask"], dtype=tensor_dtype).reshape(
-            unpacked_data["tensor"]["mask_shape"])
-    ).cuda()
+    ids = restore_tensor("ids", index_dtype)
+    mask = restore_tensor("mask", tensor_dtype)
 
     return [unpacked_data["start_idx"], csr_out, ids, mask, unpacked_data[
         "idx"], unpacked_data["client_comp_time"]]
