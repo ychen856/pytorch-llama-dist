@@ -68,20 +68,14 @@ class S(BaseHTTPRequestHandler):
 
         #decrypt_data = pickle.loads(post_data)
         #decrypt_data = decompress_and_deserialize(post_data)
-        print('e')
         incoming_queue.put(post_data)
-        print('f')
         end_time = time.time()
         #print('server receiving time: ', end_time - start_time)
 
-        print('a')
         self.send_response(200)
-        print('b')
         self.end_headers()
-        print('c')
 
         output_message = outgoing_queue.get()
-        print('d')
         print('http returning: ', output_message)
 
         newx = pickle.dumps([output_message, 'Data received successfully!'])

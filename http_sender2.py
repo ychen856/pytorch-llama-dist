@@ -60,13 +60,13 @@ def pop_incoming_queue():
     returning_queue.get()
 
 
-def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
+def send_data2(server_ip, server_port, text, calculate_opt, timestamp_manager):
     headers = {'Content-Type': 'application/octet-stream'}
     response = requests.post("http://" + server_ip + ":" + str(server_port), data=text, headers=headers)
 
     print('response: ', response)
 
-def send_data2(server_ip, server_port, text, calculate_opt, timestamp_manager):
+def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     start_time = time.time()
     '''start_idx = text[0]
     idx = text[4]
