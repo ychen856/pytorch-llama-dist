@@ -104,6 +104,8 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
         resp_message = pickle.loads(resp_str)
 
         resp_message = resp_message[0]
+        print('server side resp: ', resp_message)
+
         resp_message.append(rtt)    #resp_message = [start_idx, total_comp_time, idx, rtt(total time)]
 
         if not resp_message[0] == -1:
