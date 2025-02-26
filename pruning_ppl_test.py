@@ -230,7 +230,7 @@ if __name__ == '__main__':
 
 
     print("loading success")
-    print('type: ', args.selection)
+    #print('type: ', args.selection)
 
     test_loader = get_eval_data(tokenizer)
     bs = 1
