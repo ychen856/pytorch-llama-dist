@@ -475,13 +475,13 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 rate = 0.5
 
             print('rate: ', rate)
-            pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
+            #pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
             '''csr_out = dense_to_CSR(pruned_feature_vector[0])
 
             packed_data = serialize_and_compress(end_idx + 1, csr_out, ids, mask, idx, end_time - start_time)
             outgoing_queue.put(packed_data)'''
-            outgoing_queue.put([end_idx + 1, pruned_feature_vector, ids, mask, idx, end_time - start_time])
-            #outgoing_queue.put([end_idx + 1, out, ids, mask, idx, end_time - start_time])
+            #outgoing_queue.put([end_idx + 1, pruned_feature_vector, ids, mask, idx, end_time - start_time])
+            outgoing_queue.put([end_idx + 1, out, ids, mask, idx, end_time - start_time])
 
             print('outgoing queue PUT!')
             calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
