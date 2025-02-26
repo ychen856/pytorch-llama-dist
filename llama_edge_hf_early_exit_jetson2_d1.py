@@ -281,7 +281,6 @@ def task1_data_sending(args):
                 timestamp_manager.start_times = (idx, start_time)
 
                 #output = input_queue.get()
-                output = input_queue.get()
                 #outgoing_queue.put([0, output, None, None, idx, 0])
 
                 '''packed_data = serialize_and_compress(0, [None, None, output], None, None, idx, 0)
