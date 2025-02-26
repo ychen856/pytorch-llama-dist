@@ -136,8 +136,8 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
 
     lm_head, lm_head_idx = get_lm_head_idx(end_idx)
 
-    print('lm_head: ', lm_head)
-    print('lm_head_idx: ', lm_head_idx)
+    #print('lm_head: ', lm_head)
+    #print('lm_head_idx: ', lm_head_idx)
 
     checkpoint_list = []
     checkpoints = sorted(Path(checkpoints_dir).glob("lm_head.*.pth"))
@@ -150,7 +150,7 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
     for i in range(0, len(checkpoints)):
         if i == 0 or i == lm_head_idx:
             ckpt_path = checkpoints[i]
-            print(f'Loading checkpoint "{ckpt_path}"')
+            #print(f'Loading checkpoint "{ckpt_path}"')
 
             checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
 
