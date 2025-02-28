@@ -10,8 +10,8 @@ import time
 from pathlib import Path
 import argparse
 
-import http_sender
-#import http_sender2 as http_sender
+#import http_sender
+import http_sender2 as http_sender
 from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
 
@@ -280,13 +280,13 @@ def task1_data_sending(args):
                 idx = input_queue.qsize()
                 timestamp_manager.start_times = (idx, start_time)
 
-                #output = input_queue.get()
+                output = input_queue.get()
                 #outgoing_queue.put([0, output, None, None, idx, 0])
 
-                '''packed_data = serialize_and_compress(0, [None, None, output], None, None, idx, 0)
-                outgoing_queue.put(packed_data)'''
+                packed_data = serialize_and_compress(0, [None, None, output], None, None, idx, 0)
+                outgoing_queue.put(packed_data)
 
-                outgoing_queue.put([0, input_queue.get(), None, None, idx, 0])
+                #outgoing_queue.put([0, input_queue.get(), None, None, idx, 0])
                 end_time = time.time()
 
                 print('rate: ', 0)
@@ -475,11 +475,11 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
             print('rate: ', rate)
             pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
-            '''csr_out = dense_to_CSR(pruned_feature_vector[0])
+            csr_out = dense_to_CSR(pruned_feature_vector[0])
 
             packed_data = serialize_and_compress(end_idx + 1, csr_out, ids, mask, idx, end_time - start_time)
-            outgoing_queue.put(packed_data)'''
-            outgoing_queue.put([end_idx + 1, pruned_feature_vector, ids, mask, idx, end_time - start_time])
+            outgoing_queue.put(packed_data)
+            #outgoing_queue.put([end_idx + 1, pruned_feature_vector, ids, mask, idx, end_time - start_time])
             #outgoing_queue.put([end_idx + 1, out, ids, mask, idx, end_time - start_time])
 
             print('outgoing queue PUT!')
@@ -512,9 +512,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             print('opt end idx: ', end_idx)
             print('opt buff idx: ', new_buff_idx)
             print('opt statistics period: ', statistics_period)
-            outgoing_queue.put([end_idx + 1, None, None, None, None, None])
-            '''packed_data = serialize_and_compress(end_idx + 1, [None, None, None], None, None, None, None)
-            outgoing_queue.put(packed_data)'''
+            #outgoing_queue.put([end_idx + 1, None, None, None, None, None])
+            packed_data = serialize_and_compress(end_idx + 1, [None, None, None], None, None, None, None)
+            outgoing_queue.put(packed_data)
             #while new_buff_idx < end_idx_buff:
             #    models, end_idx_buff = layer_reallocation(2, start_idx, end_idx_buff, max_layers, models)
 
