@@ -340,7 +340,7 @@ if __name__ == '__main__':
 
                         print('# outlier: ', outlier)
                         if outlier > 0:
-                            rate = 7 / (10 * math.log10(outlier + 10))
+                            rate = 1 / (10 * math.log10(outlier + 10))
 
                         print('rate: ', rate)
                         pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
