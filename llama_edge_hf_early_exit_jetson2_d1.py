@@ -470,7 +470,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
             print('# outlier: ', outlier)
             if outlier > 0:
-                rate = 3 / 10 * math.log(outlier + 10) #50, 30, 70
+                rate = 3 / (10 * math.log(outlier + 10)) #50, 30, 70
             #else:
             #    rate = 0.5
 
