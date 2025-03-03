@@ -345,6 +345,8 @@ if __name__ == '__main__':
                         print('rate: ', rate)
                         pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
                         out.last_hidden_state = pruned_feature_vector
+                        print('000000000: ', out.last_hidden_state)
+
 
                 if not is_early_exit:
                     print('is not early!')
