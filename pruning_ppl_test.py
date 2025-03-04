@@ -304,7 +304,7 @@ if __name__ == '__main__':
                 # print('end idx[i]: ', end_idx[i])
 
                 input = input_list[input_count]
-                splitting_point = end_idx_map[input_idx]
+                splitting_point = end_idx[input_idx]
                 if end_idx[input_idx] > 0:
                     head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx[input_idx], device)
 
@@ -333,8 +333,8 @@ if __name__ == '__main__':
                             early_count = early_count + 1
                             print('early: ', early_count)
                             break
-                    print('splitting point: ', splitting_point)
-                    print('k: ', k)
+                    #print('splitting point: ', splitting_point)
+                    #print('k: ', k)
                     if k == splitting_point:
                         mean, outlier = get_outlier(out.last_hidden_state.flatten())
 
