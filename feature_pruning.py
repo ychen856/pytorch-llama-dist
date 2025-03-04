@@ -34,7 +34,7 @@ def get_outlier(flat_tensor, M):
     outlier_mask = flat_tensor.abs() > (M * avg_abs_values)
     outlier_counts = outlier_mask.sum(dim=(1, 2))  # Sum over height and width
 
-    return outlier_counts, mean
+    return outlier_counts.item(), mean
 
 #input shape [1, 1024, 4096]
 def get_pruning_rate(tensor_data):
