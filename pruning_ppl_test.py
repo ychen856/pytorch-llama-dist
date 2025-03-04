@@ -333,7 +333,8 @@ if __name__ == '__main__':
                             early_count = early_count + 1
                             print('early: ', early_count)
                             break
-
+                    print('splitting point: ', splitting_point)
+                    print('k: ', k)
                     if k == splitting_point:
                         mean, outlier = get_outlier(out.last_hidden_state.flatten())
 
