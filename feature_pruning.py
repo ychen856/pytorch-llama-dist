@@ -27,15 +27,15 @@ def get_outlier2(flat_tensor):
     return mean, outliers.shape[0]
 
 def get_outlier(flat_tensor, M):
-    mean = flat_tensor.double().mean()
-    avg_abs_values = flat_tensor.abs().mean(dim=(1, 2), keepdim=True)
+    mean = torch.mean(torch.abs(flat_tensor))
 
-    # Count elements where abs(value) > M * avg_abs_value
-    outlier_mask = flat_tensor.abs() > (M * mean)
-    print('outlier mask: ', outlier_mask)
-    outlier_counts = outlier_mask.sum(dim=(1, 2))  # Sum over height and width
+    # Compute the threshold
+    threshold = M * mean
 
-    return outlier_counts.item(), mean
+    # Count elements whose absolute value is greater than the threshold
+    outlier = torch.sum(torch.abs(flat_tensor) > threshold).item()
+
+    return outlier, mean
 
 #input shape [1, 1024, 4096]
 def get_pruning_rate(tensor_data):
