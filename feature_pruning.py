@@ -27,11 +27,14 @@ def get_outlier2(flat_tensor):
     return mean, outliers.shape[0]
 
 def get_outlier(flat_tensor, M):
-    print('??????: ', flat_tensor)
     mean = flat_tensor.double().mean()
-    outliers = np.sum(torch.abs(flat_tensor - mean) > M * mean)
+    avg_abs_values = flat_tensor.abs().mean(dim=(1, 2), keepdim=True)
 
-    return mean,outliers
+    # Count elements where abs(value) > M * avg_abs_value
+    outlier_mask = flat_tensor.abs() > (M * avg_abs_values)
+    outlier_counts = outlier_mask.sum(dim=(1, 2))  # Sum over height and width
+
+    return outlier_counts, mean
 
 #input shape [1, 1024, 4096]
 def get_pruning_rate(tensor_data):
@@ -54,7 +57,7 @@ def prune_feature_vector(tensor_data, mean, rate):
     distances = torch.abs(flat_tensor - mean)
 
     # Get indices of the top n farthest values
-    _, indices = torch.topk(distances, round(flat_tensor.numel() * rate), dim=1)
+    _, indices = torch.topk(distances, round(flat_tensor.numel() * rate), dim=1, largest=False)
 
     # Create a mask and set selected elements to zero
     flat_tensor[0, indices[0]] = 0
