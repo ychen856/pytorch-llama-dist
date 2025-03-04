@@ -465,14 +465,18 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             print('cycle count: ', cycle_count)
             print('input count: ', input_count)
 
-            #print('out: ', out)
-            mean, outlier = get_outlier(out.last_hidden_state.flatten())
+            #outlier calculation method I
+            '''mean, outlier = get_outlier(out.last_hidden_state.flatten())
 
-            print('# outlier: ', outlier)
+            print('#outlier: ', outlier)
             if outlier > 0:
-                rate = 7 / (10 * math.log10(outlier + 10)) #50, 30, 70
-            #else:
-            #    rate = 0.5
+                rate = 7 / (10 * math.log10(outlier + 10)) '''
+
+
+            #outlier calculation method II
+            mean, outlier = get_outlier(out.last_hidden_state, 3)
+            print('#outlier: ', outlier)
+            rate = 1/(10 * math.log10(outlier + 10))
 
             print('rate: ', rate)
             pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
