@@ -28,7 +28,7 @@ def get_outlier2(flat_tensor):
 
 def get_outlier(flat_tensor, M):
     mean = flat_tensor.double().mean()
-    outliers = np.sum(np.abs(flat_tensor - mean) > M * mean)
+    outliers = np.sum(torch.abs(flat_tensor - mean) > M * mean)
 
     return mean,outliers
 
