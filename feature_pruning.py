@@ -4,7 +4,7 @@ import msgpack
 import lz4.frame
 import numpy as np
 
-def get_outlier(flat_tensor):
+def get_outlier2(flat_tensor):
     # Flatten the tensor
     #flat_tensor = tensor_data.flatten()
 
@@ -25,6 +25,12 @@ def get_outlier(flat_tensor):
     #print('outliers: ', outliers)
 
     return mean, outliers.shape[0]
+
+def get_outlier(flat_tensor, M):
+    mean = flat_tensor.double().mean()
+    outliers = np.sum(np.abs(flat_tensor - mean) > M * mean)
+
+    return mean,outliers
 
 #input shape [1, 1024, 4096]
 def get_pruning_rate(tensor_data):
