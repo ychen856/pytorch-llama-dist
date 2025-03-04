@@ -32,6 +32,7 @@ def get_outlier(flat_tensor, M):
 
     # Count elements where abs(value) > M * avg_abs_value
     outlier_mask = flat_tensor.abs() > (M * mean)
+    print('outlier mask: ', outlier_mask)
     outlier_counts = outlier_mask.sum(dim=(1, 2))  # Sum over height and width
 
     return outlier_counts.item(), mean
