@@ -27,7 +27,7 @@ def get_outlier2(flat_tensor):
     return mean, outliers.shape[0]
 
 def get_outlier(flat_tensor, M):
-    mean = flat_tensor.double().mean()
+    mean = abs(flat_tensor).double().mean()
     print('mean: ', mean)
 
     # Compute the threshold
