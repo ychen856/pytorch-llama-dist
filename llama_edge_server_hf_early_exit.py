@@ -540,6 +540,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             out.past_key_values = None
             out.hidden_states = None
             out.attentions = None'''
+        elif start_idx > 0:
+            out = BaseModelOutputWithPast()
+            out.last_hidden_state = csr_out
         else:
             #out = csr_out[2]
             out = csr_out
