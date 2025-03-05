@@ -34,7 +34,7 @@ def get_outlier(flat_tensor, M):
     threshold = M * mean
 
     # Count elements whose absolute value is greater than the threshold
-    outlier = (torch.abs(flat_tensor) > threshold).sum().item()
+    outlier = torch.sum(torch.abs(flat_tensor) > threshold).item()
 
     return outlier, mean
 
