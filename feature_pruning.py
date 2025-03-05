@@ -34,10 +34,9 @@ def get_outlier(flat_tensor, M):
     threshold = M * mean
 
     # Count elements whose absolute value is greater than the threshold
-    outlier = count = (abs(flat_tensor) > threshold).sum().item()
-    print('ppppp: ', outlier)
+    outlier = (abs(flat_tensor) > threshold).sum().item()
 
-    return outlier, mean
+    return mean, outlier
 
 #input shape [1, 1024, 4096]
 def get_pruning_rate(tensor_data):
