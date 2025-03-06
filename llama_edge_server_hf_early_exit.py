@@ -14,8 +14,8 @@ from transformers.modeling_outputs import BaseModelOutputWithPast
 
 from feature_pruning import *
 
-import http_receiver
-#import http_receiver2 as http_receiver
+#import http_receiver
+import http_receiver2 as http_receiver
 import http_sender_gateway
 from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig

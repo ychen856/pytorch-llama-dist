@@ -10,8 +10,8 @@ import time
 from pathlib import Path
 import argparse
 
-import http_sender
-#import http_sender2 as http_sender
+#import http_sender
+import http_sender2 as http_sender
 from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
 
