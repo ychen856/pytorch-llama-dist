@@ -66,10 +66,10 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     idx = text[4]
     input = text[1]
     client_comp_time = text[5]
-    newx = pickle.dumps(text)
-    total_size = len(newx)
 
     #start_time = time.time()
+
+    total_size = len(text)
 
     conn = http.client.HTTPConnection(server_ip, server_port)
     conn.connect()
@@ -77,14 +77,14 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     #conn.putrequest('POST', '/upload/')
     conn.putrequest('POST', '/')
     conn.putheader('Content-Type', 'application/octet-stream')
-    conn.putheader('Content-Length', str(total_size))
+    conn.putheader('Content-Length', total_size)
     conn.endheaders()
 
 
-    print('http sending: ', text)
+    #print('http sending: ', text)
     #print('package size: ', total_size)
     #print(newx)
-    conn.send(newx)
+    conn.send(text)
     end_time = time.time()
     #print('client sending time: ', end_time - start_time)
     #if input is None:
