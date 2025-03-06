@@ -14,8 +14,8 @@ from transformers.modeling_outputs import BaseModelOutputWithPast
 
 from feature_pruning import *
 
-#import http_receiver
-import http_receiver2 as http_receiver
+import http_receiver
+#import http_receiver2 as http_receiver
 import http_sender_gateway
 from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
@@ -446,14 +446,20 @@ def task1_data_sending(args):
                 timestamp_manager.start_times = (idx, start_time)
 
                 input = incoming_queue.get()
-                #outgoing_queue_forward.put([0, incoming_queue.get(), None, None, idx, 0, 0])
+                #if received origina data
+                outgoing_queue_forward.put(input)
 
-
+                '''#If received a compressed data
                 unpacked_data = decompress_and_deserialize(input)
                 print('received data: ', unpacked_data)
                 csr_out = unpacked_data[1]
 
                 outgoing_queue_forward.put([0, csr_out, None, None, idx, 0, 0])
+                #end If received a compressed data'''
+
+                # compressed on the edge server
+                '''packed_data = serialize_and_compress(0, [None, None, input], None, None, idx, 0)
+                outgoing_queue_forward.put(packed_data)'''
 
                 end_time = time.time()
                 #print('client computation time: ', end_time - start_time)
@@ -494,23 +500,8 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             input = http_receiver.get_in_queue_data()
 
 
-        '''start_idx = input[0]
-        csr_out = input[1]
-        ids = input[2]
-        mask = input[3]
-        idx = input[4]
-        is_early_exit = False
-        is_oom = False'''
 
-        '''unpacked_data = decompress_and_deserialize(input)
-        print('received data: ', unpacked_data)
-
-        start_idx = unpacked_data[0]
-        csr_out = unpacked_data[1]
-        ids = unpacked_data[2]
-        mask = unpacked_data[3]
-        idx = unpacked_data[4]'''
-
+        '''#if received pruned data
         start_idx = input[0]
         csr_out = input[1]
         ids = input[2]
@@ -519,8 +510,39 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
         is_early_exit = False
         is_oom = False
 
+        if csr_out is None:
+            http_receiver.set_outgoing_queue([-1, None, None])
+            max_layers = start_idx - 3 + max_layer_amount
+            models, end_idx_buff = layer_reallocation(3, start_idx, end_idx_buff, max_layers, models)
+            lm_head, _ = get_lm_head_idx(end_idx)
+            if not lm_head == head_idx:
+                head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx, device, cache_dir="llm_weights")
+            start_idx_buff = max(0, start_idx - 3)
+            end_idx = start_idx + opt_layer_amount
+            layer_amount = opt_layer_amount
+            continue
+        elif start_idx > 0:
+            out = BaseModelOutputWithPast()
+            out.last_hidden_state = csr_out
+        else:
+            out = csr_out
+        #end if pruned data'''
+
+
+        '''#if received pruned and comressed data
+        unpacked_data = decompress_and_deserialize(input)
+        print('received data: ', unpacked_data)
+
+        start_idx = unpacked_data[0]
+        csr_out = unpacked_data[1]
+        ids = unpacked_data[2]
+        mask = unpacked_data[3]
+        idx = unpacked_data[4]
+
+        is_early_exit = False
+        is_oom = False
+
         if csr_out[2] is None:
-        #if csr_out is None:
             http_receiver.set_outgoing_queue([-1, None, None])
             max_layers = start_idx - 3 + max_layer_amount
             models, end_idx_buff = layer_reallocation(3, start_idx, end_idx_buff, max_layers, models)
@@ -540,12 +562,33 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             out.past_key_values = None
             out.hidden_states = None
             out.attentions = None
-            '''elif start_idx > 0:
-            out = BaseModelOutputWithPast()
-            out.last_hidden_state = csr_out'''
         else:
             out = csr_out[2]
             #out = csr_out
+        #end pruned and comressed data'''
+
+        #if received original data
+        start_idx = input[0]
+        out = input[1]
+        ids = input[2]
+        mask = input[3]
+        idx = input[4]
+        is_early_exit = False
+        is_oom = False
+
+        if out is None:
+            http_receiver.set_outgoing_queue([-1, None, None])
+            max_layers = start_idx - 3 + max_layer_amount
+            models, end_idx_buff = layer_reallocation(3, start_idx, end_idx_buff, max_layers, models)
+            lm_head, _ = get_lm_head_idx(end_idx)
+            if not lm_head == head_idx:
+                head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx, device, cache_dir="llm_weights")
+            start_idx_buff = max(0, start_idx - 3)
+            end_idx = start_idx + opt_layer_amount
+            layer_amount = opt_layer_amount
+            # http_receiver.set_outgoing_queue([-1, None, None])
+            continue
+        #end recieved original data
 
         print('start idx: ', start_idx)
         print('end idx: ', end_idx)
@@ -632,7 +675,32 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
 
 
         if not is_early_exit and end_idx < 34 and start_idx != 0:
+            #prune feature vectur
+            mean, outlier = get_outlier(out.last_hidden_state, 7)
+            print('#outlier: ', outlier)
+            rate = 10 / (10 * math.log10(outlier + 10))
+
+            print('rate: ', rate)
+            pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
+            outgoing_queue_forward.put([end_idx + 1, pruned_feature_vector, ids, mask, idx, total_comp_time, start_idx])
+
+            #prune and comress the feature vector
+            mean, outlier = get_outlier(out.last_hidden_state, 7)
+            print('#outlier: ', outlier)
+            rate = 10 / (10 * math.log10(outlier + 10))
+
+            print('rate: ', rate)
+            pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
+            csr_out = dense_to_CSR(pruned_feature_vector[0])
+
+            packed_data = serialize_and_compress(end_idx + 1, csr_out, ids, mask, idx, end_time - start_time)
+            outgoing_queue_forward.put(packed_data)
+
+            #not prune the feature vectur
             outgoing_queue_forward.put([end_idx + 1, out, ids, mask, idx, total_comp_time, start_idx])
+
+
+
             #print('outgoing queue PUT!')
             #print('insert gateway statistics: ', [start_idx, end_idx, end_idx - start_idx, end_idx_buff, total_comp_time])
             calculate_opt.gateway_comp_statistics = (start_idx, end_idx, end_idx - start_idx, end_idx_buff, total_comp_time)
