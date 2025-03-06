@@ -519,8 +519,8 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
         is_early_exit = False
         is_oom = False
 
-        #if csr_out[2] is None:
-        if csr_out is None:
+        if csr_out[2] is None:
+        #if csr_out is None:
             http_receiver.set_outgoing_queue([-1, None, None])
             max_layers = start_idx - 3 + max_layer_amount
             models, end_idx_buff = layer_reallocation(3, start_idx, end_idx_buff, max_layers, models)
@@ -532,20 +532,20 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             layer_amount = opt_layer_amount
             #http_receiver.set_outgoing_queue([-1, None, None])
             continue
-            '''elif csr_out[0] is not None:
+        elif csr_out[0] is not None:
             #recover from csr/csc
             out = BaseModelOutputWithPast()
             out.last_hidden_state = csr_to_dense(csr_out).unsqueeze(0)
             #out.last_hidden_state = csc_to_dense(unpacked_out).unsqueeze(0)
             out.past_key_values = None
             out.hidden_states = None
-            out.attentions = None'''
-        elif start_idx > 0:
+            out.attentions = None
+            '''elif start_idx > 0:
             out = BaseModelOutputWithPast()
-            out.last_hidden_state = csr_out
+            out.last_hidden_state = csr_out'''
         else:
-            #out = csr_out[2]
-            out = csr_out
+            out = csr_out[2]
+            #out = csr_out
 
         print('start idx: ', start_idx)
         print('end idx: ', end_idx)
