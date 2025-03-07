@@ -449,7 +449,7 @@ def task1_data_sending(args):
 
                 input = incoming_queue.get()
                 #if received origina data
-                outgoing_queue_forward.put(input)
+                outgoing_queue_forward.put([0, input, None, None, idx, 0, 0])
 
                 '''#If received a compressed data
                 unpacked_data = decompress_and_deserialize(input)
@@ -460,7 +460,7 @@ def task1_data_sending(args):
                 #end If received a compressed data'''
 
                 # compressed on the edge server
-                '''packed_data = serialize_and_compress(0, [None, None, input], None, None, idx, 0)
+                '''packed_data = serialize_and_compress(0, [None, None, input], None, None, idx, 0, 0)
                 outgoing_queue_forward.put(packed_data)'''
 
                 end_time = time.time()
@@ -695,7 +695,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
             csr_out = dense_to_CSR(pruned_feature_vector[0])
 
-            packed_data = serialize_and_compress(end_idx + 1, csr_out, ids, mask, idx, end_time - start_time)
+            packed_data = serialize_and_compress(end_idx + 1, csr_out, ids, mask, idx, end_time - start_time, start_idx)
             outgoing_queue_forward.put(packed_data)'''
 
             '''#not prune the feature vectur
