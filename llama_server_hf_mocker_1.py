@@ -25,8 +25,8 @@ from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_la
     LlamaForCausalLM_linear
 import yaml
 from queue import Queue
-import http_receiver
-#import http_receiver2 as http_receiver
+#import http_receiver
+import http_receiver2 as http_receiver
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
