@@ -165,7 +165,7 @@ def unpack_tensors(packed_tensor, original_sizes):
     #return [packed_tensor[i, :size] for i, size in enumerate(original_sizes)]
     return [ccol_indices, row_indices, values]
 
-def serialize_and_compress(start_idx, csr_out, ids, mask, idx, client_comp_time):
+def serialize_and_compress(start_idx, csr_out, ids, mask, idx, client_comp_time, temp_idx = 0):
     """ Serializes and compresses data using MessagePack + LZ4 """
     # Convert tensors to CPU & byte buffers (for MessagePack compatibility)
     def tensor_to_bytes(tensor):
@@ -193,7 +193,8 @@ def serialize_and_compress(start_idx, csr_out, ids, mask, idx, client_comp_time)
             "data": tensor_data
         },
         "idx": idx,
-        "client_comp_time": client_comp_time
+        "client_comp_time": client_comp_time,
+        "temp_idx": temp_idx
     }
 
     #print('original: ', data_packet)
@@ -253,5 +254,5 @@ def decompress_and_deserialize(compressed_data):
     mask = restore_tensor("mask", tensor_dtype)
 
     return [unpacked_data["start_idx"], csr_out, ids, mask, unpacked_data[
-        "idx"], unpacked_data["client_comp_time"]]
+        "idx"], unpacked_data["client_comp_time"], unpacked_data["temp_idx"]]
 

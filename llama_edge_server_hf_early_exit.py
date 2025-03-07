@@ -601,9 +601,40 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
         # Forward pass through the model
         if start_idx == 0 or start_idx > max_layers or start_idx < start_idx_buff:
             print('direct sent!')
-            #out, ids, mask = models[0](out)
+
+            #sending original data
             outgoing_queue_forward.put([start_idx, out, ids, mask, idx, 0, start_idx]) # forward the original input to the server
+
+            #sending pruned data
+            if start_idx == 0:
+                outgoing_queue_forward.put([start_idx, out, ids, mask, idx, 0, start_idx])
+            else:
+                mean, outlier = get_outlier(out.last_hidden_state, 7)
+                print('#outlier: ', outlier)
+                rate = 10 / (10 * math.log10(outlier + 10))
+
+                print('rate: ', rate)
+                pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
+                outgoing_queue_forward.put([end_idx + 1, pruned_feature_vector, ids, mask, idx, 0, start_idx])
+
+            #sending pruned and compressed data
+            if start_idx == 0:
+                packed_data = serialize_and_compress(end_idx + 1, out, ids, mask, idx, 0, 0)
+                outgoing_queue_forward.put(packed_data)
+            else:
+                mean, outlier = get_outlier(out.last_hidden_state, 7)
+                print('#outlier: ', outlier)
+                rate = 10 / (10 * math.log10(outlier + 10))
+
+                print('rate: ', rate)
+                pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
+                csr_out = dense_to_CSR(pruned_feature_vector[0])
+
+                packed_data = serialize_and_compress(end_idx + 1, csr_out, ids, mask, idx, 0, start_idx)
+                outgoing_queue_forward.put(packed_data)
+
             continue
+
 
         start_comp_time = time.time()
         if start_idx > 0 and start_idx <= max_layers and start_idx >= start_idx_buff:
