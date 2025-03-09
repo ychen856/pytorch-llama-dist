@@ -602,14 +602,14 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
         if start_idx == 0 or start_idx > max_layers or start_idx < start_idx_buff:
             print('direct sent!')
 
-            #sending original data
-            outgoing_queue_forward.put([start_idx, out, ids, mask, idx, 0, start_idx]) # forward the original input to the server
+            '''#sending original data
+            outgoing_queue_forward.put([start_idx, out, ids, mask, idx, 0, start_idx]) # forward the original input to the server'''
 
             #sending pruned data
             if start_idx == 0:
                 outgoing_queue_forward.put([start_idx, out, ids, mask, idx, 0, start_idx])
             else:
-                mean, outlier = get_outlier(out.last_hidden_state, 7)
+                mean, outlier = get_outlier(out.last_hidden_state, 3)
                 print('#outlier: ', outlier)
                 rate = 10 / (10 * math.log10(outlier + 10))
 
@@ -617,7 +617,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
                 pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
                 outgoing_queue_forward.put([end_idx + 1, pruned_feature_vector, ids, mask, idx, 0, start_idx])
 
-            #sending pruned and compressed data
+            '''#sending pruned and compressed data
             if start_idx == 0:
                 packed_data = serialize_and_compress(end_idx + 1, out, ids, mask, idx, 0, 0)
                 outgoing_queue_forward.put(packed_data)
@@ -631,7 +631,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
                 csr_out = dense_to_CSR(pruned_feature_vector[0])
 
                 packed_data = serialize_and_compress(end_idx + 1, csr_out, ids, mask, idx, 0, start_idx)
-                outgoing_queue_forward.put(packed_data)
+                outgoing_queue_forward.put(packed_data)'''
 
             continue
 
@@ -709,7 +709,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
 
         if not is_early_exit and end_idx < 34 and start_idx != 0:
             #prune feature vectur
-            mean, outlier = get_outlier(out.last_hidden_state, 3)
+            mean, outlier = get_outlier(out.last_hidden_state, 7)
             print('#outlier: ', outlier)
             rate = 10 / (10 * math.log10(outlier + 10))
 
