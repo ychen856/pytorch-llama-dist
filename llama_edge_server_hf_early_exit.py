@@ -16,8 +16,8 @@ from feature_pruning import *
 
 import http_receiver
 #import http_receiver2 as http_receiver
-import http_sender_gateway
-#import http_sender_gateway2 as http_sender_gateway
+#import http_sender_gateway
+import http_sender_gateway2 as http_sender_gateway
 
 from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
@@ -449,7 +449,7 @@ def task1_data_sending(args):
 
                 input = incoming_queue.get()
                 #if received origina data
-                outgoing_queue_forward.put([0, input, None, None, idx, 0, 0])
+                #outgoing_queue_forward.put([0, input, None, None, idx, 0, 0])
 
                 '''#If received a compressed data
                 unpacked_data = decompress_and_deserialize(input)
@@ -460,8 +460,8 @@ def task1_data_sending(args):
                 #end If received a compressed data'''
 
                 # compressed on the edge server
-                '''packed_data = serialize_and_compress(0, [None, None, input], None, None, idx, 0, 0)
-                outgoing_queue_forward.put(packed_data)'''
+                packed_data = serialize_and_compress(0, [None, None, input], None, None, idx, 0, 0)
+                outgoing_queue_forward.put(packed_data)
 
                 end_time = time.time()
                 #print('client computation time: ', end_time - start_time)
@@ -708,16 +708,16 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
 
 
         if not is_early_exit and end_idx < 34 and start_idx != 0:
-            #prune feature vectur
-            mean, outlier = get_outlier(out.last_hidden_state, 7)
+            '''#prune feature vectur
+            mean, outlier = get_outlier(out.last_hidden_state, 3)
             print('#outlier: ', outlier)
             rate = 10 / (10 * math.log10(outlier + 10))
 
             print('rate: ', rate)
             pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
-            outgoing_queue_forward.put([end_idx + 1, pruned_feature_vector, ids, mask, idx, total_comp_time, start_idx])
+            outgoing_queue_forward.put([end_idx + 1, pruned_feature_vector, ids, mask, idx, total_comp_time, start_idx])'''
 
-            '''#prune and comress the feature vector
+            #prune and comress the feature vector
             mean, outlier = get_outlier(out.last_hidden_state, 7)
             print('#outlier: ', outlier)
             rate = 10 / (10 * math.log10(outlier + 10))
@@ -727,7 +727,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             csr_out = dense_to_CSR(pruned_feature_vector[0])
 
             packed_data = serialize_and_compress(end_idx + 1, csr_out, ids, mask, idx, end_time - start_time, start_idx)
-            outgoing_queue_forward.put(packed_data)'''
+            outgoing_queue_forward.put(packed_data)
 
             '''#not prune the feature vectur
             outgoing_queue_forward.put([end_idx + 1, out, ids, mask, idx, total_comp_time, start_idx])'''
