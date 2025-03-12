@@ -1,4 +1,5 @@
 # this code is used for seperating the weights into small pieces and store them into seperated .pt files. One time usage.
+# receive original data and prune or w/o prune
 import gc
 import math
 import threading
@@ -16,8 +17,8 @@ from feature_pruning import *
 
 import http_receiver
 #import http_receiver2 as http_receiver
-#import http_sender_gateway
-import http_sender_gateway2 as http_sender_gateway
+import http_sender_gateway
+#import http_sender_gateway2 as http_sender_gateway
 
 from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
@@ -448,20 +449,18 @@ def task1_data_sending(args):
                 timestamp_manager.start_times = (idx, start_time)
 
                 input = incoming_queue.get()
+                start_idx = input[0]
+                out = input[1]
+                ids = input[2]
+                mask = input[3]
+                idx = input[4]
+
                 #if received origina data
-                #outgoing_queue_forward.put([0, input, None, None, idx, 0, 0])
+                if start_idx == 0:
+                    outgoing_queue_forward.put([0, out, None, None, idx, 0, 0])
+                else:
+                    outgoing_queue_forward.put([start_idx, out, ids, mask, idx, 0, start_idx])
 
-                '''#If received a compressed data
-                unpacked_data = decompress_and_deserialize(input)
-                print('received data: ', unpacked_data)
-                csr_out = unpacked_data[1]
-
-                outgoing_queue_forward.put([0, csr_out, None, None, idx, 0, 0])
-                #end If received a compressed data'''
-
-                # compressed on the edge server
-                packed_data = serialize_and_compress(0, [None, None, input], None, None, idx, 0, 0)
-                outgoing_queue_forward.put(packed_data)
 
                 end_time = time.time()
                 #print('client computation time: ', end_time - start_time)
@@ -602,10 +601,10 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
         if start_idx == 0 or start_idx > max_layers or start_idx < start_idx_buff:
             print('direct sent!')
 
-            '''#sending original data
-            outgoing_queue_forward.put([start_idx, out, ids, mask, idx, 0, start_idx]) # forward the original input to the server'''
+            #sending original data
+            outgoing_queue_forward.put([start_idx, out, ids, mask, idx, 0, start_idx]) # forward the original input to the server
 
-            #sending pruned data
+            '''#sending pruned data
             if start_idx == 0:
                 outgoing_queue_forward.put([start_idx, out, ids, mask, idx, 0, start_idx])
             else:
@@ -615,12 +614,12 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
 
                 print('rate: ', rate)
                 pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
-                outgoing_queue_forward.put([end_idx + 1, pruned_feature_vector, ids, mask, idx, 0, start_idx])
+                outgoing_queue_forward.put([end_idx + 1, pruned_feature_vector, ids, mask, idx, 0, start_idx])'''
 
             '''#sending pruned and compressed data
             if start_idx == 0:
-                packed_data = serialize_and_compress(end_idx + 1, out, ids, mask, idx, 0, 0)
-                outgoing_queue_forward.put(packed_data)
+                packed_data = serialize_and_compress(0, [None, None, out], None, None, idx, 0, 0)
+                outgoing_queue_forward.put([0, packed_data, idx, 0, 0])
             else:
                 mean, outlier = get_outlier(out.last_hidden_state, 7)
                 print('#outlier: ', outlier)
@@ -631,7 +630,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
                 csr_out = dense_to_CSR(pruned_feature_vector[0])
 
                 packed_data = serialize_and_compress(end_idx + 1, csr_out, ids, mask, idx, 0, start_idx)
-                outgoing_queue_forward.put(packed_data)'''
+                outgoing_queue_forward.put([end_idx + 1, packed_data, idx, 0, start_idx])'''
 
             continue
 
@@ -676,16 +675,15 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
         if not is_early_exit and end_idx >= 33:
             start_time = time.time()
             lm_logits = models[33](out.last_hidden_state)
-            end_time = time.time()
 
             if end_idx >=34:
                 start_time = time.time()
                 lm_logits = models[34](lm_logits)
-                end_time = time.time()
 
             #print('logits: ', lm_logits)
             #print('logit size: ', lm_logits.size())
 
+        end_time = time.time()
         total_comp_time = time.time() - start_comp_time
 
         # print('out: ', out)
@@ -717,7 +715,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
             outgoing_queue_forward.put([end_idx + 1, pruned_feature_vector, ids, mask, idx, total_comp_time, start_idx])'''
 
-            #prune and comress the feature vector
+            '''#prune and comress the feature vector
             mean, outlier = get_outlier(out.last_hidden_state, 7)
             print('#outlier: ', outlier)
             rate = 10 / (10 * math.log10(outlier + 10))
@@ -727,10 +725,10 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             csr_out = dense_to_CSR(pruned_feature_vector[0])
 
             packed_data = serialize_and_compress(end_idx + 1, csr_out, ids, mask, idx, end_time - start_time, start_idx)
-            outgoing_queue_forward.put(packed_data)
+            outgoing_queue_forward.put([end_idx + 1, packed_data, idx, end_time - start_time, start_idx])'''
 
-            '''#not prune the feature vectur
-            outgoing_queue_forward.put([end_idx + 1, out, ids, mask, idx, total_comp_time, start_idx])'''
+            #not prune the feature vectur
+            outgoing_queue_forward.put([end_idx + 1, out, ids, mask, idx, total_comp_time, start_idx])
 
 
             #print('outgoing queue PUT!')
