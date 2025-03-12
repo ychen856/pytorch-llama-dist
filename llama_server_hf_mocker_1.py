@@ -25,8 +25,7 @@ from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_la
     LlamaForCausalLM_linear
 import yaml
 from queue import Queue
-#import http_receiver
-import http_receiver2 as http_receiver
+import http_receiver
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
@@ -176,48 +175,13 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
         else:
             input = http_receiver.get_in_queue_data()
 
-        '''#received pruned data
-        start_idx = input[0]
-        csr_out = input[1]
-        ids = input[2]
-        mask = input[3]
-        idx = input[4]
-
-        if start_idx > 0:
-            out = BaseModelOutputWithPast()
-            out.last_hidden_state = csr_out
-        else:
-            out = csr_out'''
-
-
-        #received pruned and compressed data
-        unpacked_data = decompress_and_deserialize(input)
-        print('received data: ', unpacked_data)
-
-        start_idx = unpacked_data[0]
-        csr_out = unpacked_data[1]
-        ids = unpacked_data[2]
-        mask = unpacked_data[3]
-        idx = unpacked_data[4]
-
-        if csr_out[0] is not None:
-            # recover from csr/csc
-            out = BaseModelOutputWithPast()
-            out.last_hidden_state = csr_to_dense(csr_out).unsqueeze(0)
-            out.past_key_values = None
-            out.hidden_states = None
-            out.attentions = None
-        else:
-            out = csr_out[2]
-        #end received pruned and comressed data
-
-        '''#received original data
+        #received original data
         start_idx = input[0]
         out = input[1]
         ids = input[2]
         mask = input[3]
         idx = input[4]
-        #end receivedd origianl data'''
+        #end received origianl data
 
 
         print('start idx: ', start_idx)
