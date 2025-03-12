@@ -177,6 +177,7 @@ def task2_computation(models, start_idx, end_idx, tokenizer, device, is_dummy=Tr
             input = http_receiver.get_in_queue_data()
 
         #received pruned data
+        print('QQQQQQQQQQQQQ: ', input)
         start_idx = input[0]
         csr_out = input[1]
         ids = input[2]
