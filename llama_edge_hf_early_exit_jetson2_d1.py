@@ -617,11 +617,11 @@ if __name__ == '__main__':
     #random.shuffle(temp)
     temp = temp[:5]
 
+    print('temp: ', temp)
+
     for i in range(0, batch_size):
         input_queue.put(temp[i])
 
-    for input in input_queue:
-        print('input: ', input)
 
     start_idx = 0
     calculate_opt.end_idx = args.end_idx
