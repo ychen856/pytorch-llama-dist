@@ -583,6 +583,7 @@ if __name__ == '__main__':
 
     print("loading success")
     test_loader = get_eval_data(tokenizer)
+    print('test loader: ', test_loader)
     bs = 1
 
     # loading inputs data
