@@ -583,7 +583,6 @@ if __name__ == '__main__':
 
     print("loading success")
     test_loader = get_eval_data(tokenizer)
-    print('test loader: ', test_loader)
     bs = 1
 
     # loading inputs data
@@ -614,12 +613,15 @@ if __name__ == '__main__':
         #input_queue.put(inputs)
         temp.append(inputs)
 
-    random.seed(datetime.now().timestamp())
-    random.shuffle(temp)
+    #random.seed(datetime.now().timestamp())
+    #random.shuffle(temp)
     temp = temp[:5]
 
     for i in range(0, batch_size):
         input_queue.put(temp[i])
+
+    for input in input_queue:
+        print('input: ', input)
 
     start_idx = 0
     calculate_opt.end_idx = args.end_idx
