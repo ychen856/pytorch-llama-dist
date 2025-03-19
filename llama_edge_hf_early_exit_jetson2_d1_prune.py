@@ -479,7 +479,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
             print('rate: ', rate)
             pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
-            print('zeros: ', torch.count_nonzero(pruned_feature_vector, dim=0))
+            zeros = 0
+            zeros += pruned_feature_vector.numel() - pruned_feature_vector.nonzero().size(0)
+            print('zeros: ', zeros)
             #csr_out = dense_to_CSR(pruned_feature_vector[0])
 
             #packed_data = serialize_and_compress(end_idx + 1, csr_out, ids, mask, idx, end_time - start_time)
