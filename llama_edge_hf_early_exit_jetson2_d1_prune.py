@@ -479,6 +479,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
             print('rate: ', rate)
             pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
+            print('zeros: ', (pruned_feature_vector == 0.).sum(dim=0))
             #csr_out = dense_to_CSR(pruned_feature_vector[0])
 
             #packed_data = serialize_and_compress(end_idx + 1, csr_out, ids, mask, idx, end_time - start_time)
