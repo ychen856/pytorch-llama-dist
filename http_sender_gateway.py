@@ -68,7 +68,7 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     client_comp_time = text[5]
     newx = pickle.dumps(text)
     total_size = len(newx)
-
+    print('communication size: ', total_size)
     #start_time = time.time()
 
     conn = http.client.HTTPConnection(server_ip, server_port)
@@ -81,7 +81,7 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     conn.endheaders()
 
 
-    print('http sending: ', text)
+    #print('http sending: ', text)
     #print('package size: ', total_size)
     #print(newx)
     conn.send(newx)

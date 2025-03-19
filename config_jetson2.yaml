@@ -68,7 +68,11 @@ communication:
     #gateway_ip: 192.168.0.136
 
     # lab pc
-    gateway_ip: 10.147.17.35
+    #gateway_ip: 10.147.17.35
+    #gateway_port: 8000
+
+    #lab server
+    gateway_ip: 10.7.48.68
     gateway_port: 8000
 
     #nrp edge server

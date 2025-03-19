@@ -169,7 +169,7 @@ def serialize_and_compress(start_idx, csr_out, ids, mask, idx, client_comp_time,
     """ Serializes and compresses data using MessagePack + LZ4 """
     # Convert tensors to CPU & byte buffers (for MessagePack compatibility)
     def tensor_to_bytes(tensor):
-        return None if tensor is None else tensor.cpu().numpy().tobytes()
+        return None if tensor is None else tensor.cpu().detach().numpy().tobytes()
 
     tensor_data = {
         "ccol": tensor_to_bytes(csr_out[0]),

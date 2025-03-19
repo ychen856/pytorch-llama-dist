@@ -17,8 +17,8 @@ from feature_pruning import *
 
 import http_receiver
 #import http_receiver2 as http_receiver
-import http_sender_gateway
-#import http_sender_gateway2 as http_sender_gateway
+#import http_sender_gateway
+import http_sender_gateway2 as http_sender_gateway
 
 from safetensors.torch import save_file
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
@@ -449,24 +449,30 @@ def task1_data_sending(args):
                 timestamp_manager.start_times = (idx, start_time)
 
                 input = incoming_queue.get()
-                #if received pruned data
+                #if received origina data
+                #outgoing_queue_forward.put([0, input, None, None, idx, 0, 0])
+
+                # compressed on the edge server
                 start_idx = input[0]
-                csr_out = input[1]
+                out = input[1]
                 ids = input[2]
                 mask = input[3]
                 idx = input[4]
 
-                #if received origina data
-                if csr_out is None:
-                    incoming_queue.put(input)
-                    break
-                elif start_idx == 0:
-                    out = csr_out
-                    outgoing_queue_forward.put([0, out, None, None, idx, 0, 0])
+                if start_idx == 0:
+                    packed_data = serialize_and_compress(0, [None, None, input], None, None, idx, 0, 0)
+                    outgoing_queue_forward.put([0, packed_data, idx, 0, 0])
                 else:
-                    out = BaseModelOutputWithPast()
-                    out.last_hidden_state = csr_out
-                    outgoing_queue_forward.put([start_idx, out, ids, mask, idx, 0, start_idx])
+                    mean, outlier = get_outlier(out.last_hidden_state, 7)
+                    print('#outlier: ', outlier)
+                    rate = 10 / (10 * math.log10(outlier + 10))
+
+                    print('rate: ', rate)
+                    pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
+                    csr_out = dense_to_CSR(pruned_feature_vector[0])
+
+                    packed_data = serialize_and_compress(end_idx + 1, csr_out, ids, mask, idx, 0, start_idx)
+                    outgoing_queue_forward.put([end_idx + 1, packed_data, idx, 0, start_idx])
 
                 end_time = time.time()
                 #print('client computation time: ', end_time - start_time)
@@ -508,16 +514,17 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
 
 
 
-        #if received pruned data
+
+        #if received original data
         start_idx = input[0]
-        csr_out = input[1]
+        out = input[1]
         ids = input[2]
         mask = input[3]
         idx = input[4]
         is_early_exit = False
         is_oom = False
 
-        if csr_out is None:
+        if out is None:
             http_receiver.set_outgoing_queue([-1, None, None])
             max_layers = start_idx - 3 + max_layer_amount
             models, end_idx_buff = layer_reallocation(3, start_idx, end_idx_buff, max_layers, models)
@@ -527,14 +534,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             start_idx_buff = max(0, start_idx - 3)
             end_idx = start_idx + opt_layer_amount
             layer_amount = opt_layer_amount
+            # http_receiver.set_outgoing_queue([-1, None, None])
             continue
-        elif start_idx > 0:
-            out = BaseModelOutputWithPast()
-            out.last_hidden_state = csr_out
-        else:
-            out = csr_out
-        #end if pruned data
-
+        #end recieved original data
 
         print('start idx: ', start_idx)
         print('end idx: ', end_idx)
@@ -546,8 +548,21 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
         if start_idx == 0 or start_idx > max_layers or start_idx < start_idx_buff:
             print('direct sent!')
 
-            #sending original data
-            outgoing_queue_forward.put([start_idx, out, ids, mask, idx, 0, start_idx]) # forward the original input to the server
+            #sending pruned and compressed data
+            if start_idx == 0:
+                packed_data = serialize_and_compress(0, [None, None, out], None, None, idx, 0, 0)
+                outgoing_queue_forward.put([0, packed_data, idx, 0, 0])
+            else:
+                mean, outlier = get_outlier(out.last_hidden_state, 7)
+                print('#outlier: ', outlier)
+                rate = 10 / (10 * math.log10(outlier + 10))
+
+                print('rate: ', rate)
+                pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
+                csr_out = dense_to_CSR(pruned_feature_vector[0])
+
+                packed_data = serialize_and_compress(end_idx + 1, csr_out, ids, mask, idx, 0, start_idx)
+                outgoing_queue_forward.put([end_idx + 1, packed_data, idx, 0, start_idx])
 
             continue
 
@@ -623,8 +638,17 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
 
 
         if not is_early_exit and end_idx < 34 and start_idx != 0:
-            #not prune the feature vectur
-            outgoing_queue_forward.put([end_idx + 1, out, ids, mask, idx, total_comp_time, start_idx])
+            #prune and comress the feature vector
+            mean, outlier = get_outlier(out.last_hidden_state, 7)
+            print('#outlier: ', outlier)
+            rate = 10 / (10 * math.log10(outlier + 10))
+
+            print('rate: ', rate)
+            pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
+            csr_out = dense_to_CSR(pruned_feature_vector[0])
+
+            packed_data = serialize_and_compress(end_idx + 1, csr_out, ids, mask, idx, end_time - start_time, start_idx)
+            outgoing_queue_forward.put([end_idx + 1, packed_data, idx, end_time - start_time, start_idx])
 
 
             #print('outgoing queue PUT!')

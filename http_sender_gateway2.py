@@ -61,15 +61,16 @@ def pop_incoming_queue():
 
 def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     start_time = time.time()
-    '''server_start_idx = text[0]
-    start_idx = text[6]
-    idx = text[4]
-    input = text[1]
-    client_comp_time = text[5]'''
+    server_start_idx = text[0]
+    data = text[1]
+    idx = text[2]
+    client_comp_time = text[3]
+    start_idx = text[4]
 
     #start_time = time.time()
 
-    total_size = len(text)
+    total_size = len(data)
+    print('communication size: ', total_size)
 
     conn = http.client.HTTPConnection(server_ip, server_port)
     conn.connect()
@@ -80,11 +81,10 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     conn.putheader('Content-Length', total_size)
     conn.endheaders()
 
-
     #print('http sending: ', text)
     #print('package size: ', total_size)
     #print(newx)
-    conn.send(text)
+    conn.send(data)
     end_time = time.time()
     #print('client sending time: ', end_time - start_time)
     #if input is None:
@@ -130,8 +130,10 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     print('rrt: ', rtt)
     gc.collect()
 
+    print('????VVV: ', client_comp_time)
     #middle devices used only
     if client_comp_time is not None:
+        print('put: ', [start_idx, rtt + client_comp_time, idx])
         http_receiver.outgoing_queue.put([start_idx, rtt + client_comp_time, idx])
 
 
