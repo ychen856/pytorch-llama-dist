@@ -633,7 +633,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
 
         if not is_early_exit and end_idx < 34 and start_idx != 0:
             #prune feature vectur
-            mean, outlier = get_outlier(out.last_hidden_state, 3)
+            mean, outlier = get_outlier(out.last_hidden_state, 5)
             print('#outlier: ', outlier)
             rate = 10 / (10 * math.log10(outlier + 10))
 
