@@ -336,13 +336,13 @@ if __name__ == '__main__':
                             break'''
                     #print('splitting point: ', splitting_point)
                     #print('k: ', k)
-                    if k == splitting_point:
+                    '''if k == splitting_point:
                         mean, outlier = get_outlier(out.last_hidden_state, 90)
                         print('#outlier: ', outlier)
                         rate = 10 / (10 * math.log10(outlier + 10))
                         print('rate: ', rate)
                         pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
-                        out.last_hidden_state = pruned_feature_vector
+                        out.last_hidden_state = pruned_feature_vector'''
 
 
                 if not is_early_exit:
