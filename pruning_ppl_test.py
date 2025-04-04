@@ -337,7 +337,7 @@ if __name__ == '__main__':
                     #print('splitting point: ', splitting_point)
                     #print('k: ', k)
                     if k == splitting_point:
-                        mean, outlier = get_outlier(out.last_hidden_state, 90)
+                        mean, outlier = get_outlier(out.last_hidden_state, 80)
                         print('#outlier: ', outlier)
                         rate = 10 / (10 * math.log10(outlier + 10))
                         print('rate: ', rate)
