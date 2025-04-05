@@ -320,6 +320,7 @@ if __name__ == '__main__':
                     is_early_exit = False
                     # print('Processing layer: ', k)
                     start_time = time.time()
+                    print('out: ', out)
                     out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
                     # print('mask: ', mask)
