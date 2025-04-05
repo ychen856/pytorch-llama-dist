@@ -317,6 +317,7 @@ if __name__ == '__main__':
                 # print('iii: ', i)
                 # for k in range (1, len(models) - 2):
                 for k in range(1, len(models) - 2):
+                    print('k: ', k)
                     is_early_exit = False
                     # print('Processing layer: ', k)
                     start_time = time.time()
