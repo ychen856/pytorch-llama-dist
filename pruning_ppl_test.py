@@ -317,11 +317,11 @@ if __name__ == '__main__':
                 # print('iii: ', i)
                 # for k in range (1, len(models) - 2):
                 for k in range(1, len(models) - 2):
-                    print('k: ', k)
+                    #print('k: ', k)
                     is_early_exit = False
                     # print('Processing layer: ', k)
                     start_time = time.time()
-                    print('out: ', out)
+                    #print('out: ', out)
                     out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
                     # print('mask: ', mask)
