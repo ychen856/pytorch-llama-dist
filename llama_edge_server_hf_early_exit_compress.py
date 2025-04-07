@@ -463,7 +463,7 @@ def task1_data_sending(args):
                     packed_data = serialize_and_compress(0, [None, None, input], None, None, idx, 0, 0)
                     outgoing_queue_forward.put([0, packed_data, idx, 0, 0])
                 else:
-                    mean, outlier = get_outlier(out.last_hidden_state, 600)
+                    mean, outlier = get_outlier(out.last_hidden_state, 1000)
                     print('#outlier: ', outlier)
                     rate = 10 / (10 * math.log10(outlier + 10))
 
@@ -553,7 +553,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
                 packed_data = serialize_and_compress(0, [None, None, out], None, None, idx, 0, 0)
                 outgoing_queue_forward.put([0, packed_data, idx, 0, 0])
             else:
-                mean, outlier = get_outlier(out.last_hidden_state, 600)
+                mean, outlier = get_outlier(out.last_hidden_state, 1000)
                 print('#outlier: ', outlier)
                 rate = 10 / (10 * math.log10(outlier + 10))
 
@@ -639,7 +639,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
 
         if not is_early_exit and end_idx < 34 and start_idx != 0:
             #prune and comress the feature vector
-            mean, outlier = get_outlier(out.last_hidden_state, 600)
+            mean, outlier = get_outlier(out.last_hidden_state, 1000)
             print('#outlier: ', outlier)
             rate = 10 / (10 * math.log10(outlier + 10))
 
