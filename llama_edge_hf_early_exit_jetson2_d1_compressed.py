@@ -471,9 +471,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
 
             #outlier calculation method II
-            mean, outlier = get_outlier(out.last_hidden_state, 1000)
+            mean, outlier = get_outlier(out.last_hidden_state, 2000)
             print('#outlier: ', outlier)
-            rate = 10/(10 * math.log10(outlier + 10))
+            rate = 10/(10 * math.log10(outlier + 10) + 0.101)
 
             print('rate: ', rate)
             pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
