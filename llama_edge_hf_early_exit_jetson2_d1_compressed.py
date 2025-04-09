@@ -471,7 +471,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
 
             #outlier calculation method II
-            mean, outlier = get_outlier(out.last_hidden_state, 200)
+            mean, outlier = get_outlier(out.last_hidden_state, 100)
             print('#outlier: ', outlier)
             rate = 10/(10 * math.log10(outlier + 10) + 1.11)
 
