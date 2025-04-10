@@ -331,7 +331,7 @@ if __name__ == '__main__':
 
                     # print('mask: ', mask)
 
-                    '''if k == head_idx:
+                    if k == head_idx:
                         # print('head idx: ', head_idx)
                         is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, head_idx)
 
@@ -340,13 +340,14 @@ if __name__ == '__main__':
                             is_early_exit = True
                             early_count = early_count + 1
                             print('early: ', early_count)
-                            break'''
+                            #break
+
                     #print('splitting point: ', splitting_point)
                     #print('k: ', k)
                     if k == splitting_point or k == splitting_point2:
                         mean, outlier = get_outlier(out.last_hidden_state, 2000)
                         print('#outlier: ', outlier)
-                        rate = 10 / (10 * math.log10(outlier + 10))
+                        rate = 10 / (10 * math.log10(outlier + 10) + 1.11)
                         print('rate: ', rate)
                         pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
                         out.last_hidden_state = pruned_feature_vector
