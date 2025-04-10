@@ -644,8 +644,6 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
 
 
         if not is_early_exit and end_idx < 34 and start_idx != 0:
-            #not prune the feature vectur
-            outgoing_queue_forward.put([end_idx + 1, out, ids, mask, idx, total_comp_time, start_idx])
             # prune and comress the feature vector
             mean, outlier = get_outlier(out.last_hidden_state, 2000)
             print('#outlier: ', outlier)
