@@ -340,7 +340,7 @@ if __name__ == '__main__':
                             is_early_exit = True
                             early_count = early_count + 1
                             print('early: ', early_count)
-                            #break
+                            break
 
                     #print('splitting point: ', splitting_point)
                     #print('k: ', k)
