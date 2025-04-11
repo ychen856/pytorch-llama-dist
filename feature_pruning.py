@@ -62,7 +62,8 @@ def prune_feature_vector(tensor_data, mean, rate):
     _, indices = torch.topk(distances, round(flat_tensor.numel() * rate), dim=1, largest=False)
 
     # Create a mask and set selected elements to zero
-    flat_tensor[0, indices[0]] = 0
+    with torch.no_grad():
+        flat_tensor[0, indices[0]] = 0
 
     #print('after pruning... ', flat_tensor.view_as(tensor_data))
     # Reshape back to original shape
