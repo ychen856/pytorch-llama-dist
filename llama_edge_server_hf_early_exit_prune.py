@@ -549,7 +549,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             if start_idx == 0:
                 outgoing_queue_forward.put([start_idx, out, ids, mask, idx, 0, start_idx])
             else:
-                mean, outlier = get_outlier(out.last_hidden_state, 2000)
+                mean, outlier = get_outlier(out.last_hidden_state, 1000)
                 print('#outlier: ', outlier)
                 rate = 10 / (10 * math.log10(outlier + 10) + 1.11)
 
