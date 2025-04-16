@@ -475,9 +475,9 @@ def task1_data_sending(args):
                 if start_idx == 0:
                     outgoing_queue_forward.put([0, out, ids, mask, idx, 0, 0])
                 else:
-                    mean, outlier = get_outlier(out.last_hidden_state, 80)
+                    mean, outlier = get_outlier(out.last_hidden_state, 2000)
                     print('#outlier: ', outlier)
-                    rate = 10 / (10 * math.log10(outlier + 10))
+                    rate = 10 / (10 * math.log10(outlier + 10) + 1.11)
 
                     print('rate: ', rate)
                     pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
@@ -574,9 +574,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
             if start_idx == 0:
                 outgoing_queue_forward.put([start_idx, out, ids, mask, idx, 0, start_idx])
             else:
-                mean, outlier = get_outlier(out.last_hidden_state, 80)
+                mean, outlier = get_outlier(out.last_hidden_state, 2000)
                 print('#outlier: ', outlier)
-                rate = 10 / (10 * math.log10(outlier + 10))
+                rate = 10 / (10 * math.log10(outlier + 10) + 1.11)
 
                 print('rate: ', rate)
                 pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
@@ -658,9 +658,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
 
         if not is_early_exit and end_idx < 34 and start_idx != 0:
             # prune feature vectur
-            mean, outlier = get_outlier(out.last_hidden_state, 80)
+            mean, outlier = get_outlier(out.last_hidden_state, 2000)
             print('#outlier: ', outlier)
-            rate = 10 / (10 * math.log10(outlier + 10))
+            rate = 10 / (10 * math.log10(outlier + 10) + 1.11)
 
             print('rate: ', rate)
             pruned_feature_vector = prune_feature_vector(out.last_hidden_state, mean, rate)
