@@ -588,7 +588,7 @@ if __name__ == '__main__':
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
     #nsamples = 5
-    batch_size = 10
+    batch_size = 5
     # List to store negative log likelihoodss
     nlls = []
     print(f"nsamples {nsamples}")
@@ -610,7 +610,7 @@ if __name__ == '__main__':
 
     random.seed(datetime.now().timestamp())
     random.shuffle(temp)
-    temp = temp[:10]
+    temp = temp[:5]
 
     for i in range(0, batch_size):
         input_queue.put(temp[i])
