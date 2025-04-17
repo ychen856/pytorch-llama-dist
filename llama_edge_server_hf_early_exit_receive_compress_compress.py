@@ -136,7 +136,7 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
         start_idx_buff = max(0, start_idx - 3)
         #start update
         #checkpoints = checkpoints[start_idx_buff:max_layers]
-        end_idx_buff  = max_layers
+
         checkpoints = checkpoints[start_idx_buff:max_layers + 1]
         print('checkpoints: ', checkpoints)
         print('model: ', models)
