@@ -134,7 +134,11 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
         assert len(checkpoints) > 0, f"no checkpoint files found in {args.ckpt_dir_hf_sep}"
 
         start_idx_buff = max(0, start_idx - 3)
-        checkpoints = checkpoints[start_idx_buff:max_layers]
+        #start update
+        #checkpoints = checkpoints[start_idx_buff:max_layers]
+        end_idx_buff  = max_layers
+        checkpoints = checkpoints[start_idx_buff:max_layers + 1]
+        #end update
         checkpoint_idx = start_idx_buff
 
 
@@ -153,15 +157,17 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
 
             checkpoint_idx = checkpoint_idx + 1
 
-        end_idx_buff = max_layers
+        #end_idx_buff = max_layers
 
 
         if device.type == 'cuda':
             torch.set_default_tensor_type(torch.cuda.HalfTensor)
         else:
             torch.set_default_tensor_type(torch.BFloat16Tensor)
-
-        models = models[:end_idx_buff]
+        #start update
+        #models = models[:end_idx_buff]
+        models = models[:end_idx_buff + 1]
+        #end update
 
         checkpoint_idx = 0
         for i in range(0, end_idx_buff + 1):
