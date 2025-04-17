@@ -159,7 +159,7 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
 
             checkpoint_idx = checkpoint_idx + 1
 
-        #end_idx_buff = max_layers
+        end_idx_buff = max_layers
 
 
         if device.type == 'cuda':
@@ -551,8 +551,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
 
         if csr_out[2] is None:
             http_receiver.set_outgoing_queue([-1, None, None])
-            max_layers = min(start_idx - 3 + max_layer_amount, max_layers)
+            #max_layers = min(start_idx - 3 + max_layer_amount, max_layers)
             models, end_idx_buff = layer_reallocation(3, start_idx, end_idx_buff, max_layers, models)
+            print('new end_idx_buff: ', end_idx_buff)
             lm_head, _ = get_lm_head_idx(end_idx)
             if not lm_head == head_idx:
                 head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx, device, cache_dir="llm_weights")
