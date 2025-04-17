@@ -310,12 +310,12 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
     count = 0
     early_count = 0
     statistics_period = calculate_opt.statistic_period
-    batch_size = 5
+    batch_size = 10
     # repeated 5->0, 10->1, 20->3
     global repeated
     #while not input_queue.empty():
     while(1):
-        if input_queue.qsize() == 0 and repeated == 0:
+        if input_queue.qsize() == 0 and repeated == 1:
             #time.sleep(150)
             while len(timestamp_manager.end_times) < batch_size:
                 time.sleep(0.0001)
@@ -369,7 +369,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             batch_count = batch_count - 1
             repeated = 0
 
-        if repeated < 0:
+        if repeated < 1:
             for data in temp:
                 # print('data: ', data)
                 input_queue.put(data)
@@ -588,7 +588,7 @@ if __name__ == '__main__':
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
     #nsamples = 5
-    batch_size = 5
+    batch_size = 10
     # List to store negative log likelihoodss
     nlls = []
     print(f"nsamples {nsamples}")
