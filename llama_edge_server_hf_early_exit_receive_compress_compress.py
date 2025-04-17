@@ -140,6 +140,7 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
         checkpoints = checkpoints[start_idx_buff:max_layers + 1]
         print('checkpoints: ', checkpoints)
         print('model: ', models)
+        print('YACACA')
         #end update
         checkpoint_idx = start_idx_buff
 
