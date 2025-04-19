@@ -145,22 +145,25 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
         checkpoint_idx = start_idx_buff
 
 
+        try:
+            print('end idx buff: ', end_idx_buff)
+            for checkpoint in checkpoints:
+                print('checkpoint idx: ', checkpoint_idx)
+                if checkpoint_idx > end_idx_buff:
+                    #print('yaaay')
+                    ckpt_path = checkpoint
+                    checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
+                elif models[checkpoint_idx] is None:
+                    #print('nooon')
+                    ckpt_path = checkpoint
+                    checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
 
-        print('end idx buff: ', end_idx_buff)
-        for checkpoint in checkpoints:
-            print('checkpoint idx: ', checkpoint_idx)
-            if checkpoint_idx > end_idx_buff:
-                #print('yaaay')
-                ckpt_path = checkpoint
-                checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
-            elif models[checkpoint_idx] is None:
-                #print('nooon')
-                ckpt_path = checkpoint
-                checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
+                checkpoint_idx = checkpoint_idx + 1
 
-            checkpoint_idx = checkpoint_idx + 1
-
-        end_idx_buff = max_layers
+            end_idx_buff = max_layers
+        except:
+            print('reallocation error!!')
+            return models, end_idx_buff
 
 
         if device.type == 'cuda':
