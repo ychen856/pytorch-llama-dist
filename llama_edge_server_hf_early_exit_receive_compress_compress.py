@@ -44,6 +44,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--config', default='config_server.yaml')
 args = parser.parse_args()
 
+model_layer_idx_list = []
 incoming_queue = Queue()
 outgoing_queue_forward = Queue()
 outgoing_queue_return = Queue()
@@ -137,33 +138,46 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
         #start update
         #checkpoints = checkpoints[start_idx_buff:max_layers]
 
+
         checkpoints = checkpoints[start_idx_buff:max_layers + 1]
         print('checkpoints: ', checkpoints)
         print('model: ', models)
         print('YACACA')
+        #print('model idx list: ', model_layer_idx_list)
+        print('start idx: ', start_idx)
+        print('start idx buff: ', start_idx_buff)
         #end update
         checkpoint_idx = start_idx_buff
 
+        for i in range(0, start_idx_buff):
+            models[i] = None
 
-        try:
-            print('end idx buff: ', end_idx_buff)
-            for checkpoint in checkpoints:
-                print('checkpoint idx: ', checkpoint_idx)
-                if checkpoint_idx > end_idx_buff:
-                    #print('yaaay')
-                    ckpt_path = checkpoint
-                    checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
-                elif models[checkpoint_idx] is None:
-                    #print('nooon')
-                    ckpt_path = checkpoint
-                    checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
+            #for layer_idx in model_layer_idx_list:
+            #    if layer_idx < i:
+            #        model_layer_idx_list = model_layer_idx_list[1:]
 
-                checkpoint_idx = checkpoint_idx + 1
+        print('end idx buff: ', end_idx_buff)
+        for checkpoint in checkpoints:
+            print('checkpoint idx: ', checkpoint_idx)
+            if checkpoint_idx < len(models):
+                ckpt_path = checkpoint
+                checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
+            if checkpoint_idx > end_idx_buff or models[checkpoint_idx] is None:
+                #print('yaaay')
+                ckpt_path = checkpoint
+                checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
 
-            end_idx_buff = max_layers
-        except:
-            print('reallocation error!!')
-            return models, end_idx_buff
+
+            #elif models[checkpoint_idx] is None:
+            #    #print('nooon')
+            #    ckpt_path = checkpoint
+            #    checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
+
+            checkpoint_idx = checkpoint_idx + 1
+
+        end_idx_buff = max_layers
+
+        print('reallocation success!!')
 
 
         if device.type == 'cuda':
@@ -278,6 +292,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
     print('start idx: ', start_idx)
     for i in range(start_idx, end_idx + 1):
         print('i: ', i)
+        model_layer_idx_list.append(i)
         #print('check point list [i]: ', checkpoint_list[i])
         if i == 0:
             models.append(LlamaForCausalLM_emb(config))
