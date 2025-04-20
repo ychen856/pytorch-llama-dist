@@ -134,34 +134,59 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
         assert len(checkpoints) > 0, f"no checkpoint files found in {args.ckpt_dir_hf_sep}"
 
         start_idx_buff = max(0, start_idx - 3)
-        checkpoints = checkpoints[start_idx_buff:max_layers]
+        #start update
+        #checkpoints = checkpoints[start_idx_buff:max_layers]
+
+
+        checkpoints = checkpoints[start_idx_buff:max_layers + 1]
+        print('checkpoints: ', checkpoints)
+        print('model: ', models)
+        print('YACACA')
+        #print('model idx list: ', model_layer_idx_list)
+        print('start idx: ', start_idx)
+        print('start idx buff: ', start_idx_buff)
+        #end update
         checkpoint_idx = start_idx_buff
 
+        for i in range(0, start_idx_buff):
+            models[i] = None
 
+            #for layer_idx in model_layer_idx_list:
+            #    if layer_idx < i:
+            #        model_layer_idx_list = model_layer_idx_list[1:]
 
         print('end idx buff: ', end_idx_buff)
         for checkpoint in checkpoints:
             print('checkpoint idx: ', checkpoint_idx)
-            if checkpoint_idx > end_idx_buff:
+            if checkpoint_idx < len(models):
+                ckpt_path = checkpoint
+                checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
+            if checkpoint_idx > end_idx_buff or models[checkpoint_idx] is None:
                 #print('yaaay')
                 ckpt_path = checkpoint
                 checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
-            elif models[checkpoint_idx] is None:
-                #print('nooon')
-                ckpt_path = checkpoint
-                checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
+
+
+            #elif models[checkpoint_idx] is None:
+            #    #print('nooon')
+            #    ckpt_path = checkpoint
+            #    checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
 
             checkpoint_idx = checkpoint_idx + 1
 
         end_idx_buff = max_layers
+
+        print('reallocation success!!')
 
 
         if device.type == 'cuda':
             torch.set_default_tensor_type(torch.cuda.HalfTensor)
         else:
             torch.set_default_tensor_type(torch.BFloat16Tensor)
-
-        models = models[:end_idx_buff]
+        #start update
+        #models = models[:end_idx_buff]
+        models = models[:end_idx_buff + 1]
+        #end update
 
         checkpoint_idx = 0
         for i in range(0, end_idx_buff + 1):
@@ -537,8 +562,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
 
         if csr_out[2] is None:
             http_receiver.set_outgoing_queue([-1, None, None])
-            max_layers = start_idx - 3 + max_layer_amount
+            #max_layers = start_idx - 3 + max_layer_amount
             models, end_idx_buff = layer_reallocation(3, start_idx, end_idx_buff, max_layers, models)
+            print('new end_idx_buff: ', end_idx_buff)
             lm_head, _ = get_lm_head_idx(end_idx)
             if not lm_head == head_idx:
                 head_idx, lm_models = load_lm_head(args.ckpt_dir_hf_sep, end_idx, device, cache_dir="llm_weights")
