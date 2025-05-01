@@ -45,8 +45,10 @@ edge_layer_setting:
   max_layer_amount: 10
   max_layers: 10
   start_idx: 3
-  early_idx_buff: 0
-  end_idx_buff: 8
+  #early_idx_buff: 0
+  #end_idx_buff: 8
+  early_idx_buff: 1
+  end_idx_buff: 10
   end_idx: 5
   head_idx: 4
 
