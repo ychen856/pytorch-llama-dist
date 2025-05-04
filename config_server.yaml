@@ -42,13 +42,17 @@ edge_layer_setting:
   #start_idx: 0
   #end_idx_buff: 8
   #end_idx: 5
-  max_layer_amount: 10
-  max_layers: 10
+
+  #max_layer_amount: 10
+  #max_layers: 10
+  max_layer_amount: 7
+  max_layers: 7
+
   start_idx: 3
   #early_idx_buff: 0
   #end_idx_buff: 8
   early_idx_buff: 1
-  end_idx_buff: 8
+  end_idx_buff: 6
   end_idx: 5
   head_idx: 4
 
