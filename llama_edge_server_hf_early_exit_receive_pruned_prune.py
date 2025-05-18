@@ -166,7 +166,7 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
             if checkpoint_idx >= len(models):
                 ckpt_path = checkpoint
                 checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
-            if checkpoint_idx > end_idx_buff or models[checkpoint_idx] is None:
+            elif checkpoint_idx > end_idx_buff or models[checkpoint_idx] is None:
                 #print('yaaay')
                 ckpt_path = checkpoint
                 checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
