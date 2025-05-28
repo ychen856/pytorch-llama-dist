@@ -595,8 +595,8 @@ if __name__ == '__main__':
         #input_queue.put(inputs)
         temp.append(inputs)
 
-    #random.seed(datetime.now().timestamp())
-    #random.shuffle(temp)
+    random.seed(datetime.now().timestamp())
+    random.shuffle(temp)
     temp = temp[:5]
 
     print('temp: ', temp)
