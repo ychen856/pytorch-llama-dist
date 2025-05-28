@@ -372,8 +372,8 @@ def calculate_opt(data_store: PerformanceDataStore):
 
         data_store.optimal_latency_history = min_latency
 
-        if data_store._statisitc_period > 20:
-            data_store._steady_state = True
+    if data_store._statisitc_period > 20:
+        data_store._steady_state = True
 
     data_store._new_record_count = 0
     print('statistic period: ', data_store._statisitc_period)
