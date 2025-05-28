@@ -575,7 +575,7 @@ if __name__ == '__main__':
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
     #nsamples = 5
-    batch_size = 10
+    batch_size = 5
     # List to store negative log likelihoodss
     nlls = []
     print(f"nsamples {nsamples}")
