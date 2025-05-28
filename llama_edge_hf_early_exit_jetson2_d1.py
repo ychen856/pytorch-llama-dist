@@ -259,9 +259,6 @@ def task1_data_sending(args):
     while 1:
         timeout_count = 0
 
-        #print('zzz', calculate_opt.steady_state)
-        #while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
-        #while outgoing_queue.empty() and input_queue.qsize() > 0:
         while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0 and performance_data_store.steady_state:
         #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0:
             timeout_count = timeout_count + 1
@@ -397,7 +394,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
         for k in range(1, end_idx + 1):
             try:
                 out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-                '''if k == head_idx:
+                if k == head_idx:
                     try:
                         is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, head_idx)
                         #print('is early: ', is_early_exit)
@@ -411,7 +408,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                     if is_early_exit:
                         print('end idx: ', k)
                         timestamp_manager.end_times = (idx, time.time())
-                        break'''
+                        break
 
             except Exception as e:
                 print('oom!!!')
