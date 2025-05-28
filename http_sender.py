@@ -9,6 +9,7 @@ import yaml
 import gc
 from queue import Queue
 
+from datetime import datetime, timedelta
 import http_receiver
 
 parser = argparse.ArgumentParser(
@@ -58,7 +59,7 @@ def pop_incoming_queue():
     returning_queue.get()
 
 
-def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
+def send_data(server_ip, server_port, text, performance_data_store, timestamp_manager):
     start_time = time.time()
     start_idx = text[0]
     idx = text[4]
@@ -104,6 +105,7 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
     end_time2 = time.time()
     rtt = end_time2 - start_time
 
+
     try:
         # resp_message = [start_idx, total_comp_time, idx]
         resp_message = pickle.loads(resp_str)
@@ -117,8 +119,8 @@ def send_data(server_ip, server_port, text, calculate_opt, timestamp_manager):
 
         if not (resp_message[0] == 0 or resp_message[0] == -1):
             print('data stored!')
-            calculate_opt.incoming_count = calculate_opt.incoming_count + 1
-            calculate_opt.server_comp_statistics = (resp_message[0], resp_message[3])
+            performance_data_store.incoming_count = performance_data_store.incoming_count + 1
+            performance_data_store.add_server_info(datetime.now() + timedelta(milliseconds=50), resp_message[0], 34, resp_message[1], resp_message[3] - resp_message[1])
         #returning_queue.put(resp_message)
     except:
         print('error')
