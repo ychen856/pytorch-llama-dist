@@ -18,8 +18,8 @@ def get_eval_data(tokenizer):
     #random.seed(datetime.now().timestamp())
     # Get the test loader
     _, testloader = get_loaders(
-        dataset, seed=0, seqlen=seqlen, tokenizer=tokenizer
-        #dataset, seed=random.random(), seqlen=seqlen, tokenizer=tokenizer
+        #dataset, seed=0, seqlen=seqlen, tokenizer=tokenizer
+        dataset, seed=random.random(), seqlen=seqlen, tokenizer=tokenizer
     )
 
     return testloader
