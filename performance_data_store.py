@@ -375,6 +375,8 @@ def calculate_opt(data_store: PerformanceDataStore):
     if data_store._statisitc_period > 20:
         data_store._steady_state = True
 
+    data_store.max_records_per_type = data_store.statistic_period + 10
+
     data_store._new_record_count = 0
     print('statistic period: ', data_store._statisitc_period)
     return current_optimal_set[0] - 1, current_optimal_set[0] + 2, data_store._statisitc_period
