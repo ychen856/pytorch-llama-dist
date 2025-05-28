@@ -379,7 +379,7 @@ def calculate_opt(data_store: PerformanceDataStore):
 
     data_store._new_record_count = 0
     print('statistic period: ', data_store._statisitc_period)
-    return current_optimal_set[0] - 1, current_optimal_set[0] + 2, data_store._statisitc_period
+    return current_optimal_set[0] - 1, current_optimal_set[0] + 1, data_store._statisitc_period
 
 if __name__ == "__main__":
     # Test with convergence history size of 3 and threshold of 0.01
