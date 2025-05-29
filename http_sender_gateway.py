@@ -10,8 +10,8 @@ import gc
 from queue import Queue
 
 from datetime import datetime, timedelta
-#import http_receiver
-import http_receiver2 as http_receiver
+import http_receiver
+#import http_receiver2 as http_receiver
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
