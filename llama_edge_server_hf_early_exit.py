@@ -749,7 +749,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
                 if (input_count + 1) % 2 == 0 and input_count < 20 and end_idx < max_layers and statistics_period <= 10:
                 #if (input_count + 1) % 3 == 0 and input_count < 20 and end_idx < max_layers and statistics_period <= 20:
                     #print('testing higher value(i<30)')
-                    performance_data_store.max_layer_amount(layer_amount)
+                    performance_data_store.max_layer_amount = layer_amount
                     layer_amount = layer_amount + 1
 
                 if cycle_count == (statistics_period - 8) and input_count > 20 and cycle_count % 2 == 0:
@@ -792,7 +792,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
         torch.cuda.empty_cache()
 
 
-    #calculate_opt.statistic_period = statistics_period
+    performance_data_store.statistic_period = statistics_period
 
 
 
