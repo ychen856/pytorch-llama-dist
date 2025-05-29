@@ -466,7 +466,7 @@ def task1_data_sending(args):
 
         data = outgoing_queue_forward.get()
         #print('data: ', data)
-        performance_data_store.outgoing_count(performance_data_store.outgoing_count + 1)
+        performance_data_store.outgoing_count = performance_data_store.outgoing_count + 1
         http_sender_gateway.send_data(args.server_ip, args.server_port, data, performance_data_store, timestamp_manager)
 
 def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end_idx_buff, max_layers, max_layer_amount, head_idx, tokenizer, device, is_dummy=True):
