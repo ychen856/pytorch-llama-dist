@@ -760,7 +760,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
                 if cycle_count > (statistics_period - 8) and input_count >= 20 and end_idx < max_layers and cycle_count % 2 == 0:
                 #if cycle_count > (statistics_period - 12) and input_count >= 20 and end_idx < max_layers and cycle_count % 3 == 0:
                     #print('testing higher value (i>30): ')
-                    performance_data_store.max_layer_amount(layer_amount)
+                    performance_data_store.max_layer_amount = layer_amount
                     layer_amount = layer_amount + 1
 
                 end_idx = start_idx + layer_amount
