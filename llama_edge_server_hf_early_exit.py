@@ -769,6 +769,8 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
         if performance_data_store.new_record_count >= statistics_period:
             print('statistic')
             #statistics_period = statistics_period + 5
+            print('PPPPPPPPPPPPPPPPPPPPPPP')
+            print(performance_data_store.get_all_data_by_type("edge_to_server"))
             end_idx, end_idx_buff, statistics_period = calculate_edge_server_opt(performance_data_store, start_idx)
             opt_layer_amount = end_idx - start_idx
             layer_amount = opt_layer_amount
