@@ -433,14 +433,14 @@ def calculate_edge_server_opt(data_store: PerformanceDataStore, edge_server_star
     if optimal_es_end_idx is None:  # No valid average could be calculated
         return None
 
-    if data_store._last_opt_calc_time * 1.1 < min_avg_latency:
+    if data_store.optimal_latency_history * 1.1 < min_avg_latency:
         data_store._statisitc_period = max(10, math.floor(data_store._statisitc_period * 2 / 3))
         # self._statisitc_period = max(10, self._statisitc_period - 4)
-    elif data_store._last_opt_calc_time * 1.1 > min_avg_latency:
+    elif data_store.optimal_latency_history * 1.1 > min_avg_latency:
         data_store._statisitc_period = min(100, data_store._statisitc_period + 6)
 
 
-    data_store._last_opt_calc_time = min_avg_latency
+    data_store.optimal_latency_history = min_avg_latency
 
     if data_store._statisitc_period > 20:
         data_store._steady_state = True
