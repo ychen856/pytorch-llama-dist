@@ -12,7 +12,10 @@ class PerformanceDataStore:
                                         for each unique (start_index, end_index) pair.
         """
         # Main storage for complete records (client + server data), keyed by (start_index, end_index)
-        self.data_storage = collections.defaultdict(collections.deque)
+        self.data_storage = {
+            "client_to_server": collections.defaultdict(collections.deque),
+            "edge_to_server": collections.defaultdict(collections.deque)
+        }
         self.max_records_per_type = max_records_per_type
 
         # Temporary storage for pending client data.
