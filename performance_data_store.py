@@ -407,7 +407,7 @@ def calculate_opt(data_store: PerformanceDataStore):
             latency_diff: float or None
         ) if valid data is available, otherwise None.
     """
-    all_data = data_store.get_all_data()
+    '''all_data = data_store.get_all_data()
     if not all_data:
         return None
 
@@ -483,7 +483,8 @@ def calculate_opt(data_store: PerformanceDataStore):
 
     data_store._new_record_count = 0
     print('statistic period: ', data_store._statisitc_period)
-    return optimal_key_found[0] - 1, optimal_key_found[0], data_store._statisitc_period
+    return optimal_key_found[0] - 1, optimal_key_found[0], data_store._statisitc_period'''
+    return 1, 2, 3
 
 
 if __name__ == "__main__":
