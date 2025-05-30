@@ -385,6 +385,7 @@ class PerformanceDataStore:
     return current_optimal_set[0] - 1, current_optimal_set[0], data_store._statisitc_period'''
 
 
+
 def calculate_opt(data_store: PerformanceDataStore):
     """
     Calculates the overall optimal latency for a specified record_type across all its keys,
@@ -407,7 +408,7 @@ def calculate_opt(data_store: PerformanceDataStore):
         ) if valid data is available, otherwise None.
     """
 
-    min_weighted_latency = float('inf')
+    '''min_weighted_latency = float('inf')
     optimal_key_found = None
 
     WEIGHT_OLD = 0.3
@@ -479,7 +480,8 @@ def calculate_opt(data_store: PerformanceDataStore):
 
     data_store._new_record_count = 0
     print('statistic period: ', data_store._statisitc_period)
-    return optimal_key_found[0] - 1, optimal_key_found[0], data_store._statisitc_period
+    return optimal_key_found[0] - 1, optimal_key_found[0], data_store._statisitc_period'''
+    return 1, 2, 3
 
 
 if __name__ == "__main__":
