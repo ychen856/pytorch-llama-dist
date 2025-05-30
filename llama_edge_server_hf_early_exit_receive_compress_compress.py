@@ -34,7 +34,7 @@ import yaml
 from queue import Queue
 
 from prune_all import prune_wanda_allocation
-from calculate_opt import Calcualte_opt, find_row
+from performance_edge_server_data_store import *
 from early_exit import early_exit_cpu, early_exit_cuda, early_exit_lm_head
 from timestamp_manager import Timestamp_manager
 from threading import current_thread, Thread
@@ -48,7 +48,7 @@ model_layer_idx_list = []
 incoming_queue = Queue()
 outgoing_queue_forward = Queue()
 outgoing_queue_return = Queue()
-calculate_opt = Calcualte_opt()
+performance_data_store = PerformanceDataStore()
 timestamp_manager = Timestamp_manager()
 nsamples = 0
 temp = []
@@ -438,13 +438,6 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
     return lm_head, lm_models
 
 
-def get_server_statistic_from_q():
-    while not http_sender_gateway.returning_queue.empty():
-        [start_idx, server_comp_time, rtt] = http_sender_gateway.returning_queue.get()
-        calculate_opt.server_comp_statistics = (start_idx, server_comp_time)
-        calculate_opt.comm_statistics = rtt - server_comp_time
-        print('server_side: ', [start_idx, server_comp_time, rtt])
-
 def task1_data_receiving(args):
     pid = os.getpid()
     curr_thread = current_thread().name
@@ -530,8 +523,9 @@ def task1_data_sending(args):
 
         data = outgoing_queue_forward.get()
         #print('data: ', data)
-        calculate_opt.outgoint_count = calculate_opt.outgoint_count + 1
-        http_sender_gateway.send_data(args.server_ip, args.server_port, data, calculate_opt, timestamp_manager)
+        #calculate_opt.outgoint_count = calculate_opt.outgoint_count + 1
+        performance_data_store.outgoing_count = performance_data_store.outgoing_count + 1
+        http_sender_gateway.send_data(args.server_ip, args.server_port, data, performance_data_store, timestamp_manager)
 
 def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end_idx_buff, max_layers, max_layer_amount, head_idx, tokenizer, device, is_dummy=True):
     pid = os.getpid()
@@ -544,7 +538,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
     layer_amount = 2
     start_idx_buff = start_idx
     opt_layer_amount = 2
-    statistics_period = calculate_opt.statistic_period
+    statistics_period = performance_data_store.statistic_period
     while(1):
         print('http sender outgoing queue size: ', outgoing_queue_forward.qsize())
         print('start time: ', time.time())
@@ -713,10 +707,13 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
 
             #print('outgoing queue PUT!')
             #print('insert gateway statistics: ', [start_idx, end_idx, end_idx - start_idx, end_idx_buff, total_comp_time])
-            calculate_opt.gateway_comp_statistics = (start_idx, end_idx, end_idx - start_idx, end_idx_buff, total_comp_time)
+            #calculate_opt.gateway_comp_statistics = (start_idx, end_idx, end_idx - start_idx, end_idx_buff, total_comp_time)
+            performance_data_store.add_edge_server_info(datetime.now() + timedelta(milliseconds=50), start_idx, end_idx, end_idx_buff, total_comp_time)
 
             #existed_statistic = find_row(calculate_opt.gateway_comp_statistics, 0, start_idx)
-            existed_opt = find_row(calculate_opt.gateway_opt_table, 0, start_idx)
+            existed_opt = performance_data_store.get_all_data_by_edge_server_start_index(start_idx)
+
+
             if len(existed_opt) > 0:
                 input_count = input_count + 1
                 cycle_count = cycle_count + 1
@@ -734,7 +731,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
                 if (input_count + 1) % 2 == 0 and input_count < 20 and end_idx < max_layers and statistics_period <= 10:
                 #if (input_count + 1) % 3 == 0 and input_count < 20 and end_idx < max_layers and statistics_period <= 20:
                     #print('testing higher value(i<30)')
-                    calculate_opt.max_layer_amount = layer_amount
+                    performance_data_store.max_layer_amount = layer_amount
                     layer_amount = layer_amount + 1
 
                 if cycle_count == (statistics_period - 8) and input_count > 20 and cycle_count % 2 == 0:
@@ -745,16 +742,16 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
                 if cycle_count > (statistics_period - 8) and input_count >= 20 and end_idx < max_layers and cycle_count % 2 == 0:
                 #if cycle_count > (statistics_period - 12) and input_count >= 20 and end_idx < max_layers and cycle_count % 3 == 0:
                     #print('testing higher value (i>30): ')
-                    calculate_opt.max_layer_amount = layer_amount
+                    performance_data_store.max_layer_amount = layer_amount
                     layer_amount = layer_amount + 1
 
                 end_idx = start_idx + layer_amount
 
         #if (input_count) % 10 == 0:
-        if len(calculate_opt.server_comp_statistics) >= statistics_period:
+        if len(performance_data_store.new_record_count) >= statistics_period:
             print('statistic')
             #statistics_period = statistics_period + 5
-            end_idx, end_idx_buff, statistics_period = calculate_opt.calclate_opt_gateway(start_idx)
+            end_idx, end_idx_buff, statistics_period = calculate_edge_server_opt(performance_data_store, start_idx)
             opt_layer_amount = end_idx - start_idx
             layer_amount = opt_layer_amount
             end_idx_buff = min(max_layers, end_idx_buff)
@@ -777,7 +774,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
         torch.cuda.empty_cache()
 
 
-    calculate_opt.statistic_period = statistics_period
+    performance_data_store.statistic_period = statistics_period
 
 
 
@@ -966,13 +963,6 @@ def task2_computation(models, lm_models, start_idx, end_idx, early_idx_buff, end
     #print('round time: ', time.time() - start_time_0)
 '''
 
-def task3_summerizing(models, test_loader, bs, device):
-    while 1:
-        while not http_sender_gateway.returning_queue.empty():
-            [start_idx, server_comp_time, rtt] = http_sender_gateway.returning_queue.get()
-            calculate_opt.server_comp_statistics = (start_idx, server_comp_time)
-            calculate_opt.comm_statistics = rtt - server_comp_time
-            print('server_side: ',  [start_idx, server_comp_time, rtt])
 
 if __name__ == '__main__':
     set_start_method('spawn')
@@ -986,7 +976,7 @@ if __name__ == '__main__':
     torch.manual_seed(0)
 
 
-    calculate_opt.statistic_period = 20
+    performance_data_store.statistic_period = 20
     end_idx_buff = args.end_idx_buff
     early_idx_buff = args.early_idx_buff
     max_layer_amount = args.max_layer_amount

@@ -22,7 +22,7 @@ from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_la
 import yaml
 from queue import Queue
 from prune_all import prune_wanda_allocation
-from calculate_opt import Calcualte_opt
+from performance_data_store import *
 from early_exit import early_exit_cpu, early_exit_cuda, early_exit_lm_head
 from timestamp_manager import Timestamp_manager
 from feature_pruning import *
@@ -33,7 +33,7 @@ args = parser.parse_args()
 
 input_queue = Queue()
 outgoing_queue = Queue()
-calculate_opt = Calcualte_opt()
+performance_data_store = PerformanceDataStore()
 timestamp_manager = Timestamp_manager()
 repeated = 0
 temp = []
@@ -268,7 +268,7 @@ def task1_data_sending(args):
         #print('zzz', calculate_opt.steady_state)
         #while outgoing_queue.empty() and input_queue.qsize() > 0 and calculate_opt.steady_state:
         #while outgoing_queue.empty() and input_queue.qsize() > 0:
-        while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0 and calculate_opt.steady_state:
+        while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0 and performance_data_store.steady_state:
         #while outgoing_queue.qsize() < 3 and input_queue.qsize() > 0:
             timeout_count = timeout_count + 1
 
@@ -293,9 +293,9 @@ def task1_data_sending(args):
 
 
         data = outgoing_queue.get()
-        calculate_opt.outgoint_count = calculate_opt.outgoint_count + 1
+        performance_data_store.outgoing_count = performance_data_store.outgoing_count + 1
         #http_sender.send_data(args.server_ip, args.server_port, data, calculate_opt, timestamp_manager)
-        http_sender.send_data(args.gateway_ip, args.gateway_port, data, calculate_opt, timestamp_manager)
+        http_sender.send_data(args.gateway_ip, args.gateway_port, data, performance_data_store, timestamp_manager)
 
 
 def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_idx, max_layers, device):
@@ -484,9 +484,11 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
 
             print('outgoing queue PUT!')
-            calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
+            performance_data_store.add_client_info(datetime.now() + timedelta(milliseconds=50), end_idx, end_idx_buff, end_time - start_time)
 
             if is_oom:
+                performance_data_store.max_end_idx = end_idx
+
                 end_idx = max(1, math.ceil(end_idx / 2))
                 is_oom = False
             #print('statistic: ', statistics_period)
@@ -506,10 +508,10 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 end_idx = end_idx + 1
 
         #if (input_count) % 10 == 0:
-        if len(calculate_opt.server_comp_statistics) >= statistics_period:
+        if performance_data_store.new_record_count >= statistics_period:
             #print('statistic')
             #statistics_period = statistics_period + 5
-            end_idx, new_buff_idx, statistics_period = calculate_opt.calclate_opt()
+            end_idx, new_buff_idx, statistics_period = calculate_opt(performance_data_store)
             print('opt end idx: ', end_idx)
             print('opt buff idx: ', new_buff_idx)
             print('opt statistics period: ', statistics_period)
@@ -536,18 +538,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
         torch.cuda.empty_cache()
 
 
-    calculate_opt.statistic_period = statistics_period
+    performance_data_store.statistic_period = statistics_period
     print('end T2...')
 
-
-
-def task3_summerizing(models, test_loader, bs, device):
-    while 1:
-        while not http_sender.returning_queue.empty():
-            [start_idx, server_comp_time, rtt] = http_sender.returning_queue.get()
-            calculate_opt.server_comp_statistics = (start_idx, server_comp_time)
-            calculate_opt.comm_statistics = rtt - server_comp_time
-            #print('server_side: ',  [start_idx, server_comp_time, rtt])
 
 
 if __name__ == '__main__':
@@ -568,7 +561,7 @@ if __name__ == '__main__':
 
     device = torch.device("cuda")
     head_idx = 2
-    calculate_opt.statistic_period = 10
+    performance_data_store.statistic_period = 10
 
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx_buff, device)
     _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, head_idx, device, cache_dir="llm_weights")
@@ -616,15 +609,15 @@ if __name__ == '__main__':
         input_queue.put(temp[i])
 
     start_idx = 0
-    calculate_opt.end_idx = args.end_idx
-    calculate_opt.end_idx_buff = end_idx_buff
+    performance_data_store.end_idx = args.end_idx
+    performance_data_store.end_idx_buff = end_idx_buff
 
     #calculate_opt.end_idx = 4
     #calculate_opt.end_idx_buff = 4
 
     # Create and start threads
     thread1 = threading.Thread(target=task1_data_sending, args=[args])
-    thread2 = threading.Thread(target=task2_computation, args=[models, lm_models, start_idx, calculate_opt.end_idx, calculate_opt.end_idx_buff, head_idx, max_layers, device])
+    thread2 = threading.Thread(target=task2_computation, args=[models, lm_models, start_idx, performance_data_store.end_idx, performance_data_store.end_idx_buff, head_idx, max_layers, device])
     #thread3 = threading.Thread(target=task3_summerizing, args=[models, test_loader, bs, device])
     thread1.start()
     thread2.start()

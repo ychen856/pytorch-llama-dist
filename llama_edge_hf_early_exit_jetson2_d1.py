@@ -555,7 +555,7 @@ if __name__ == '__main__':
 
     device = torch.device("cuda")
     head_idx = 2
-    calculate_opt.statistic_period = 10
+    performance_data_store.statistic_period = 10
 
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx_buff, device)
     _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, head_idx, device, cache_dir="llm_weights")
