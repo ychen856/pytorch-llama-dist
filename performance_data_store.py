@@ -407,10 +407,10 @@ def calculate_opt(data_store: PerformanceDataStore):
             latency_diff: float or None
         ) if valid data is available, otherwise None.
     """
-    '''all_data = data_store.get_all_data()
+    all_data = data_store.get_all_data()
     if not all_data:
         return None
-
+    '''
     min_weighted_latency = float('inf')
     optimal_key_found = None
 
