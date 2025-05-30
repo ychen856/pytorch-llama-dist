@@ -333,6 +333,7 @@ def calculate_opt(data_store: PerformanceDataStore):
     min_latency = float('inf')
     current_optimal_set = None
 
+    print('DATAAAAAAAAAAAAAA: ', all_data.items())
     for (start_idx, end_idx), records in all_data.items():
         if not records:
             continue
@@ -360,6 +361,8 @@ def calculate_opt(data_store: PerformanceDataStore):
 
         total_average_latency = avg_client_time + avg_server_time + avg_communication_time
 
+        print('start, end: ', (start_idx, end_idx))
+        print('time: ', total_average_latency)
         if total_average_latency < min_latency:
             min_latency = total_average_latency
             current_optimal_set = (start_idx, end_idx, min_latency)
