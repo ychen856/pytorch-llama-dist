@@ -407,14 +407,17 @@ def calculate_opt(data_store: PerformanceDataStore):
             latency_diff: float or None
         ) if valid data is available, otherwise None.
     """
+    all_data = data_store.get_all_data()
+    if not all_data:
+        return None
 
-    '''min_weighted_latency = float('inf')
+    min_weighted_latency = float('inf')
     optimal_key_found = None
 
     WEIGHT_OLD = 0.3
     WEIGHT_NEW = 0.7
 
-    for key_tuple, records_list in data_store.get_all_data().items():
+    for key_tuple, records_list in all_data.items():
         if not records_list:
             continue
 
@@ -480,8 +483,7 @@ def calculate_opt(data_store: PerformanceDataStore):
 
     data_store._new_record_count = 0
     print('statistic period: ', data_store._statisitc_period)
-    return optimal_key_found[0] - 1, optimal_key_found[0], data_store._statisitc_period'''
-    return 1, 2, 3
+    return optimal_key_found[0] - 1, optimal_key_found[0], data_store._statisitc_period
 
 
 if __name__ == "__main__":
