@@ -418,8 +418,8 @@ def calculate_opt(data_store: PerformanceDataStore):
     WEIGHT_NEW = 0.7
 
     print('all dataAAAAAA: ', all_data)
-    for (start_idx, end_idx), records_list in all_data.items():
-        if not records_list:
+    for (start_idx, end_idx), records in all_data.items():
+        if not records:
             continue
 
         individual_latencies_with_timestamps = []
