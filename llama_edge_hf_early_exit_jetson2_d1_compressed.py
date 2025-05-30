@@ -309,7 +309,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
     input_count = 0
     count = 0
     early_count = 0
-    statistics_period = calculate_opt.statistic_period
+    statistics_period = performance_data_store.statistic_period
     batch_size = 5
     # repeated 5->0, 10->1, 20->3
     global repeated
