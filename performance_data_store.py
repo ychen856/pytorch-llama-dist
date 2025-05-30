@@ -307,7 +307,7 @@ class PerformanceDataStore:
             total_records += len(deque_of_records)
         return total_records
 
-'''def calculate_opt(data_store: PerformanceDataStore):
+def calculate_opt(data_store: PerformanceDataStore):
     """
     Calculates the average of client computation time, server computation time,
     and communication time for each (server_start_index, server_end_index) set, and
@@ -382,11 +382,11 @@ class PerformanceDataStore:
 
     data_store._new_record_count = 0
     print('statistic period: ', data_store._statisitc_period)
-    return current_optimal_set[0] - 1, current_optimal_set[0], data_store._statisitc_period'''
+    return current_optimal_set[0] - 1, current_optimal_set[0], data_store._statisitc_period
 
 
 
-def calculate_opt(data_store: PerformanceDataStore):
+'''def calculate_opt(data_store: PerformanceDataStore):
     """
     Calculates the overall optimal latency for a specified record_type across all its keys,
     applying a weighted average to individual record latencies. The 'k_oldest_weighted'
@@ -430,7 +430,7 @@ def calculate_opt(data_store: PerformanceDataStore):
             continue
 
         individual_latencies_with_timestamps = []
-        '''for record in records_list:
+        for record in records_list:
             latency = 0.0
             valid_record = True
 
