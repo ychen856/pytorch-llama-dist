@@ -136,7 +136,7 @@ def layer_reallocation(type, start_idx, end_idx_buff, max_layers, models):
         checkpoints = natsorted(checkpoints)
         assert len(checkpoints) > 0, f"no checkpoint files found in {args.ckpt_dir_hf_sep}"
 
-        start_idx_buff = max(0, start_idx - 3)
+        start_idx_buff = max(0, start_idx - 2)
         print('FFFFFFFFFFff: ', max_layers)
         checkpoints = checkpoints[start_idx_buff:max_layers]
         checkpoint_idx = start_idx_buff
