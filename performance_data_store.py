@@ -417,6 +417,7 @@ def calculate_opt(data_store: PerformanceDataStore):
     WEIGHT_OLD = 0.3
     WEIGHT_NEW = 0.7
 
+    print('all dataAAAAAA: ', all_data)
     for key_tuple, records_list in all_data.items():
         if not records_list:
             continue
@@ -442,7 +443,7 @@ def calculate_opt(data_store: PerformanceDataStore):
             continue
 
         # Sort by timestamp to ensure oldest are truly first for weighting
-        individual_latencies_with_timestamps.sort(key=lambda x: x[1])
+        '''individual_latencies_with_timestamps.sort(key=lambda x: x[1])
 
         weighted_sum_for_path = 0.0
         total_weight_for_path = 0.0
@@ -484,7 +485,7 @@ def calculate_opt(data_store: PerformanceDataStore):
     data_store._new_record_count = 0
     print('statistic period: ', data_store._statisitc_period)
     print("found!!!!!: ", optimal_key_found)
-    '''return optimal_key_found[0] - 1, optimal_key_found[0], data_store._statisitc_period'''
+    ' optimal_key_found[0] - 1, optimal_key_found[0], data_store._statisitc_period'''
     return 1, 2, 3
 
 
