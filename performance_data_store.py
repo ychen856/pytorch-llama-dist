@@ -3,7 +3,7 @@ import math
 from datetime import datetime, timedelta
 
 class PerformanceDataStore:
-    def __init__(self, max_records_per_type=20, statisitc_period=10):
+    def __init__(self, max_records_per_type=5, statisitc_period=10):
         """
         Initializes the CommunicationDataStore.
 
