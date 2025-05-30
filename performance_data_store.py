@@ -385,7 +385,7 @@ def calculate_opt2(data_store: PerformanceDataStore):
     return current_optimal_set[0] - 1, current_optimal_set[0], data_store._statisitc_period
 
 
-def calculate_opt(data_store: PerformanceDataStore, record_type: str):
+def calculate_opt(data_store: PerformanceDataStore):
     """
     Calculates the overall optimal latency for a specified record_type across all its keys,
     applying a weighted average to individual record latencies. The 'k_oldest_weighted'
@@ -406,7 +406,7 @@ def calculate_opt(data_store: PerformanceDataStore, record_type: str):
             latency_diff: float or None
         ) if valid data is available, otherwise None.
     """
-    all_data_for_type = data_store.get_all_data_by_type(record_type)
+    all_data_for_type = data_store.get_all_data()
     if not all_data_for_type:
         return None
 
@@ -425,26 +425,14 @@ def calculate_opt(data_store: PerformanceDataStore, record_type: str):
             latency = 0.0
             valid_record = True
 
-            if record_type == "client_to_server":
-                if (record.get("client_computation_time") is not None and
-                    record.get("server_computation_time") is not None and
-                    record.get("communication_time_client_to_server") is not None):
-                    latency = (record["client_computation_time"] +
-                               record["server_computation_time"] +
-                               record["communication_time_client_to_server"])
-                else:
-                    valid_record = False
-            elif record_type == "edge_to_server":
-                if (record.get("edge_server_computation_time") is not None and
-                    record.get("server_computation_time") is not None and
-                    record.get("communication_time_edge_to_server") is not None):
-                    latency = (record["edge_server_computation_time"] +
-                               record["server_computation_time"] +
-                               record["communication_time_edge_to_server"])
-                else:
-                    valid_record = False
+            if (record.get("edge_server_computation_time") is not None and
+                record.get("server_computation_time") is not None and
+                record.get("communication_time_edge_to_server") is not None):
+                latency = (record["edge_server_computation_time"] +
+                            record["server_computation_time"] +
+                            record["communication_time_edge_to_server"])
             else:
-                valid_record = False # Unknown record_type, should not happen given input constraints
+                valid_record = False
 
             if valid_record:
                 individual_latencies_with_timestamps.append((latency, record["timestamp"]))
