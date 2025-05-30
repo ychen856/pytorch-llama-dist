@@ -309,7 +309,7 @@ class PerformanceDataStore:
 
 
 
-def calculate_opt2(data_store: PerformanceDataStore):
+def calculate_opt(data_store: PerformanceDataStore):
     """
     Calculates the average of client computation time, server computation time,
     and communication time for each (server_start_index, server_end_index) set, and
