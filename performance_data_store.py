@@ -410,7 +410,7 @@ def calculate_opt(data_store: PerformanceDataStore):
     all_data = data_store.get_all_data()
     if not all_data:
         return None
-    '''
+
     min_weighted_latency = float('inf')
     optimal_key_found = None
 
@@ -483,7 +483,8 @@ def calculate_opt(data_store: PerformanceDataStore):
 
     data_store._new_record_count = 0
     print('statistic period: ', data_store._statisitc_period)
-    return optimal_key_found[0] - 1, optimal_key_found[0], data_store._statisitc_period'''
+    print("found!!!!!: ", optimal_key_found)
+    '''return optimal_key_found[0] - 1, optimal_key_found[0], data_store._statisitc_period'''
     return 1, 2, 3
 
 
