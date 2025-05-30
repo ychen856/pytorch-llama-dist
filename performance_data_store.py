@@ -307,7 +307,7 @@ class PerformanceDataStore:
             total_records += len(deque_of_records)
         return total_records
 
-def calculate_opt(data_store: PerformanceDataStore):
+'''def calculate_opt(data_store: PerformanceDataStore):
     """
     Calculates the average of client computation time, server computation time,
     and communication time for each (server_start_index, server_end_index) set, and
@@ -382,7 +382,104 @@ def calculate_opt(data_store: PerformanceDataStore):
 
     data_store._new_record_count = 0
     print('statistic period: ', data_store._statisitc_period)
-    return current_optimal_set[0] - 1, current_optimal_set[0], data_store._statisitc_period
+    return current_optimal_set[0] - 1, current_optimal_set[0], data_store._statisitc_period'''
+
+
+def calculate_opt(data_store: PerformanceDataStore):
+    """
+    Calculates the overall optimal latency for a specified record_type across all its keys,
+    applying a weighted average to individual record latencies. The 'k_oldest_weighted'
+    records for each path segment (grouped by key_tuple) get a smaller weight (0.3),
+    and newer records get a larger weight (0.7).
+
+    Args:
+        data_store (CommunicationDataStore): An instance of the CommunicationDataStore.
+        record_type (str): "client_to_server" or "edge_to_server".
+        k_oldest_weighted (int): The number of oldest records in each path segment
+                                 to apply the smaller weight to.
+
+    Returns:
+        tuple or None: A tuple (
+            optimal_key_tuple: tuple,
+            minimal_total_weighted_latency: float,
+            is_converging: bool,
+            latency_diff: float or None
+        ) if valid data is available, otherwise None.
+    """
+
+    min_weighted_latency = float('inf')
+    optimal_key_found = None
+
+    WEIGHT_OLD = 0.3
+    WEIGHT_NEW = 0.7
+
+    for key_tuple, records_list in data_store.get_all_data().items():
+        if not records_list:
+            continue
+
+        individual_latencies_with_timestamps = []
+        for record in records_list:
+            latency = 0.0
+            valid_record = True
+
+            if (record.get("client_computation_time") is not None and
+                    record.get("server_computation_time") is not None and
+                    record.get("communication_time_client_to_server") is not None):
+                latency = (record["client_computation_time"] +
+                           record["server_computation_time"] +
+                           record["communication_time_client_to_server"])
+            else:
+                valid_record = False
+
+            if valid_record:
+                individual_latencies_with_timestamps.append((latency, record["timestamp"]))
+
+        if not individual_latencies_with_timestamps:
+            continue
+
+        # Sort by timestamp to ensure oldest are truly first for weighting
+        individual_latencies_with_timestamps.sort(key=lambda x: x[1])
+
+        weighted_sum_for_path = 0.0
+        total_weight_for_path = 0.0
+
+        for i, (latency, _) in enumerate(individual_latencies_with_timestamps):
+            if i < data_store.max_records_per_type:
+                weighted_sum_for_path += latency * WEIGHT_OLD
+                total_weight_for_path += WEIGHT_OLD
+            else:
+                weighted_sum_for_path += latency * WEIGHT_NEW
+                total_weight_for_path += WEIGHT_NEW
+
+        current_weighted_avg_latency_for_path = 0.0
+        if total_weight_for_path > 0:  # Avoid division by zero
+            current_weighted_avg_latency_for_path = weighted_sum_for_path / total_weight_for_path
+        else:  # No valid records or weights applied
+            continue
+
+        if current_weighted_avg_latency_for_path < min_weighted_latency:
+            min_weighted_latency = current_weighted_avg_latency_for_path
+            optimal_key_found = key_tuple
+
+    if optimal_key_found is None:
+        return None  # No valid optimal path found across any key_tuple
+
+    if optimal_key_found:
+        if data_store.optimal_latency_history * 1.1 < min_weighted_latency:
+            data_store._statisitc_period = max(10, math.floor(data_store._statisitc_period * 2 / 3))
+        elif data_store.optimal_latency_history * 1.1 > min_weighted_latency:
+            data_store._statisitc_period = min(100, data_store._statisitc_period + 6)
+
+        data_store.optimal_latency_history = min_weighted_latency
+
+    if data_store._statisitc_period > 20:
+        data_store._steady_state = True
+
+        # data_store.max_records_per_type = data_store.statistic_period + 10
+
+    data_store._new_record_count = 0
+    print('statistic period: ', data_store._statisitc_period)
+    return optimal_key_found[0] - 1, optimal_key_found[0], data_store._statisitc_period
 
 
 if __name__ == "__main__":
