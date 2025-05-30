@@ -508,7 +508,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 end_idx = end_idx + 1
 
         #if (input_count) % 10 == 0:
-        if performance_data_store.new_record_count >= statistics_period:
+        if performance_data_store.new_record_count > statistics_period:
             #print('statistic')
             #statistics_period = statistics_period + 5
             end_idx, new_buff_idx, statistics_period = calculate_opt(performance_data_store)
