@@ -307,7 +307,42 @@ class PerformanceDataStore:
             total_records += len(deque_of_records)
         return total_records
 
-def calculate_opt(data_store: PerformanceDataStore):
+
+
+def calculate_opt2(data_store: PerformanceDataStore):
+    """
+    Calculates the average of client computation time, server computation time,
+    and communication time for each (server_start_index, server_end_index) set, and
+    returns the set with the minimal total average latency, along with convergence status.
+
+    Args:
+        data_store (CommunicationDataStore): An instance of the CommunicationDataStore
+                                             containing the collected data.
+
+    Returns:
+        tuple or None: A tuple (
+            start_index,
+            end_index,
+            minimal_total_latency,
+            is_converging: bool,
+            latency_diff: float or None
+        ) if complete data is available, otherwise None.
+    """
+    all_data = data_store.get_all_data()
+    if not all_data:
+        return None
+
+    min_latency = float('inf')
+    current_optimal_set = None
+
+    print('DATAAAAAAAAAAAAAA: ', all_data.items())
+    for (start_idx, end_idx), records in all_data.items():
+        print('(start, end): ', (start_idx, end_idx))
+
+
+    return 1, 2, 3
+
+def calculate_opt2(data_store: PerformanceDataStore):
     """
     Calculates the average of client computation time, server computation time,
     and communication time for each (server_start_index, server_end_index) set, and
