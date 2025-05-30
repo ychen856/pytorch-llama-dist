@@ -423,7 +423,7 @@ def calculate_opt(data_store: PerformanceDataStore):
             continue
 
         individual_latencies_with_timestamps = []
-        for record in records_list:
+        '''for record in records_list:
             latency = 0.0
             valid_record = True
 
@@ -485,7 +485,7 @@ def calculate_opt(data_store: PerformanceDataStore):
     data_store._new_record_count = 0
     print('statistic period: ', data_store._statisitc_period)
     print("found!!!!!: ", optimal_key_found)
-    return optimal_key_found[0] - 1, optimal_key_found[0], data_store._statisitc_period
+    return optimal_key_found[0] - 1, optimal_key_found[0], data_store._statisitc_period'''
     #return 1, 2, 3
 
 
