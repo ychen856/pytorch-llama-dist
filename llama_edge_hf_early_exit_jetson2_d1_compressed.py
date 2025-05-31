@@ -584,7 +584,7 @@ if __name__ == '__main__':
 
     random.seed(datetime.now().timestamp())
     random.shuffle(temp)
-    #temp = temp[:5]
+    temp = temp[:150]
 
     for i in range(0, batch_size):
         input_queue.put(temp[i])
