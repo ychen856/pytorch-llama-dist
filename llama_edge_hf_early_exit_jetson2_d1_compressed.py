@@ -303,7 +303,6 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
     is_oom = False
     #prune_wanda_allocation(args, models, tokenizer, testenc[0], device=torch.device("cuda:0"))
     # Loop through each batch
-    total_batch = 30
     batch_count = 30
     #batch_count = 10
     cycle_count = 0
@@ -312,6 +311,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
     early_count = 0
     statistics_period = performance_data_store.statistic_period
     batch_size = 5
+
     # repeated 5->0, 10->1, 20->3
     global repeated
     #while not input_queue.empty():
@@ -580,10 +580,10 @@ if __name__ == '__main__':
 
     random.seed(datetime.now().timestamp())
     random.shuffle(temp)
-    '''temp = temp[:5]
+    #temp = temp[:5]
 
     for i in range(0, batch_size):
-        input_queue.put(temp[i])'''
+        input_queue.put(temp[i])
 
     start_idx = 0
     performance_data_store.end_idx = args.end_idx
