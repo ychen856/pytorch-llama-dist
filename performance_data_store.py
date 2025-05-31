@@ -350,9 +350,42 @@ def calculate_opt(data_store: PerformanceDataStore):
                 record["communication_time"] is not None):
                 latency = (record["client_computation_time"] +
                            record["server_computation_time"] +
-                           record["communication_time_client_to_server"])
+                           record["communication_time"])
             else:
                 valid_record = False
+
+            if valid_record:
+                individual_latencies_with_timestamps.append((latency, record["timestamp"]))
+
+        if not individual_latencies_with_timestamps:
+            continue
+
+        # Sort by timestamp to ensure oldest are truly first for weighting
+        individual_latencies_with_timestamps.sort(key=lambda x: x[1])
+
+        weighted_sum_for_path = 0.0
+        total_weight_for_path = 0.0
+
+        for i, (latency, _) in enumerate(individual_latencies_with_timestamps):
+            if i < data_store.max_records_per_type:
+                weighted_sum_for_path += latency * WEIGHT_OLD
+                total_weight_for_path += WEIGHT_OLD
+            else:
+                weighted_sum_for_path += latency * WEIGHT_NEW
+                total_weight_for_path += WEIGHT_NEW
+
+        current_weighted_avg_latency_for_path = 0.0
+        if total_weight_for_path > 0:  # Avoid division by zero
+            current_weighted_avg_latency_for_path = weighted_sum_for_path / total_weight_for_path
+        else:  # No valid records or weights applied
+            continue
+
+        if current_weighted_avg_latency_for_path < min_weighted_latency:
+            min_weighted_latency = current_weighted_avg_latency_for_path
+            optimal_key_found = (start_idx, end_idx, min_weighted_latency)
+            print('optimal key found: ', optimal_key_found)
+
+
 
     return 1, 2, 3
 
