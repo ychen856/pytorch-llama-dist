@@ -336,10 +336,11 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 input_queue.put(temp[batch_size * (total_batch - batch_count) : batch_size * (total_batch - batch_count) + batch_size])
 
             timestamp_manager.clearAll()
+            time.sleep(20)
 
 
         batch_count = batch_count - 1
-        time.sleep(20)
+
 
 
         #repeated input start
@@ -366,6 +367,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
             batch_count = batch_count - 1
             repeated = 0
+            time.sleep(20)
 
         if repeated < 0:
             for data in temp:
@@ -373,8 +375,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 input_queue.put(data)
 
             repeated = repeated + 1
+            
 
-        time.sleep(20)'''
+        '''
         #repeated input end
 
         is_early_exit = False
