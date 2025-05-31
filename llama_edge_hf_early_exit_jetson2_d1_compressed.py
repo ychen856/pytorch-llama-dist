@@ -303,6 +303,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
     is_oom = False
     #prune_wanda_allocation(args, models, tokenizer, testenc[0], device=torch.device("cuda:0"))
     # Loop through each batch
+    total_batch = 30
     batch_count = 30
     #batch_count = 10
     cycle_count = 0
@@ -314,7 +315,31 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
     # repeated 5->0, 10->1, 20->3
     global repeated
     #while not input_queue.empty():
+
+
     while(1):
+        while len(timestamp_manager.end_times) < batch_size:
+            time.sleep(0.0001)
+
+        print('time: ', timestamp_manager)
+        timestamp_manager.get_time_diff_every_n_inputs(10)
+
+        print('early count: ', early_count)
+        early_count = 0
+
+        for i in range (0, batch_size):
+            input_queue.put(temp[batch_size * (total_batch - batch_count) : batch_size * (total_batch - batch_count) + batch_size])
+
+        timestamp_manager.clearAll()
+        time.sleep(20)
+
+        if batch_count <= 1:
+            break
+
+        batch_count = batch_count - 1
+
+
+        #repeated input start
         if input_queue.qsize() == 0 and repeated == 0:
             #time.sleep(150)
             while len(timestamp_manager.end_times) < batch_size:
@@ -332,36 +357,6 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             if batch_count <= 1:
                 break
 
-            '''test_loader = get_eval_data(tokenizer)
-            bs = 1
-
-            # loading inputs data
-            seqlen = 1024
-            # Get input IDs
-            testenc = test_loader.input_ids
-
-            # Calculate number of samples
-            nsamples = testenc.numel() // seqlen
-            nsamples = 8
-            # List to store negative log likelihoods
-            nlls = []
-            print(f"nsamples {nsamples}")
-
-            for i in range(0, nsamples, bs):
-                if i % 50 == 0:
-                    print(f"sample {i}")
-
-                # Calculate end index
-                j = min(i + bs, nsamples)
-
-                # Prepare inputs and move to device
-                inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
-                inputs = inputs.reshape(j - i, seqlen)
-
-                input_queue.put(inputs)
-                temp.append(inputs)'''
-
-            print('???????????????????')
             for data in temp:
                 #print('data: ', data)
                 input_queue.put(data)
@@ -375,6 +370,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
                 input_queue.put(data)
 
             repeated = repeated + 1
+        #repeated input end
 
         is_early_exit = False
         count = count + 1
@@ -436,22 +432,6 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
         print('is early: ', is_early_exit)
 
 
-        '''cycle_count = cycle_count + 1
-        input_count = input_count + 1
-
-
-
-        calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)'''
-
-        #input_count = input_count + 1
-
-        '''if not is_early_exit:
-            calculate_opt.client_comp_statistics = (end_idx, end_idx_buff, end_time - start_time)
-            outgoing_queue.put([end_idx + 1, out, ids, mask, idx])
-            print('outgoing queue PUT!')'''
-        #else:
-            #calculate_opt.server_comp_statistics = (end_idx + 1, 0)
-
         if is_early_exit:
             early_count = early_count + 1
 
@@ -461,13 +441,6 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
             print('cycle count: ', cycle_count)
             print('input count: ', input_count)
-
-            #outlier calculation method I
-            '''mean, outlier = get_outlier(out.last_hidden_state.flatten())
-
-            print('#outlier: ', outlier)
-            if outlier > 0:
-                rate = 7 / (10 * math.log10(outlier + 10)) '''
 
 
             #outlier calculation method II
@@ -601,12 +574,12 @@ if __name__ == '__main__':
         #input_queue.put(inputs)
         temp.append(inputs)
 
-    #random.seed(datetime.now().timestamp())
-    #random.shuffle(temp)
-    temp = temp[:5]
+    random.seed(datetime.now().timestamp())
+    random.shuffle(temp)
+    '''temp = temp[:5]
 
     for i in range(0, batch_size):
-        input_queue.put(temp[i])
+        input_queue.put(temp[i])'''
 
     start_idx = 0
     performance_data_store.end_idx = args.end_idx
