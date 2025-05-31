@@ -332,15 +332,31 @@ def calculate_opt(data_store: PerformanceDataStore):
     if not all_data:
         return None
 
-    min_latency = float('inf')
-    current_optimal_set = None
+    min_weighted_latency = float('inf')
+    optimal_key_found = None
+
+    WEIGHT_OLD = 0.3
+    WEIGHT_NEW = 0.7
 
     print('DATAAAAAAAAAAAAAA: ', all_data.items())
+    individual_latencies_with_timestamps = []
     for (start_idx, end_idx), records in all_data.items():
         print('(start, end): ', (start_idx, end_idx))
-
+        latency = 0.0
+        valid_record = True
+        for record in records:
+            if (record["client_computation_time"] is not None and
+                record["server_computation_time"] is not None and
+                record["communication_time"] is not None):
+                latency = (record["client_computation_time"] +
+                           record["server_computation_time"] +
+                           record["communication_time_client_to_server"])
+            else:
+                valid_record = False
 
     return 1, 2, 3
+
+
 
 def calculate_opt2(data_store: PerformanceDataStore):
     """
