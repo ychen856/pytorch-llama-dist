@@ -380,14 +380,27 @@ def calculate_opt(data_store: PerformanceDataStore):
         else:  # No valid records or weights applied
             continue
 
+        print('optimal key found: ', (start_idx, end_idx, current_weighted_avg_latency_for_path))
         if current_weighted_avg_latency_for_path < min_weighted_latency:
             min_weighted_latency = current_weighted_avg_latency_for_path
             optimal_key_found = (start_idx, end_idx, min_weighted_latency)
-            print('optimal key found: ', optimal_key_found)
 
 
+    if optimal_key_found is None:
+        return None  # No valid optimal path found across any key_tuple
 
-    return 1, 2, 3
+    if optimal_key_found:
+        if data_store.optimal_latency_history *  1.1 < min_latency:
+            data_store._statisitc_period = max(10, math.floor(data_store._statisitc_period * 2 / 3))
+        elif data_store.optimal_latency_history *  1.1 > min_latency:
+            data_store._statisitc_period = min(100, data_store._statisitc_period + 6)
+
+        data_store.optimal_latency_history = min_latency
+
+    if data_store._statisitc_period > 20:
+        data_store._steady_state = True
+
+    return optimal_key_found[0] - 1, optimal_key_found[0], data_store._statisitc_period
 
 
 
