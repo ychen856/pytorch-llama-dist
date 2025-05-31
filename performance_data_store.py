@@ -390,12 +390,12 @@ def calculate_opt(data_store: PerformanceDataStore):
         return None  # No valid optimal path found across any key_tuple
 
     if optimal_key_found:
-        if data_store.optimal_latency_history *  1.1 < min_latency:
+        if data_store.optimal_latency_history *  1.1 < min_weighted_latency:
             data_store._statisitc_period = max(10, math.floor(data_store._statisitc_period * 2 / 3))
-        elif data_store.optimal_latency_history *  1.1 > min_latency:
+        elif data_store.optimal_latency_history *  1.1 > min_weighted_latency:
             data_store._statisitc_period = min(100, data_store._statisitc_period + 6)
 
-        data_store.optimal_latency_history = min_latency
+        data_store.optimal_latency_history = min_weighted_latency
 
     if data_store._statisitc_period > 20:
         data_store._steady_state = True
