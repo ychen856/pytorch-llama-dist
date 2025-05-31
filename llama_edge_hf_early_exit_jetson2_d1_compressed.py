@@ -329,13 +329,13 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             print('early count: ', early_count)
             early_count = 0
 
-        if batch_count <= 1:
-            break
+            if batch_count <= 1:
+                break
 
-        for i in range (0, batch_size):
-            input_queue.put(temp[batch_size * (total_batch - batch_count) : batch_size * (total_batch - batch_count) + batch_size])
+            for i in range (0, batch_size):
+                input_queue.put(temp[batch_size * (total_batch - batch_count) : batch_size * (total_batch - batch_count) + batch_size])
 
-        timestamp_manager.clearAll()
+            timestamp_manager.clearAll()
 
 
         batch_count = batch_count - 1
