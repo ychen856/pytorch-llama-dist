@@ -318,23 +318,24 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
 
     while(1):
-        while len(timestamp_manager.end_times) < batch_size:
-            time.sleep(0.0001)
+        if input_queue.qsize() == 0:
+            while len(timestamp_manager.end_times) < batch_size:
+                time.sleep(0.0001)
 
-        print('time: ', timestamp_manager)
-        timestamp_manager.get_time_diff_every_n_inputs(10)
+            print('time: ', timestamp_manager)
+            timestamp_manager.get_time_diff_every_n_inputs(10)
 
-        print('early count: ', early_count)
-        early_count = 0
+            print('early count: ', early_count)
+            early_count = 0
+
+        if batch_count <= 1:
+            break
 
         for i in range (0, batch_size):
             input_queue.put(temp[batch_size * (total_batch - batch_count) : batch_size * (total_batch - batch_count) + batch_size])
 
         timestamp_manager.clearAll()
 
-
-        if batch_count <= 1:
-            break
 
         batch_count = batch_count - 1
         time.sleep(20)
