@@ -319,7 +319,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
 
     while(1):
-        if input_queue.qsize() == 0:
+        '''if input_queue.qsize() == 0:
             while len(timestamp_manager.end_times) < batch_size:
                 time.sleep(0.0001)
 
@@ -339,12 +339,12 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             time.sleep(20)
 
 
-        batch_count = batch_count - 1
+        batch_count = batch_count - 1'''
 
 
 
         #repeated input start
-        '''if input_queue.qsize() == 0 and repeated == 0:
+        if input_queue.qsize() == 0 and repeated == 0:
             #time.sleep(150)
             while len(timestamp_manager.end_times) < batch_size:
                 time.sleep(0.0001)
@@ -360,6 +360,9 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
             if batch_count <= 1:
                 break
+
+            random.seed(datetime.now().timestamp())
+            random.shuffle(temp)
 
             for data in temp:
                 #print('data: ', data)
@@ -377,7 +380,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             repeated = repeated + 1
             
 
-        '''
+
         #repeated input end
 
         is_early_exit = False
@@ -584,7 +587,7 @@ if __name__ == '__main__':
 
     random.seed(datetime.now().timestamp())
     random.shuffle(temp)
-    temp = temp[:150]
+    temp = temp[:5]
 
     for i in range(0, batch_size):
         input_queue.put(temp[i])
