@@ -356,6 +356,7 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
             early_count = 0
 
             timestamp_manager.clearAll()
+            time.sleep(20)
 
 
             if batch_count <= 1:
@@ -370,7 +371,6 @@ def task2_computation(models, lm_models, start_idx, end_idx, end_idx_buff, head_
 
             batch_count = batch_count - 1
             repeated = 0
-            time.sleep(20)
 
         if repeated < 0:
             for data in temp:
