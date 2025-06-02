@@ -362,6 +362,9 @@ def calculate_opt(data_store: PerformanceDataStore):
 
         # Sort by timestamp to ensure oldest are truly first for weighting
         individual_latencies_with_timestamps.sort(key=lambda x: x[1])
+        if len(individual_latencies_with_timestamps) > 1:
+            max_latency_entry = max(individual_latencies_with_timestamps, key=lambda x: x[0])
+            individual_latencies_with_timestamps.remove(max_latency_entry)
 
         weighted_sum_for_path = 0.0
         total_weight_for_path = 0.0

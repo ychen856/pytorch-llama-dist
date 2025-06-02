@@ -498,6 +498,10 @@ def calculate_edge_server_opt2(data_store: PerformanceDataStore, edge_server_sta
     if not path_latencies:
         return None  # No relevant data for this edge_server_start_idx
 
+    if len(path_latencies) > 1:
+        max_latency_entry = max(path_latencies, key=lambda x: x[0])
+        path_latencies.remove(max_latency_entry)
+
     min_avg_latency = float('inf')
     optimal_es_end_idx = None  # This will store the edge_server_end_index that is optimal
 
