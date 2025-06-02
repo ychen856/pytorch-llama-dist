@@ -403,6 +403,7 @@ def calculate_opt(data_store: PerformanceDataStore):
     if data_store._statisitc_period > 20:
         data_store._steady_state = True
 
+    data_store._new_record_count = 0
     return optimal_key_found[0] - 1, optimal_key_found[0], data_store._statisitc_period
 
 

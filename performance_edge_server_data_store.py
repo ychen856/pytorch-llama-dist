@@ -448,7 +448,6 @@ def calculate_edge_server_opt(data_store: PerformanceDataStore, edge_server_star
         data_store._steady_state = True
 
     data_store._new_record_count = 0
-
     return optimal_es_end_idx, optimal_es_end_idx + 2,  data_store._statisitc_period
 
 
