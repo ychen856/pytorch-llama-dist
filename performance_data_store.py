@@ -402,9 +402,12 @@ def calculate_opt(data_store: PerformanceDataStore):
 
     if data_store._statisitc_period > 20:
         data_store._steady_state = True
+    else:
+        data_store.data_storage.clear()
 
     data_store._new_record_count = 0
     data_store.max_records_per_type = 5
+
     return optimal_key_found[0] - 1, optimal_key_found[0], data_store._statisitc_period
 
 
