@@ -3,7 +3,7 @@ import math
 from datetime import datetime, timedelta
 
 class PerformanceDataStore:
-    def __init__(self, max_records_per_type=20, statisitc_period=10):
+    def __init__(self, max_records_per_type=0, statisitc_period=10):
         """
         Initializes the CommunicationDataStore.
 
@@ -448,6 +448,7 @@ def calculate_edge_server_opt(data_store: PerformanceDataStore, edge_server_star
         data_store._steady_state = True
 
     data_store._new_record_count = 0
+    data_store.max_records_per_type = 5
     return optimal_es_end_idx, optimal_es_end_idx + 2,  data_store._statisitc_period
 
 

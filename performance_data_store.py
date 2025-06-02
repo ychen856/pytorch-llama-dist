@@ -3,7 +3,7 @@ import math
 from datetime import datetime, timedelta
 
 class PerformanceDataStore:
-    def __init__(self, max_records_per_type=5, statisitc_period=10):
+    def __init__(self, max_records_per_type=0, statisitc_period=10):
         """
         Initializes the CommunicationDataStore.
 
@@ -404,6 +404,7 @@ def calculate_opt(data_store: PerformanceDataStore):
         data_store._steady_state = True
 
     data_store._new_record_count = 0
+    data_store.max_records_per_type = 5
     return optimal_key_found[0] - 1, optimal_key_found[0], data_store._statisitc_period
 
 
