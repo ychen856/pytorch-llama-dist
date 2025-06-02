@@ -376,36 +376,42 @@ class PerformanceDataStore:
 def calculate_edge_server_opt(data_store: PerformanceDataStore, edge_server_start_idx: int):
     """
     For a given `edge_server_start_idx`, finds the `edge_server_end_index` that results
-    in the minimal average latency for the Edge-to-Server segment.
+    in the minimal weighted average latency for the Edge-to-Server segment.
     The latency is the sum of edge server computation time, server computation time,
-    and communication time between edge server and server.
+    and communication time between edge server and server. Before weighting, the single
+    data row (record) with the highest total latency within each path segment
+    is removed. The 'k_oldest_weighted' records get a smaller weight (0.3),
+    and newer records get a larger weight (0.7).
 
     Args:
         data_store (CommunicationDataStore): An instance of the CommunicationDataStore.
         edge_server_start_idx (int): The specific edge server start index to analyze.
+        k_oldest_weighted (int): The number of oldest records in each path segment
+                                 to apply the smaller weight to.
 
     Returns:
         tuple or None: A tuple (
             edge_server_start_idx,
             optimal_edge_server_end_index,
-            minimal_total_latency_for_that_end_index,
+            minimal_total_weighted_latency_for_that_end_index,
             is_converging: bool,
             latency_diff: float or None
         ) if valid data is available for the specified start index, otherwise None.
     """
-    # Use the new helper function to get only the relevant data
     relevant_data_by_full_key = data_store.get_all_data_by_edge_server_start_index(edge_server_start_idx)
 
     if not relevant_data_by_full_key:
-        return None  # No data found for this edge_server_start_idx
+        return None
 
-    # Group records by (edge_server_start_index, edge_server_end_index)
-    path_latencies = collections.defaultdict(list)
+    # This will now store (edge_server_start_index, edge_server_end_index) -> list of (total_latency, timestamp)
+    path_latencies_with_timestamps = collections.defaultdict(list)
+
+    WEIGHT_OLD = 0.3
+    WEIGHT_NEW = 0.7
 
     for key_tuple, records_list in relevant_data_by_full_key.items():
         current_es_start_idx, current_es_end_idx, server_start_idx = key_tuple
 
-        # current_es_start_idx is already guaranteed to be edge_server_start_idx by the filtering
         for record in records_list:
             if (record.get("edge_server_computation_time") is not None and
                     record.get("server_computation_time") is not None and
@@ -413,42 +419,71 @@ def calculate_edge_server_opt(data_store: PerformanceDataStore, edge_server_star
                 segment_latency = (record["edge_server_computation_time"] +
                                    record["server_computation_time"] +
                                    record["communication_time_edge_to_server"])
-                # Store latency for the specific (edge_server_start_index, edge_server_end_index) path
-                path_latencies[(current_es_start_idx, current_es_end_idx)].append(segment_latency)
 
-    if not path_latencies:
-        return None  # No valid latency data could be extracted
+                path_latencies_with_timestamps[(current_es_start_idx, current_es_end_idx)].append(
+                    (segment_latency, record["timestamp"]))
 
-    min_avg_latency = float('inf')
+    if not path_latencies_with_timestamps:
+        return None
+
+    min_weighted_avg_latency = float('inf')
     optimal_es_end_idx = None
 
-    # Calculate average latency for each (edge_server_start_index, edge_server_end_index) path
-    # and find the overall minimum
-    for (es_start, es_end), latencies in path_latencies.items():
-        if latencies:
-            current_avg_latency = sum(latencies) / len(latencies)
-            if current_avg_latency < min_avg_latency:
-                min_avg_latency = current_avg_latency
-                optimal_es_end_idx = es_end
+    # Iterate through each unique path (edge_server_start_index, edge_server_end_index)
+    for (es_start, es_end), latencies_with_timestamps in path_latencies_with_timestamps.items():
+        if not latencies_with_timestamps:
+            continue
+
+        # Sort by timestamp to ensure oldest are truly first for weighting
+        latencies_with_timestamps.sort(key=lambda x: x[1])
+
+        # --- NEW LOGIC: Remove the data row with the most latency ---
+        if len(latencies_with_timestamps) > 1:  # Need at least two records to remove one and still have data
+            max_latency_entry = max(latencies_with_timestamps, key=lambda x: x[0])
+            latencies_with_timestamps.remove(max_latency_entry)
+            # print(f"DEBUG ES_OPT: For path {(es_start, es_end)}, removed record with latency {max_latency_entry[0]:.4f}")
+        # --- END NEW LOGIC ---
+
+        weighted_sum_for_path = 0.0
+        total_weight_for_path = 0.0
+
+        # Apply weighted average
+        for i, (latency, _) in enumerate(latencies_with_timestamps):
+            if i < data_store.max_records_per_type:
+                weighted_sum_for_path += latency * WEIGHT_OLD
+                total_weight_for_path += WEIGHT_OLD
+            else:
+                weighted_sum_for_path += latency * WEIGHT_NEW
+                total_weight_for_path += WEIGHT_NEW
+
+        current_weighted_avg_latency = 0.0
+        if total_weight_for_path > 0:
+            current_weighted_avg_latency = weighted_sum_for_path / total_weight_for_path
+        else:  # No valid records or weights applied after removal
+            continue
+
+        # Find the path with the minimum weighted average latency
+        if current_weighted_avg_latency < min_weighted_avg_latency:
+            min_weighted_avg_latency = current_weighted_avg_latency
+            optimal_es_end_idx = es_end
 
     if optimal_es_end_idx is None:
         return None
 
-
-    if data_store.optimal_latency_history * 1.1 < min_avg_latency:
+    if data_store.optimal_latency_history * 1.1 < min_weighted_avg_latency:
         data_store._statisitc_period = max(10, math.floor(data_store._statisitc_period * 2 / 3))
         # self._statisitc_period = max(10, self._statisitc_period - 4)
-    elif data_store.optimal_latency_history * 1.1 > min_avg_latency:
+    elif data_store.optimal_latency_history * 1.1 > min_weighted_avg_latency:
         data_store._statisitc_period = min(100, data_store._statisitc_period + 6)
 
 
-    data_store.optimal_latency_history = min_avg_latency
+    data_store.optimal_latency_history = min_weighted_avg_latency
 
     if data_store._statisitc_period > 20:
         data_store._steady_state = True
 
     data_store._new_record_count = 0
-    data_store.max_records_per_type = 5
+
     return optimal_es_end_idx, optimal_es_end_idx + 2,  data_store._statisitc_period
 
 
@@ -498,9 +533,6 @@ def calculate_edge_server_opt2(data_store: PerformanceDataStore, edge_server_sta
     if not path_latencies:
         return None  # No relevant data for this edge_server_start_idx
 
-    if len(path_latencies) > 1:
-        max_latency_entry = max(path_latencies, key=lambda x: x[0])
-        path_latencies.remove(max_latency_entry)
 
     min_avg_latency = float('inf')
     optimal_es_end_idx = None  # This will store the edge_server_end_index that is optimal
