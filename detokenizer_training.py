@@ -180,6 +180,7 @@ if __name__ == '__main__':
             inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
             inputs = inputs.reshape(j - i, seqlen)
 
+            print('inputs: ', inputs)
             out, ids, mask = models[0](inputs)
             for k in range(1, splitting_point + 1):
                 start_time = time.time()
@@ -187,6 +188,7 @@ if __name__ == '__main__':
 
             lm_logits = models[-2](out.last_hidden_state)
             lm_logits = models[-1](lm_logits)
+            print('lm logit: ', lm_logits)
 
             out, ids, mask = deEmbedding(lm_logits)
             for k in range(splitting_point + 1, len(models) - 2):
