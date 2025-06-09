@@ -187,6 +187,9 @@ if __name__ == '__main__':
                 start_time = time.time()
                 out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
+            print('out: ', out.last_hidden_state)
+            print('out shape: ', out.last_hidden_state.shape)
+
             lm_logits = models[-2](out.last_hidden_state)
             lm_logits = models[-1](lm_logits)
             print('lm logit: ', lm_logits)
