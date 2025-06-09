@@ -181,6 +181,7 @@ if __name__ == '__main__':
             inputs = inputs.reshape(j - i, seqlen)
 
             print('inputs: ', inputs)
+            print('inputs size: ', inputs.shape)
             out, ids, mask = models[0](inputs)
             for k in range(1, splitting_point + 1):
                 start_time = time.time()
@@ -189,6 +190,10 @@ if __name__ == '__main__':
             lm_logits = models[-2](out.last_hidden_state)
             lm_logits = models[-1](lm_logits)
             print('lm logit: ', lm_logits)
+            print('lm logit shape: ', lm_logits.shape)
+
+            print('lm reshape: ', lm_logits.reshape(-1, lm_logits.size(-1)))
+            print('lm reshape shape: ', lm_logits.reshape(-1, lm_logits.size(-1)).shape)
 
             out, ids, mask = deEmbedding(lm_logits)
             for k in range(splitting_point + 1, len(models) - 2):
