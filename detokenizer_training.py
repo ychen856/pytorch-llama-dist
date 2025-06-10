@@ -280,9 +280,10 @@ if __name__ == '__main__':
 
             shift_logits = lm_logits[:, :-1, :].contiguous()
             print('shift logits: ', shift_logits)
-            print('shift logit shape: ', shift_logits.reshape)
+            print('shift logit shape: ', shift_logits.shape)
             shift_labels = inputs[:, 1:]
-            print('shift label: ', shift_labels.reshape)
+            print('shift label: ', shift_labels)
+            print('shift label shape: ', shift_labels.shape)
 
             loss_fct = nn.CrossEntropyLoss()
             loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
