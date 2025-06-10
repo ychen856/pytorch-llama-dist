@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 import argparse
 
+from natsort import natsorted
 import torch.nn as nn
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
 from torch.optim import AdamW
@@ -16,6 +17,7 @@ from transformers import get_scheduler
 from tqdm.auto import tqdm
 import sys
 
+from early_exit import early_exit_lm_head
 from eval import eval_ppl_sep_hf, eval_lm_head_ppl_sep_hf
 from eval_sep_hf import get_eval_data
 from layerwrapper import WrappedGPT
@@ -52,7 +54,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
     print('config: ', config)
 
     checkpoint_list = []
-    checkpoints = sorted(Path(checkpoints_dir).glob("consolidated.*.pth"))
+    checkpoints = sorted(Path(checkpoints_dir).glob("*.pth"))
     assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
 
     checkpoint_idx = 0
@@ -65,17 +67,7 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
         if checkpoint_idx > end_idx:
             break
 
-    #for early exit
-    ckpt_path = checkpoints[-2]
-    print(f'Loading checkpoint "{ckpt_path}"')
-    checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
-
-    #for early exit
-    ckpt_path = checkpoints[-1]
-    print(f'Loading checkpoint "{ckpt_path}"')
-    checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
-
-    if device == "cuda":
+    if device.type == 'cuda':
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
     else:
         torch.set_default_tensor_type(torch.BFloat16Tensor)
@@ -83,43 +75,112 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
     models = []
     for i in range(start_idx, end_idx + 1):
         print('i: ', i)
+        j = i - start_idx
         if i == 0:
             models.append(LlamaForCausalLM_emb(config))
-            models[i].load_state_dict(checkpoint_list[i], strict=True)
-            models[0].to(device)
+            models[j].load_state_dict(checkpoint_list[i], strict=True)
+            #models[0].model.embed_tokens.weight = nn.Parameter(checkpoint_list[0]['model.embed_tokens.weight'])
+            models[j].to(device)
         elif i == 33:
             models.append((LlamaForCausalLM_norm(config)))
-            models[i].load_state_dict(checkpoint_list[i], strict=True)
-            models[33].to(device)
+            models[j].load_state_dict(checkpoint_list[i], strict=True)
+            #models[33].model.norm.weight = nn.Parameter(checkpoint_list[33]['model.norm.weight'])
+            models[j].to(device)
 
         elif i == 34:
             models.append((LlamaForCausalLM_linear(config)))
-            models[i].load_state_dict(checkpoint_list[i], strict=True)
-            models[34].to(device)
+            models[j].load_state_dict(checkpoint_list[i], strict=True)
+            #models[34].lm_head.weight = nn.Parameter(checkpoint_list[34]['lm_head.weight'])
+            models[j].to(device)
         else:
             models.append(LlamaForCausalLM_layer_0(config))
-            models[i].load_state_dict(checkpoint_list[i], strict=True)
+            models[j].load_state_dict(checkpoint_list[i], strict=True)
 
-            models[i].to(device)
+            models[j].to(device)
 
-    # for early exit
-    models.append((LlamaForCausalLM_norm(config)))
-    models[end_idx + 1].load_state_dict(checkpoint_list[-2], strict=True)
-    #models[end_idx + 1].cpu()
-    models[end_idx + 1].to(device)
-
-    models.append((LlamaForCausalLM_linear(config)))
-    models[end_idx + 2].load_state_dict(checkpoint_list[-1], strict=True)
-    #models[end_idx + 2].cpu()
-    models[end_idx + 2].to(device)
-
-    for i in range(0, len(models)):
+    '''for i in range(0, len(models)):
         model = models[i]
         for name, param in model.named_parameters():
             if param.requires_grad:
-                print(name, param.data)
+                print(name, param.data)'''
 
     return models
+
+
+def get_lm_head_idx(end_idx):
+
+    lm_heads = [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+    lm_head = 1
+    lm_head_idx = 0
+
+    for i in range(0, len(lm_heads)):
+        if lm_heads[i] > end_idx:
+            #lm_head = lm_heads[i - 1]
+            #lm_head_idx = lm_head_idx - 1
+            break
+        elif lm_heads[i] == end_idx:
+            lm_head = lm_heads[i]
+            lm_head_idx = i
+            break
+
+        lm_head = lm_heads[i]
+        lm_head_idx = i
+
+    lm_head_idx = lm_head_idx + 1
+
+
+    return lm_head, lm_head_idx
+
+def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
+    config, kwargs = AutoConfig.from_pretrained(
+        args.ckpt_dir_hf,
+        return_unused_kwargs=True
+    )
+    print('config: ', config)
+    print('??: ', end_idx)
+
+    lm_head, lm_head_idx = get_lm_head_idx(end_idx)
+
+    print('lm_head: ', lm_head)
+    print('lm_head_idx: ', lm_head_idx)
+
+    checkpoint_list = []
+    checkpoints = sorted(Path(checkpoints_dir).glob("lm_head.*.pth"))
+    checkpoints = natsorted(checkpoints)
+    #checkpoints = checkpoints.sort(key=natural_keys)
+    #checkpoints = sorted(Path(checkpoints_dir).glob("lm_head.*.pth"), key=lambda f: [int(n) for n in re.findall(r"\d+", f)])
+    print('zzzzzzzzzzz', checkpoints)
+    assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
+
+
+    for i in range(0, len(checkpoints)):
+        if i == 0 or i == lm_head_idx:
+            ckpt_path = checkpoints[i]
+            print(f'Loading checkpoint "{ckpt_path}"')
+
+            checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
+
+
+
+    if device.type == 'cuda':
+        torch.set_default_tensor_type(torch.cuda.HalfTensor)
+    else:
+        torch.set_default_tensor_type(torch.BFloat16Tensor)
+
+    lm_models = []
+
+    for i in range(0, len(checkpoint_list)):
+        if i == 0:
+            lm_models.append((LlamaForCausalLM_norm(config)))
+            lm_models[i].load_state_dict(checkpoint_list[i], strict=True)
+            lm_models[i].to(device)
+
+        else:
+            lm_models.append((LlamaForCausalLM_linear(config)))
+            lm_models[i].load_state_dict(checkpoint_list[i], strict=True)
+            lm_models[i].to(device)
+
+    return lm_head, lm_models
 
 
 if __name__ == '__main__':
@@ -135,10 +196,11 @@ if __name__ == '__main__':
     print('head:', args.head)
     start_idx = 0
     end_idx = 34
-    splitting_point = 3
+    splitting_point = 2
 
     device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
+    _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, splitting_point, device, cache_dir="llm_weights")
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
     deEmbedding = copy.deepcopy(models[0])
 
@@ -173,6 +235,7 @@ if __name__ == '__main__':
     for epoch in range(num_epochs):
         nlls = []
         for i in tqdm(range(0, nsamples, bs)):
+            is_early_exit = False
             # Calculate end index
             j = min(i + bs, nsamples)
 
@@ -183,25 +246,30 @@ if __name__ == '__main__':
             print('inputs: ', inputs)
             print('inputs size: ', inputs.shape)
             out, ids, mask = models[0](inputs)
-            for k in range(1, splitting_point + 1):
+            for k in range(1, len(models) - 2):
                 start_time = time.time()
                 out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
-            print('out: ', out.last_hidden_state)
-            print('out shape: ', out.last_hidden_state.shape)
+                lm_logits = None
+                if k == splitting_point:
+                    print('out: ', out.last_hidden_state)
+                    print('out shape: ', out.last_hidden_state.shape)
 
-            lm_logits = models[-2](out.last_hidden_state)
-            lm_logits = models[-1](lm_logits)
-            print('lm logit: ', lm_logits)
-            print('lm logit shape: ', lm_logits.shape)
+                    is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, splitting_point)
+                    print('lm logit: ', lm_logits)
+                    print('lm logit shape: ', lm_logits.shape)
 
-            print('lm reshape: ', lm_logits.reshape(-1, lm_logits.size(-1)))
-            print('lm reshape shape: ', lm_logits.reshape(-1, lm_logits.size(-1)).shape)
+                    print('lm reshape: ', lm_logits.reshape(-1, lm_logits.size(-1)))
+                    print('lm reshape shape: ', lm_logits.reshape(-1, lm_logits.size(-1)).shape)
 
-            out, ids, mask = deEmbedding(lm_logits)
-            for k in range(splitting_point + 1, len(models) - 2):
-                start_time = time.time()
-                out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+                if is_early_exit:
+                    break
+
+                out, ids, mask = deEmbedding(lm_logits)
+
+            if is_early_exit:
+                continue
+
 
             lm_logits = models[-2](out.last_hidden_state)
             lm_logits = models[-1](lm_logits)
