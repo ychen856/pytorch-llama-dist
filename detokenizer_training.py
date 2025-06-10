@@ -243,6 +243,7 @@ if __name__ == '__main__':
             inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
             inputs = inputs.reshape(j - i, seqlen)
 
+            lm_logits = None
             print('inputs: ', inputs)
             print('inputs size: ', inputs.shape)
             out, ids, mask = models[0](inputs)
@@ -251,7 +252,7 @@ if __name__ == '__main__':
                 start_time = time.time()
                 out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
-                lm_logits = None
+
                 if k == splitting_point:
                     print('out: ', out.last_hidden_state)
                     print('out shape: ', out.last_hidden_state.shape)
@@ -260,10 +261,10 @@ if __name__ == '__main__':
                     print('lm logit: ', lm_logits)
                     print('lm logit shape: ', lm_logits.shape)
 
-                    print('lm reshape: ', lm_logits.reshape(-1, lm_logits.size(-1)))
-                    print('lm reshape shape: ', lm_logits.reshape(-1, lm_logits.size(-1)).shape)
+                    #print('lm reshape: ', lm_logits.reshape(-1, lm_logits.size(-1)))
+                    #print('lm reshape shape: ', lm_logits.reshape(-1, lm_logits.size(-1)).shape)
 
-                    out, ids, mask = deEmbedding(lm_logits)
+                    #out, ids, mask = deEmbedding(lm_logits)
 
                 #if is_early_exit:
                 #    break
@@ -274,11 +275,14 @@ if __name__ == '__main__':
             #    continue
 
 
-            lm_logits = models[-2](out.last_hidden_state)
-            lm_logits = models[-1](lm_logits)
+            #lm_logits = models[-2](out.last_hidden_state)
+            #lm_logits = models[-1](lm_logits)
 
             shift_logits = lm_logits[:, :-1, :].contiguous()
+            print('shift logits: ', shift_logits)
+            print('shift logit shape: ', shift_logits.reshape)
             shift_labels = inputs[:, 1:]
+            print('shift label: ', shift_labels.reshape)
 
             loss_fct = nn.CrossEntropyLoss()
             loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
