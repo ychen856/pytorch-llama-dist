@@ -198,11 +198,10 @@ if __name__ == '__main__':
     print('head:', args.head)
     start_idx = 0
     end_idx = 34
-    splitting_point = 2
+    #splitting_point = 2
 
     device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
-    _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, splitting_point, device, cache_dir="llm_weights")
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
     deEmbedding = FeatureDecoder()
 
@@ -235,6 +234,7 @@ if __name__ == '__main__':
     opt_ppl = np.inf
     deEmbedding.train()
     for splitting_point in ([1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]):
+        _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, splitting_point, device, cache_dir="llm_weights")
         for epoch in range(num_epochs):
             nlls = []
             for i in tqdm(range(0, nsamples, bs)):
