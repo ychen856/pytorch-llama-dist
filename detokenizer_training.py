@@ -265,7 +265,7 @@ if __name__ == '__main__':
                         topk = random.choice([1, 3, 5, 8])
                         topk_indices = max_probs.topk(topk, dim=-1).indices  # [1, k]
                         selected_token_ids = max_probs[0, topk_indices[0]]  # [topk]
-                        out.last_hidden_state = deEmbedding(selected_token_ids.unsqueeze(0))  # [1, topk]
+                        out.last_hidden_state = deEmbedding(selected_token_ids.unsqueeze(0).long)  # [1, topk]
 
 
                     #if is_early_exit:
