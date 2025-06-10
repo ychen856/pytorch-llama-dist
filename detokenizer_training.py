@@ -285,6 +285,10 @@ if __name__ == '__main__':
             print('shift label: ', shift_labels)
             print('shift label shape: ', shift_labels.shape)
 
+            print('zzz: ', shift_logits.reshape(-1, shift_logits.size(-1)))
+            print('zzz shape: ', shift_logits.reshape(-1, shift_logits.size(-1)).shape)
+
+
             loss_fct = nn.CrossEntropyLoss()
             loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
             loss.backward()
