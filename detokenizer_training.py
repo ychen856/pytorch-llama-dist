@@ -261,6 +261,14 @@ if __name__ == '__main__':
                     print('lm logit: ', lm_logits)
                     print('lm logit shape: ', lm_logits.shape)
 
+                    topk_vals, topk_ids = torch.topk(lm_logits, k=k, dim=-1)
+
+                    print('token values: ', topk_vals)
+                    print('token values size: ', topk_vals.shape)
+                    print('topk ids: ', topk_ids)
+                    print('topk ids shape: ', topk_ids.shape)
+
+
                     #print('lm reshape: ', lm_logits.reshape(-1, lm_logits.size(-1)))
                     #print('lm reshape shape: ', lm_logits.reshape(-1, lm_logits.size(-1)).shape)
 
@@ -304,6 +312,8 @@ if __name__ == '__main__':
             # Append to list of negative log likelihoods
             nlls.append(neg_log_likelihood)
             sys.stdout.flush()
+
+            break
 
         # Compute perplexity
         ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
