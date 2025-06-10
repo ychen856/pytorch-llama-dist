@@ -1,5 +1,6 @@
 # this code is used for seperating the weights into small pieces and store them into seperated .pt files. One time usage.
 import math
+import random
 import threading
 from typing import Optional
 
@@ -25,6 +26,7 @@ from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_la
     LlamaForCausalLM_linear
 import yaml
 import copy
+from feature_decoder import *
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
@@ -202,7 +204,7 @@ if __name__ == '__main__':
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
     _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, splitting_point, device, cache_dir="llm_weights")
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-    deEmbedding = copy.deepcopy(models[0])
+    deEmbedding = FeatureDecoder()
 
 
     print("loading success")
@@ -231,100 +233,84 @@ if __name__ == '__main__':
     progress_bar = tqdm(range(num_training_steps))
 
     opt_ppl = np.inf
-    models[-1].train()
-    for epoch in range(num_epochs):
-        nlls = []
-        for i in tqdm(range(0, nsamples, bs)):
-            is_early_exit = False
-            # Calculate end index
-            j = min(i + bs, nsamples)
+    deEmbedding.train()
+    for splitting_point in ([1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]):
+        for epoch in range(num_epochs):
+            nlls = []
+            for i in tqdm(range(0, nsamples, bs)):
+                is_early_exit = False
+                # Calculate end index
+                j = min(i + bs, nsamples)
 
-            # Prepare inputs and move to device
-            inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
-            inputs = inputs.reshape(j - i, seqlen)
+                # Prepare inputs and move to device
+                inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
+                inputs = inputs.reshape(j - i, seqlen)
 
-            lm_logits = None
-            print('inputs: ', inputs)
-            print('inputs size: ', inputs.shape)
-            out, ids, mask = models[0](inputs)
-            for k in range(1, len(models) - 2):
-                print('k: ', k)
-                start_time = time.time()
-                out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-
-
-                if k == splitting_point:
-                    print('out: ', out.last_hidden_state)
-                    print('out shape: ', out.last_hidden_state.shape)
-
-                    is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, splitting_point)
-                    print('lm logit: ', lm_logits)
-                    print('lm logit shape: ', lm_logits.shape)
-
-                    topk_vals, topk_ids = torch.topk(lm_logits, k=k, dim=-1)
-
-                    print('token values: ', topk_vals)
-                    print('token values size: ', topk_vals.shape)
-                    print('topk ids: ', topk_ids)
-                    print('topk ids shape: ', topk_ids.shape)
+                lm_logits = None
+                print('inputs: ', inputs)
+                print('inputs size: ', inputs.shape)
+                out, ids, mask = models[0](inputs)
+                for k in range(1, len(models) - 2):
+                    print('k: ', k)
+                    start_time = time.time()
+                    out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
 
-                    #print('lm reshape: ', lm_logits.reshape(-1, lm_logits.size(-1)))
-                    #print('lm reshape shape: ', lm_logits.reshape(-1, lm_logits.size(-1)).shape)
+                    if k == splitting_point:
+                        is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, splitting_point)
 
-                    #out, ids, mask = deEmbedding(lm_logits)
+                        #MAX confidence
+                        probs = lm_logits.softmax(dim=-1)  # [1, seq_len, vocab]
+                        max_probs = probs.max(dim=-1).values  # [1, seq_len]
+                        topk = random.choice([1, 3, 5, 8])
+                        topk_indices = max_probs.topk(topk, dim=-1).indices  # [1, k]
+                        selected_token_ids = max_probs[0, topk_indices[0]]  # [topk]
+                        out.last_hidden_state, ids, mask = deEmbedding(selected_token_ids.unsqueeze(0))  # [1, topk]
+
+
+                    #if is_early_exit:
+                    #    break
 
                 #if is_early_exit:
-                #    break
+                #    continue
+
+
+                lm_logits = models[-2](out.last_hidden_state)
+                lm_logits = models[-1](lm_logits)
+
+                shift_logits = lm_logits[:, :-1, :].contiguous()
+                shift_labels = inputs[:, 1:]
+
+                loss_fct = nn.CrossEntropyLoss()
+                loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
+                print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
+                loss.backward()
+
+                optimizer.step()
+                lr_scheduler.step()
+                optimizer.zero_grad()
+                #progress_bar.update(1)
 
 
 
-            #if is_early_exit:
-            #    continue
+                neg_log_likelihood = loss.float() * seqlen * (j - i)
+                # Append to list of negative log likelihoods
+                nlls.append(neg_log_likelihood)
+                sys.stdout.flush()
+
+                break
+
+            # Compute perplexity
+            ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
+            if ppl.item() < opt_ppl:
+                opt_ppl = ppl.item()
+                #torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.10.pth')
+                torch.save(deEmbedding.state_dict(), args.ckpt_dir_hf_sep + '/decoder1.pth')
+                print(f"Saved new best model with PPL = {opt_ppl:.2f}")
 
 
-            #lm_logits = models[-2](out.last_hidden_state)
-            #lm_logits = models[-1](lm_logits)
-
-            shift_logits = lm_logits[:, :-1, :].contiguous()
-            print('shift logits: ', shift_logits)
-            print('shift logit shape: ', shift_logits.shape)
-            shift_labels = inputs[:, 1:]
-            print('shift label: ', shift_labels)
-            print('shift label shape: ', shift_labels.shape)
-
-            print('zzz: ', shift_logits.reshape(-1, shift_logits.size(-1)))
-            print('zzz shape: ', shift_logits.reshape(-1, shift_logits.size(-1)).shape)
-
-
-            loss_fct = nn.CrossEntropyLoss()
-            loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
-            loss.backward()
-
-            optimizer.step()
-            lr_scheduler.step()
-            optimizer.zero_grad()
-            #progress_bar.update(1)
-
-
-
-            neg_log_likelihood = loss.float() * seqlen * (j - i)
-            # Append to list of negative log likelihoods
-            nlls.append(neg_log_likelihood)
-            sys.stdout.flush()
-
-            break
-
-        # Compute perplexity
-        ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
-        if ppl.item() < opt_ppl:
-            opt_ppl = ppl.item()
-            #torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.10.pth')
-            torch.save(deEmbedding.state_dict(), args.ckpt_dir_hf_sep + '/deEmbedding.'+ str(splitting_point) +'.pth')
-
-
-        print('ppl: ', ppl.item())
-        # Empty CUDA cache to save memory
+            #print('ppl: ', ppl.item())
+            # Empty CUDA cache to save memory
 
     ppl = eval_ppl_sep_hf(models, tokenizer, device)
     print('eval ppl: ', ppl)
