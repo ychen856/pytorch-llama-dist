@@ -247,6 +247,7 @@ if __name__ == '__main__':
             print('inputs size: ', inputs.shape)
             out, ids, mask = models[0](inputs)
             for k in range(1, len(models) - 2):
+                print('k: ', k)
                 start_time = time.time()
                 out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
@@ -262,13 +263,15 @@ if __name__ == '__main__':
                     print('lm reshape: ', lm_logits.reshape(-1, lm_logits.size(-1)))
                     print('lm reshape shape: ', lm_logits.reshape(-1, lm_logits.size(-1)).shape)
 
-                if is_early_exit:
-                    break
+                    out, ids, mask = deEmbedding(lm_logits)
 
-                out, ids, mask = deEmbedding(lm_logits)
+                #if is_early_exit:
+                #    break
 
-            if is_early_exit:
-                continue
+
+
+            #if is_early_exit:
+            #    continue
 
 
             lm_logits = models[-2](out.last_hidden_state)
