@@ -1,4 +1,5 @@
 # this code is used for seperating the weights into small pieces and store them into seperated .pt files. One time usage.
+import gc
 import math
 import random
 
@@ -316,7 +317,7 @@ if __name__ == '__main__':
                     '''if not torch.isfinite(loss):
                         print("❌ loss is NaN or Inf, skipping step")
                         continue'''
-
+                    print(torch.cuda.memory_summary(device=None, abbreviated=False))
                     #loss.backward()
                     scaler.scale(loss).backward()
 
@@ -357,7 +358,7 @@ if __name__ == '__main__':
                     sys.stdout.flush()
 
             # Empty CUDA cache to save memory
-            del out, lm_logits, loss, inputs
+            del out, lm_logits, loss, inputs, ids, mask, selected_token_ids, topk_indices, max_probs, probs, decoded_data
             torch.cuda.empty_cache()
 
             #break
@@ -371,6 +372,7 @@ if __name__ == '__main__':
             print(f"Saved new best model with PPL = {opt_ppl:.2f}")
 
         del lm_models
+        gc.collect()
         #print('ppl: ', ppl.item())
         # Empty CUDA cache to save memory
         #torch.cuda.empty_cache()
