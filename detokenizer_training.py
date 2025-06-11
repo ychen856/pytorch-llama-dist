@@ -203,7 +203,7 @@ if __name__ == '__main__':
     device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-    deEmbedding = FeatureDecoder()
+    deEmbedding = FeatureDecoder().to(device)
 
 
     print("loading success")
@@ -234,6 +234,8 @@ if __name__ == '__main__':
     opt_ppl = np.inf
     deEmbedding.train()
     for splitting_point in ([1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]):
+        del lm_models
+        torch.cuda.empty_cache()
         _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, splitting_point, device, cache_dir="llm_weights")
         for epoch in range(num_epochs):
             nlls = []
@@ -299,7 +301,7 @@ if __name__ == '__main__':
 
 
 
-                neg_log_likelihood = loss.float() * seqlen * (j - i)
+                neg_log_likelihood = loss.detach().float() * seqlen * (j - i)
                 # Append to list of negative log likelihoods
                 nlls.append(neg_log_likelihood)
                 sys.stdout.flush()
