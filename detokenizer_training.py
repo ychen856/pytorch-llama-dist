@@ -211,7 +211,9 @@ if __name__ == '__main__':
 
 
     print("loading success")
-    testenc = get_train_data(tokenizer, rate=0.7)
+    test_loader = get_eval_data(tokenizer)
+    # Get input IDs
+    testenc = test_loader.input_ids
     bs = 1
 
     # loading inputs data
@@ -350,7 +352,7 @@ if __name__ == '__main__':
     #ppl = eval_ppl_sep_hf(models, tokenizer, device)
     #print('eval ppl: ', ppl)
 
-    '''#eval
+    #eval
 
     device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
@@ -386,14 +388,15 @@ if __name__ == '__main__':
 
     opt_ppl = np.inf
     deEmbedding.train()
-    torch.no_grad:
-        for splitting_point in ([1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]):
-            print('splitting point: ', splitting_point)
-            torch.cuda.empty_cache()
+
+    for splitting_point in ([1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]):
+        print('splitting point: ', splitting_point)
+        torch.cuda.empty_cache()
+
+        with torch.no_grad():
             _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, splitting_point, device, cache_dir="llm_weights")
             nlls = []
             for epoch in range(num_epochs):
-                
                 for i in tqdm(range(0, nsamples, bs)):
                     is_early_exit = False
                     # Calculate end index
@@ -404,8 +407,8 @@ if __name__ == '__main__':
                     inputs = inputs.reshape(j - i, seqlen)
 
                     lm_logits = None
-                    #print('inputs: ', inputs)
-                    #print('inputs size: ', inputs.shape)
+
+                    # Start the model
                     out, ids, mask = models[0](inputs)
                     for k in range(1, len(models) - 2):
                         #print('k: ', k)
@@ -424,14 +427,6 @@ if __name__ == '__main__':
                             selected_token_ids = max_probs[0, topk_indices[0].long()]  # [topk]
                             out.last_hidden_state = deEmbedding(selected_token_ids.unsqueeze(0).long())  # [1, topk]
 
-
-                        #if is_early_exit:
-                        #    break
-
-                    #if is_early_exit:
-                    #    continue
-
-
                     lm_logits = models[-2](out.last_hidden_state)
                     lm_logits = models[-1](lm_logits)
 
@@ -443,59 +438,14 @@ if __name__ == '__main__':
                     loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
                     print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
 
-
-                    loss.backward()
-
-                    # Check gradients BEFORE clipping
-                    invalid_grad = False
-                    for name, p in deEmbedding.named_parameters():
-                        if p.grad is not None and not torch.isfinite(p.grad).all():
-                            print(f"❌ Invalid gradient in {name}")
-                            invalid_grad = True
-                            break
-
-                    if invalid_grad:
-                        optimizer.zero_grad()
-                        torch.cuda.empty_cache()
-                        continue  # skip this batch
-                    else:
-                        torch.nn.utils.clip_grad_norm_(
-                            [p for p in deEmbedding.parameters() if p.grad is not None],
-                            max_norm=1.0
-                        )
-
-                    scaler.scale(loss).backward()
-                    scaler.unscale_(optimizer)
-                    scaler.step(optimizer)
-                    scaler.update()
-                    optimizer.zero_grad()
-
-                    #optimizer.step()
-                    #lr_scheduler.step()
-                    #optimizer.zero_grad()
-                    #progress_bar.update(1)
-
-
-
                     neg_log_likelihood = loss.detach().float() * seqlen * (j - i)
                     # Append to list of negative log likelihoods
                     nlls.append(neg_log_likelihood)
                     sys.stdout.flush()
-                    # Empty CUDA cache to save memory
-                    del out, lm_logits, loss, inputs
-                    torch.cuda.empty_cache()
 
-                    #break
+            # Compute perplexity
+            ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
 
-                # Compute perplexity
-                ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
-                if ppl.item() < opt_ppl:
-                    opt_ppl = ppl.item()
-                    #torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.10.pth')
-                    torch.save(deEmbedding.state_dict(), args.ckpt_dir_hf_sep + '/decoder1.pth')
-                    print(f"Saved new best model with PPL = {opt_ppl:.2f}")
-
-                del lm_models
-                print('ppl: ', ppl.item())
-                # Empty CUDA cache to save memory
-                torch.cuda.empty_cache()'''
+            print('ppl: ', ppl.item())
+            # Empty CUDA cache to save memory
+            torch.cuda.empty_cache()
