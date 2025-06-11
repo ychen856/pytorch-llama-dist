@@ -364,9 +364,9 @@ if __name__ == '__main__':
                 nlls.append(neg_log_likelihood)
                 sys.stdout.flush()
 
-            # Empty CUDA cache to save memory
-            del out, lm_logits, loss, inputs
-            torch.cuda.empty_cache()
+                # Empty CUDA cache to save memory
+                del out, lm_logits, loss, inputs
+                torch.cuda.empty_cache()
 
             #break
 
