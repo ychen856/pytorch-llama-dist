@@ -205,22 +205,25 @@ if __name__ == '__main__':
     #splitting_point = 2
 
     device = torch.device("cuda")
-    models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
+    #models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-    deEmbedding = FeatureDecoder().to(device)
+    #deEmbedding = FeatureDecoder().to(device)
 
 
     print("loading success")
-    test_loader = get_eval_data(tokenizer)
+    #test_loader = get_eval_data(tokenizer)
     # Get input IDs
-    testenc = test_loader.input_ids
+    #testenc = test_loader.input_ids
+
+    trainenc = get_train_data(tokenizer, 0.7)
     bs = 1
 
     # loading inputs data
     seqlen = 256
 
     # Calculate number of samples
-    nsamples = testenc.numel() // seqlen
+    #nsamples = testenc.numel() // seqlen
+    nsamples = len(trainenc)
     #nsamples = 11
     # List to store negative log likelihoods
     nlls = []
@@ -249,8 +252,11 @@ if __name__ == '__main__':
                 j = min(i + bs, nsamples)
 
                 # Prepare inputs and move to device
-                inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
-                inputs = inputs.reshape(j - i, seqlen)
+                #inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
+                #inputs = inputs.reshape(j - i, seqlen)
+                print('trainenc i: ', trainenc[i])
+                inputs = trainenc[i][:seqlen]
+                print('inputs: ', inputs)
 
                 lm_logits = None
                 #print('inputs: ', inputs)
