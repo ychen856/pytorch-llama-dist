@@ -217,7 +217,11 @@ if __name__ == '__main__':
 
     trainenc = get_train_data(tokenizer, 0.7)
     bs = 1
+    print('trainenc i: ', trainenc[0])
+    inputs = trainenc[0][:256]
+    print('inputs: ', inputs)
 
+    exit()
     # loading inputs data
     seqlen = 256
 
@@ -230,7 +234,7 @@ if __name__ == '__main__':
     print(f"nsamples {nsamples}")
 
     scaler = GradScaler()
-    optimizer = AdamW(models[-1].parameters(), lr=5e-5)
+    optimizer = AdamW(deEmbedding.parameters(), lr=5e-5)
 
     num_epochs = 20
     num_training_steps = num_epochs * nsamples
