@@ -231,7 +231,7 @@ if __name__ == '__main__':
     device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-    deEmbedding = FeatureDecoder(seq_len=512).to(device)
+    deEmbedding = FeatureDecoder(seq_len=128).to(device)
 
 
     print("loading success")
@@ -240,7 +240,7 @@ if __name__ == '__main__':
     #testenc = test_loader.input_ids
 
     # loading inputs data
-    seqlen = 512
+    seqlen = 128
 
     trainenc = get_train_data(tokenizer, seqlen, 0.7)
     bs = 1
@@ -283,7 +283,7 @@ if __name__ == '__main__':
                 #print('inputs: ', inputs)
                 #print('inputs size: ', inputs.shape)
                 out, ids, mask = models[0](inputs)
-                for k in range(1, len(models) - 2):
+                for k in range(1, len(models)):
                     #print('k: ', k)
                     start_time = time.time()
                     out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
