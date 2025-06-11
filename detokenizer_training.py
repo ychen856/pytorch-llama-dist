@@ -324,8 +324,8 @@ if __name__ == '__main__':
                 print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
 
 
-                loss.backward()
-                #scaler.scale(loss).backward()
+                #loss.backward()
+                scaler.scale(loss).backward()
 
                 # Check gradients BEFORE clipping
                 invalid_grad = False
