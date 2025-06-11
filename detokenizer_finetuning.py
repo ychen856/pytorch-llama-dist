@@ -278,7 +278,7 @@ if __name__ == '__main__':
                 # Prepare inputs and move to device
                 #inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
                 #inputs = inputs.reshape(j - i, seqlen)
-                inputs = trainenc[i]
+                inputs = trainenc[i].to(device)
                 decoded_data = None
                 #print('inputs: ', inputs)
                 #print('inputs size: ', inputs.shape)
