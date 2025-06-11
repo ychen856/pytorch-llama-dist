@@ -9,8 +9,7 @@ import random
 from datetime import datetime
 
 # Function to evaluate perplexity (ppl) on a specified model and tokenizer
-def get_eval_data(tokenizer):
-    seqlen = 256
+def get_eval_data(tokenizer, seqlen=1024):
     # Set dataset
     dataset = "wikitext2_hf"
 
@@ -26,7 +25,7 @@ def get_eval_data(tokenizer):
 
     return testloader
 
-def get_train_data(tokenizer, rate=0.7):
+def get_train_data(tokenizer, seqlen=256, rate=0.7):
     seqlen = 256
     # Set dataset
     dataset = "wikitext2_hf"

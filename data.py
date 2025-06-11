@@ -67,9 +67,10 @@ def get_wikitext2_hf(nsamples, seed, seqlen, tokenizer):
         i = random.randint(0, trainenc.input_ids.shape[1] - seqlen - 1)
         j = i + seqlen
         inp = trainenc.input_ids[:, i:j]
-        tar = inp.clone()
-        tar[:, :-1] = -100
-        trainloader.append((inp, tar))
+        trainloader.append(inp)
+        #tar = inp.clone()
+        #tar[:, :-1] = -100
+        #trainloader.append((inp, tar))
     return trainloader, testenc
 
 # Load and process c4 dataset
