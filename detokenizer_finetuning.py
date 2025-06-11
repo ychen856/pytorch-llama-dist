@@ -279,7 +279,7 @@ if __name__ == '__main__':
                 #inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
                 #inputs = inputs.reshape(j - i, seqlen)
                 inputs = trainenc[i]
-                lm_logits = None
+                decoded_data = None
                 #print('inputs: ', inputs)
                 #print('inputs size: ', inputs.shape)
                 out, ids, mask = models[0](inputs)
@@ -298,15 +298,15 @@ if __name__ == '__main__':
                         topk = random.choice([1, 3, 5, 8])
                         topk_indices = max_probs.topk(topk, dim=-1).indices  # [1, k]
                         selected_token_ids = max_probs[0, topk_indices[0].long()]  # [topk]
-                        out.last_hidden_state = deEmbedding(selected_token_ids.unsqueeze(0).long())  # [1, topk]
+                        decoded_data = deEmbedding(selected_token_ids.unsqueeze(0).long())  # [1, topk]
 
                         break
 
                 with autocast():
                     loss_fct = nn.MSELoss()
-                print('lm logit: ', lm_logits.shape)
-                print('???: ', out.last_hidden_state.shape)
-                loss = loss_fct(out.last_hidden_state, lm_logits)
+                #print('lm logit: ', lm_logits.shape)
+                #print('???: ', out.last_hidden_state.shape)
+                loss = loss_fct(decoded_data, out.last_hidden_state)
                 print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
 
 
