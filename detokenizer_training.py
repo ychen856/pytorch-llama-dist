@@ -247,7 +247,7 @@ if __name__ == '__main__':
     # loading inputs data
     seqlen = 128
 
-    trainenc = get_train_data(tokenizer, 128, 0.7)
+    trainenc = get_train_data(tokenizer, 128, 0.3)
     bs = 1
 
     # Calculate number of samples
@@ -325,7 +325,8 @@ if __name__ == '__main__':
                 print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
 
 
-                loss.backward()
+                #loss.backward()
+                scaler.scale(loss).backward()
 
                 # Check gradients BEFORE clipping
                 invalid_grad = False
@@ -345,11 +346,11 @@ if __name__ == '__main__':
                         max_norm=1.0
                     )
 
-                '''scaler.scale(loss).backward()
+
                 scaler.unscale_(optimizer)
                 scaler.step(optimizer)
                 scaler.update()
-                optimizer.zero_grad()'''
+                optimizer.zero_grad()
 
                 optimizer.step()
                 lr_scheduler.step()
