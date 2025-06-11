@@ -346,14 +346,14 @@ if __name__ == '__main__':
                     )
 
 
-                '''scaler.unscale_(optimizer)
+                scaler.unscale_(optimizer)
                 scaler.step(optimizer)
                 scaler.update()
-                optimizer.zero_grad()'''
-
-                optimizer.step()
-                lr_scheduler.step()
                 optimizer.zero_grad()
+
+                '''optimizer.step()
+                lr_scheduler.step()
+                optimizer.zero_grad()'''
                 progress_bar.update(1)
 
 
