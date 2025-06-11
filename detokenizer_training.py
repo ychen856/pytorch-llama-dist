@@ -292,8 +292,13 @@ if __name__ == '__main__':
                     print("⚠️ Loss is NaN/Inf. Skipping this step.")
                     optimizer.zero_grad()
                     continue
+
+                for p in deEmbedding.parameters():
+                    if p.grad is not None:
+                        torch.nan_to_num_(p.grad, nan=0.0, posinf=1.0, neginf=-1.0)
+
                 torch.nn.utils.clip_grad_norm_(
-                    [p for p in deEmbedding.parameters() if p.grad is not None and torch.isfinite(p.grad).all()],
+                    [p for p in deEmbedding.parameters() if p.grad is not None],
                     max_norm=1.0
                 )
 
