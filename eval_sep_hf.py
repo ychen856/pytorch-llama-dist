@@ -24,6 +24,24 @@ def get_eval_data(tokenizer):
 
     return testloader
 
+def get_train_data(tokenizer):
+    seqlen = 256
+    # Set dataset
+    dataset = "wikitext2_hf"
+
+    # Print status
+    print(f"evaluating on {dataset}")
+
+    # random.seed(datetime.now().timestamp())
+    # Get the test loader
+    trainloader, _ = get_loaders(
+        dataset, seed=0, seqlen=seqlen, tokenizer=tokenizer
+        # dataset, seed=random.random(), seqlen=seqlen, tokenizer=tokenizer
+    )
+
+    return trainloader
+
+
 
 def eval_ppl_wikitext_sep_hf(models, testenc, args, start_idx = 0, end_idx = 34, bs=1, device=None):
     seqlen = 1024
