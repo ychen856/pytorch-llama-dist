@@ -304,7 +304,7 @@ if __name__ == '__main__':
 
                 with autocast():
                     loss_fct = nn.MSELoss()
-                loss = loss_fct(out, lm_logits)
+                loss = loss_fct(out.last_hidden_state, lm_logits)
                 print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
 
 
