@@ -297,8 +297,10 @@ if __name__ == '__main__':
                 # Append to list of negative log likelihoods
                 nlls.append(neg_log_likelihood)
                 sys.stdout.flush()
+                # Empty CUDA cache to save memory
+                torch.cuda.empty_cache()
 
-                break
+                #break
 
             # Compute perplexity
             ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
@@ -311,7 +313,7 @@ if __name__ == '__main__':
 
             #print('ppl: ', ppl.item())
             # Empty CUDA cache to save memory
-            torch.cuda.empty_cache()
+            #torch.cuda.empty_cache()
 
     ppl = eval_ppl_sep_hf(models, tokenizer, device)
     print('eval ppl: ', ppl)
