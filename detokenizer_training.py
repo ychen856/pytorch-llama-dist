@@ -17,7 +17,7 @@ from torch.optim import AdamW
 from transformers import get_scheduler
 from tqdm.auto import tqdm
 import sys
-
+import gc
 from early_exit import early_exit_lm_head
 from eval import eval_ppl_sep_hf, eval_lm_head_ppl_sep_hf
 from eval_sep_hf import get_eval_data, get_train_data
@@ -288,6 +288,7 @@ if __name__ == '__main__':
                 #print('inputs size: ', inputs.shape)
                 with autocast():
                     out, ids, mask = models[0](inputs)
+                    decoder_data = None
                     for k in range(1, len(models) - 2):
                         #print('k: ', k)
                         start_time = time.time()
@@ -303,8 +304,8 @@ if __name__ == '__main__':
                             topk = random.choice([1, 3, 5, 8])
                             topk_indices = max_probs.topk(topk, dim=-1).indices  # [1, k]
                             selected_token_ids = max_probs[0, topk_indices[0].long()]  # [topk]
-                            out.last_hidden_state = deEmbedding(selected_token_ids.unsqueeze(0).long())  # [1, topk]
-
+                            decoder_data = deEmbedding(selected_token_ids.unsqueeze(0))  # [1, topk]
+                            out.last_hidden_state = decoder_data.detach().long()
 
                         #if is_early_exit:
                         #    break
@@ -313,7 +314,7 @@ if __name__ == '__main__':
                     #    continue
 
 
-                    lm_logits = models[-2](out.last_hidden_state)
+                    lm_logits = models[-2](decoder_data)
                     lm_logits = models[-1](lm_logits)
 
                     shift_logits = lm_logits[:, :-1, :].contiguous()
@@ -336,6 +337,7 @@ if __name__ == '__main__':
                             invalid_grad = True
                             break
 
+                    scaler.unscale_(optimizer)
                     if invalid_grad:
                         optimizer.zero_grad()
                         torch.cuda.empty_cache()
@@ -347,7 +349,7 @@ if __name__ == '__main__':
                         )
 
 
-                    scaler.unscale_(optimizer)
+
                     scaler.step(optimizer)
                     scaler.update()
                     optimizer.zero_grad()
@@ -365,7 +367,7 @@ if __name__ == '__main__':
                     sys.stdout.flush()
 
                 # Empty CUDA cache to save memory
-                del out, lm_logits, loss, inputs
+                del out, lm_logits, loss, inputs, ids, mask, selected_token_ids, topk_indices, max_probs, probs, decoder_data
                 torch.cuda.empty_cache()
 
             #break
@@ -379,6 +381,7 @@ if __name__ == '__main__':
                 print(f"Saved new best model with PPL = {opt_ppl:.2f}")
 
         del lm_models
+        gc.collect()
         #print('ppl: ', ppl.item())
         # Empty CUDA cache to save memory
         #torch.cuda.empty_cache()
