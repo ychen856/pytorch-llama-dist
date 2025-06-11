@@ -258,7 +258,7 @@ if __name__ == '__main__':
     print(f"nsamples {nsamples}")
 
     scaler = GradScaler()
-    optimizer = AdamW(deEmbedding.parameters(), lr=5e-5)
+    optimizer = AdamW(deEmbedding.parameters(), lr=1e-5)
 
     num_epochs = 20
     num_training_steps = num_epochs * nsamples
@@ -286,82 +286,83 @@ if __name__ == '__main__':
                 lm_logits = None
                 #print('inputs: ', inputs)
                 #print('inputs size: ', inputs.shape)
-                out, ids, mask = models[0](inputs)
-                for k in range(1, len(models) - 2):
-                    #print('k: ', k)
-                    start_time = time.time()
-                    out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+                with autocast():
+                    out, ids, mask = models[0](inputs)
+                    for k in range(1, len(models) - 2):
+                        #print('k: ', k)
+                        start_time = time.time()
+                        out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
 
-                    if k == splitting_point:
-                        is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, splitting_point)
+                        if k == splitting_point:
+                            is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, splitting_point)
 
-                        #MAX confidence
-                        probs = lm_logits.softmax(dim=-1)  # [1, seq_len, vocab]
-                        max_probs = probs.max(dim=-1).values  # [1, seq_len]
-                        topk = random.choice([1, 3, 5, 8])
-                        topk_indices = max_probs.topk(topk, dim=-1).indices  # [1, k]
-                        selected_token_ids = max_probs[0, topk_indices[0].long()]  # [topk]
-                        out.last_hidden_state = deEmbedding(selected_token_ids.unsqueeze(0).long())  # [1, topk]
+                            #MAX confidence
+                            probs = lm_logits.softmax(dim=-1)  # [1, seq_len, vocab]
+                            max_probs = probs.max(dim=-1).values  # [1, seq_len]
+                            topk = random.choice([1, 3, 5, 8])
+                            topk_indices = max_probs.topk(topk, dim=-1).indices  # [1, k]
+                            selected_token_ids = max_probs[0, topk_indices[0].long()]  # [topk]
+                            out.last_hidden_state = deEmbedding(selected_token_ids.unsqueeze(0).long())  # [1, topk]
 
+
+                        #if is_early_exit:
+                        #    break
 
                     #if is_early_exit:
-                    #    break
-
-                #if is_early_exit:
-                #    continue
+                    #    continue
 
 
-                lm_logits = models[-2](out.last_hidden_state)
-                lm_logits = models[-1](lm_logits)
+                    lm_logits = models[-2](out.last_hidden_state)
+                    lm_logits = models[-1](lm_logits)
 
-                shift_logits = lm_logits[:, :-1, :].contiguous()
-                shift_labels = inputs[:, 1:]
+                    shift_logits = lm_logits[:, :-1, :].contiguous()
+                    shift_labels = inputs[:, 1:]
 
-                with autocast():
+
                     loss_fct = nn.CrossEntropyLoss()
-                loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
-                print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
+                    loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
+                    print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
 
 
-                loss.backward()
-                #scaler.scale(loss).backward()
+                    #loss.backward()
+                    scaler.scale(loss).backward()
 
-                # Check gradients BEFORE clipping
-                invalid_grad = False
-                for name, p in deEmbedding.named_parameters():
-                    if p.grad is not None and not torch.isfinite(p.grad).all():
-                        print(f"❌ Invalid gradient in {name}")
-                        invalid_grad = True
-                        break
+                    # Check gradients BEFORE clipping
+                    invalid_grad = False
+                    for name, p in deEmbedding.named_parameters():
+                        if p.grad is not None and not torch.isfinite(p.grad).all():
+                            print(f"❌ Invalid gradient in {name}")
+                            invalid_grad = True
+                            break
 
-                if invalid_grad:
+                    if invalid_grad:
+                        optimizer.zero_grad()
+                        torch.cuda.empty_cache()
+                        continue  # skip this batch
+                    else:
+                        torch.nn.utils.clip_grad_norm_(
+                            [p for p in deEmbedding.parameters() if p.grad is not None],
+                            max_norm=1.0
+                        )
+
+
+                    scaler.unscale_(optimizer)
+                    scaler.step(optimizer)
+                    scaler.update()
                     optimizer.zero_grad()
-                    torch.cuda.empty_cache()
-                    continue  # skip this batch
-                else:
-                    torch.nn.utils.clip_grad_norm_(
-                        [p for p in deEmbedding.parameters() if p.grad is not None],
-                        max_norm=1.0
-                    )
 
-
-                scaler.unscale_(optimizer)
-                scaler.step(optimizer)
-                scaler.update()
-                optimizer.zero_grad()
-
-                '''optimizer.step()
-                lr_scheduler.step()
-                optimizer.zero_grad()'''
-                progress_bar.update(1)
+                    '''optimizer.step()
+                    lr_scheduler.step()
+                    optimizer.zero_grad()'''
+                    progress_bar.update(1)
 
 
 
-                neg_log_likelihood = loss.detach().float() * seqlen * (j - i)
-                # Append to list of negative log likelihoods
-                nlls.append(neg_log_likelihood)
-                sys.stdout.flush()
+                    neg_log_likelihood = loss.detach().float() * seqlen * (j - i)
+                    # Append to list of negative log likelihoods
+                    nlls.append(neg_log_likelihood)
+                    sys.stdout.flush()
 
                 # Empty CUDA cache to save memory
                 del out, lm_logits, loss, inputs
