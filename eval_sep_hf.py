@@ -8,7 +8,7 @@ from datetime import datetime
 
 # Function to evaluate perplexity (ppl) on a specified model and tokenizer
 def get_eval_data(tokenizer):
-    seqlen = 1024
+    seqlen = 512
     # Set dataset
     dataset = "wikitext2_hf"
 

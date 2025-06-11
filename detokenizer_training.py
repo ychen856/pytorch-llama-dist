@@ -211,7 +211,7 @@ if __name__ == '__main__':
     bs = 1
 
     # loading inputs data
-    seqlen = 1024
+    seqlen = 512
     # Get input IDs
     testenc = test_loader.input_ids
 
@@ -264,7 +264,7 @@ if __name__ == '__main__':
                         max_probs = probs.max(dim=-1).values  # [1, seq_len]
                         topk = random.choice([1, 3, 5, 8])
                         topk_indices = max_probs.topk(topk, dim=-1).indices  # [1, k]
-                        selected_token_ids = max_probs[0, topk_indices[0]]  # [topk]
+                        selected_token_ids = max_probs[0, topk_indices[0].long()]  # [topk]
                         out.last_hidden_state = deEmbedding(selected_token_ids.unsqueeze(0).long())  # [1, topk]
 
 
@@ -311,6 +311,7 @@ if __name__ == '__main__':
 
             #print('ppl: ', ppl.item())
             # Empty CUDA cache to save memory
+            torch.cuda.empty_cache()
 
     ppl = eval_ppl_sep_hf(models, tokenizer, device)
     print('eval ppl: ', ppl)
