@@ -313,14 +313,14 @@ if __name__ == '__main__':
                     loss = loss_fct(decoded_data, out.last_hidden_state)
                     print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
 
-                    if not torch.isfinite(loss):
+                    '''if not torch.isfinite(loss):
                         print("❌ loss is NaN or Inf, skipping step")
-                        continue
+                        continue'''
 
                     #loss.backward()
                     scaler.scale(loss).backward()
 
-                    '''# Check gradients BEFORE clipping
+                    # Check gradients BEFORE clipping
                     invalid_grad = False
                     for name, p in deEmbedding.named_parameters():
                         if p.grad is not None and not torch.isfinite(p.grad).all():
@@ -328,6 +328,7 @@ if __name__ == '__main__':
                             invalid_grad = True
                             break
 
+                    scaler.unscale_(optimizer)
                     if invalid_grad:
                         optimizer.zero_grad()
                         torch.cuda.empty_cache()
@@ -336,10 +337,9 @@ if __name__ == '__main__':
                         torch.nn.utils.clip_grad_norm_(
                             [p for p in deEmbedding.parameters() if p.grad is not None],
                             max_norm=1.0
-                        )'''
+                        )
 
 
-                    scaler.unscale_(optimizer)
                     scaler.step(optimizer)
                     scaler.update()
                     optimizer.zero_grad()
