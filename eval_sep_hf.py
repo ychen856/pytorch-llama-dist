@@ -26,7 +26,6 @@ def get_eval_data(tokenizer, seqlen=1024):
     return testloader
 
 def get_train_data(tokenizer, seqlen=256, rate=0.7):
-    seqlen = 256
     # Set dataset
     dataset = "wikitext2_hf"
 
