@@ -211,13 +211,11 @@ if __name__ == '__main__':
 
 
     print("loading success")
-    test_loader = get_train_data(tokenizer)
+    testenc = get_train_data(tokenizer, rate=0.7)
     bs = 1
 
     # loading inputs data
     seqlen = 256
-    # Get input IDs
-    testenc = test_loader.input_ids
 
     # Calculate number of samples
     nsamples = testenc.numel() // seqlen
@@ -349,13 +347,155 @@ if __name__ == '__main__':
             # Empty CUDA cache to save memory
             #torch.cuda.empty_cache()
 
-    ppl = eval_ppl_sep_hf(models, tokenizer, device)
-    print('eval ppl: ', ppl)
+    #ppl = eval_ppl_sep_hf(models, tokenizer, device)
+    #print('eval ppl: ', ppl)
+
+    '''#eval
+
+    device = torch.device("cuda")
+    models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
+    tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
+    deEmbedding = FeatureDecoder().to(device)
+
+
+    print("loading success")
+    test_loader = get_eval_data(tokenizer)
+    bs = 1
+
+    # loading inputs data
+    seqlen = 256
+    # Get input IDs
+    testenc = test_loader.input_ids
+
+    # Calculate number of samples
+    nsamples = testenc.numel() // seqlen
+    #nsamples = 11
+    # List to store negative log likelihoods
+    nlls = []
+    print(f"nsamples {nsamples}")
+
+    scaler = GradScaler()
+    optimizer = AdamW(models[-1].parameters(), lr=5e-5)
+
+    num_epochs = 20
+    num_training_steps = num_epochs * nsamples
+    lr_scheduler = get_scheduler(
+        name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps
+    )
+    progress_bar = tqdm(range(num_training_steps))
+
+    opt_ppl = np.inf
+    deEmbedding.train()
+    torch.no_grad:
+        for splitting_point in ([1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]):
+            print('splitting point: ', splitting_point)
+            torch.cuda.empty_cache()
+            _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, splitting_point, device, cache_dir="llm_weights")
+            nlls = []
+            for epoch in range(num_epochs):
+                
+                for i in tqdm(range(0, nsamples, bs)):
+                    is_early_exit = False
+                    # Calculate end index
+                    j = min(i + bs, nsamples)
+
+                    # Prepare inputs and move to device
+                    inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
+                    inputs = inputs.reshape(j - i, seqlen)
+
+                    lm_logits = None
+                    #print('inputs: ', inputs)
+                    #print('inputs size: ', inputs.shape)
+                    out, ids, mask = models[0](inputs)
+                    for k in range(1, len(models) - 2):
+                        #print('k: ', k)
+                        start_time = time.time()
+                        out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+
+
+                        if k == splitting_point:
+                            is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, splitting_point)
+
+                            #MAX confidence
+                            probs = lm_logits.softmax(dim=-1)  # [1, seq_len, vocab]
+                            max_probs = probs.max(dim=-1).values  # [1, seq_len]
+                            topk = random.choice([1, 3, 5, 8])
+                            topk_indices = max_probs.topk(topk, dim=-1).indices  # [1, k]
+                            selected_token_ids = max_probs[0, topk_indices[0].long()]  # [topk]
+                            out.last_hidden_state = deEmbedding(selected_token_ids.unsqueeze(0).long())  # [1, topk]
+
+
+                        #if is_early_exit:
+                        #    break
+
+                    #if is_early_exit:
+                    #    continue
+
+
+                    lm_logits = models[-2](out.last_hidden_state)
+                    lm_logits = models[-1](lm_logits)
+
+                    shift_logits = lm_logits[:, :-1, :].contiguous()
+                    shift_labels = inputs[:, 1:]
+
+                    with autocast():
+                        loss_fct = nn.CrossEntropyLoss()
+                    loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
+                    print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
+
+
+                    loss.backward()
+
+                    # Check gradients BEFORE clipping
+                    invalid_grad = False
+                    for name, p in deEmbedding.named_parameters():
+                        if p.grad is not None and not torch.isfinite(p.grad).all():
+                            print(f"❌ Invalid gradient in {name}")
+                            invalid_grad = True
+                            break
+
+                    if invalid_grad:
+                        optimizer.zero_grad()
+                        torch.cuda.empty_cache()
+                        continue  # skip this batch
+                    else:
+                        torch.nn.utils.clip_grad_norm_(
+                            [p for p in deEmbedding.parameters() if p.grad is not None],
+                            max_norm=1.0
+                        )
+
+                    scaler.scale(loss).backward()
+                    scaler.unscale_(optimizer)
+                    scaler.step(optimizer)
+                    scaler.update()
+                    optimizer.zero_grad()
+
+                    #optimizer.step()
+                    #lr_scheduler.step()
+                    #optimizer.zero_grad()
+                    #progress_bar.update(1)
 
 
 
+                    neg_log_likelihood = loss.detach().float() * seqlen * (j - i)
+                    # Append to list of negative log likelihoods
+                    nlls.append(neg_log_likelihood)
+                    sys.stdout.flush()
+                    # Empty CUDA cache to save memory
+                    del out, lm_logits, loss, inputs
+                    torch.cuda.empty_cache()
 
+                    #break
 
+                # Compute perplexity
+                ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
+                if ppl.item() < opt_ppl:
+                    opt_ppl = ppl.item()
+                    #torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.10.pth')
+                    torch.save(deEmbedding.state_dict(), args.ckpt_dir_hf_sep + '/decoder1.pth')
+                    print(f"Saved new best model with PPL = {opt_ppl:.2f}")
 
-
-
+                del lm_models
+                print('ppl: ', ppl.item())
+                # Empty CUDA cache to save memory
+                torch.cuda.empty_cache()'''
