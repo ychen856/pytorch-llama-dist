@@ -264,7 +264,7 @@ if __name__ == '__main__':
     num_epochs = 20
     num_training_steps = num_epochs * nsamples
     lr_scheduler = get_scheduler(
-        name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps
+        name="linear", optimizer=optimizer, num_warmup_steps=200, num_training_steps=num_training_steps
     )
     progress_bar = tqdm(range(num_training_steps))
 
@@ -345,15 +345,15 @@ if __name__ == '__main__':
                         max_norm=1.0
                     )
 
-                scaler.scale(loss).backward()
+                '''scaler.scale(loss).backward()
                 scaler.unscale_(optimizer)
                 scaler.step(optimizer)
                 scaler.update()
-                optimizer.zero_grad()
+                optimizer.zero_grad()'''
 
-                #optimizer.step()
-                #lr_scheduler.step()
-                #optimizer.zero_grad()
+                optimizer.step()
+                lr_scheduler.step()
+                optimizer.zero_grad()
                 #progress_bar.update(1)
 
 
