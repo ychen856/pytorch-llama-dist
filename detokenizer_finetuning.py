@@ -1,8 +1,6 @@
 # this code is used for seperating the weights into small pieces and store them into seperated .pt files. One time usage.
 import math
 import random
-import threading
-from typing import Optional
 
 import numpy as np
 import torch
@@ -19,21 +17,18 @@ from tqdm.auto import tqdm
 import sys
 
 from early_exit import early_exit_lm_head
-from eval import eval_ppl_sep_hf, eval_lm_head_ppl_sep_hf
 from eval_sep_hf import get_eval_data, get_train_data
-from layerwrapper import WrappedGPT
 from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
     LlamaForCausalLM_linear
 import yaml
-import copy
 from feature_decoder import *
 from torch.cuda.amp import GradScaler, autocast
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
+parser.add_argument('--k', type=int)
 parser.add_argument('--config', default='config_server.yaml')
 parser.add_argument('--head', type=int)
-parser.add_argument('--k', type=int)
 args = parser.parse_args()
 
 
@@ -192,7 +187,7 @@ def load_decoder(checkpoints_dir, k, seqlen=1024):
     )
 
     checkpoint_list = []
-    checkpoints = sorted(Path(checkpoints_dir).glob("decoder." + str(args.k) + ".pth"))
+    checkpoints = sorted(Path(checkpoints_dir).glob("decoder." + str(k) + ".pth"))
     checkpoints = natsorted(checkpoints)
 
     assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
