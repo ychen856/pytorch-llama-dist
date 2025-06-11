@@ -284,7 +284,13 @@ if __name__ == '__main__':
                 loss_fct = nn.CrossEntropyLoss()
                 loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
                 print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
+                if not torch.isfinite(loss):
+                    print("⚠️ NaN detected in loss. Skipping.")
+                    optimizer.zero_grad()
+                    continue
+
                 loss.backward()
+                torch.nn.utils.clip_grad_norm_(deEmbedding.parameters(), max_norm=1.0)
 
                 optimizer.step()
                 lr_scheduler.step()
@@ -298,6 +304,7 @@ if __name__ == '__main__':
                 nlls.append(neg_log_likelihood)
                 sys.stdout.flush()
                 # Empty CUDA cache to save memory
+                del out, lm_logits, loss, inputs
                 torch.cuda.empty_cache()
 
                 #break
