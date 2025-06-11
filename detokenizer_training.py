@@ -20,13 +20,14 @@ import sys
 
 from early_exit import early_exit_lm_head
 from eval import eval_ppl_sep_hf, eval_lm_head_ppl_sep_hf
-from eval_sep_hf import get_eval_data
+from eval_sep_hf import get_eval_data, get_train_data
 from layerwrapper import WrappedGPT
 from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
     LlamaForCausalLM_linear
 import yaml
 import copy
 from feature_decoder import *
+from torch.cuda.amp import GradScaler, autocast
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
@@ -210,7 +211,7 @@ if __name__ == '__main__':
 
 
     print("loading success")
-    test_loader = get_eval_data(tokenizer)
+    test_loader = get_train_data(tokenizer)
     bs = 1
 
     # loading inputs data
@@ -225,6 +226,7 @@ if __name__ == '__main__':
     nlls = []
     print(f"nsamples {nsamples}")
 
+    scaler = GradScaler()
     optimizer = AdamW(models[-1].parameters(), lr=5e-5)
 
     num_epochs = 20
@@ -285,12 +287,14 @@ if __name__ == '__main__':
                 shift_logits = lm_logits[:, :-1, :].contiguous()
                 shift_labels = inputs[:, 1:]
 
-                loss_fct = nn.CrossEntropyLoss()
+                with autocast():
+                    loss_fct = nn.CrossEntropyLoss()
                 loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
                 print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
 
 
                 loss.backward()
+
                 # Check gradients BEFORE clipping
                 invalid_grad = False
                 for name, p in deEmbedding.named_parameters():
@@ -309,9 +313,15 @@ if __name__ == '__main__':
                         max_norm=1.0
                     )
 
-                optimizer.step()
-                lr_scheduler.step()
+                scaler.scale(loss).backward()
+                scaler.unscale_(optimizer)
+                scaler.step(optimizer)
+                scaler.update()
                 optimizer.zero_grad()
+
+                #optimizer.step()
+                #lr_scheduler.step()
+                #optimizer.zero_grad()
                 #progress_bar.update(1)
 
 
