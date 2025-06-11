@@ -1,3 +1,5 @@
+import math
+
 import torch
 import torch.nn as nn
 import sys
@@ -24,7 +26,7 @@ def get_eval_data(tokenizer):
 
     return testloader
 
-def get_train_data(tokenizer):
+def get_train_data(tokenizer, rate=0.7):
     seqlen = 256
     # Set dataset
     dataset = "wikitext2_hf"
@@ -38,6 +40,8 @@ def get_train_data(tokenizer):
         dataset, seed=0, seqlen=seqlen, tokenizer=tokenizer
         # dataset, seed=random.random(), seqlen=seqlen, tokenizer=tokenizer
     )
+
+    trainloader = trainloader[:math.floor(len(trainloader)*rate)]
 
     return trainloader
 
