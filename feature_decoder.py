@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 class FeatureDecoder(nn.Module):
-    def __init__(self, vocab_size=32000, embedding_dim=4096, output_dim=4096, seq_len=512):
+    def __init__(self, vocab_size=32000, embedding_dim=4096, output_dim=4096, seq_len=256):
         super().__init__()
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
         self.seq_len = seq_len
