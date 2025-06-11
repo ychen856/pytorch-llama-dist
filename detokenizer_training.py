@@ -313,74 +313,74 @@ if __name__ == '__main__':
                 #    continue
 
 
-                lm_logits = models[-2](out.last_hidden_state)
-                lm_logits = models[-1](lm_logits)
+            lm_logits = models[-2](out.last_hidden_state)
+            lm_logits = models[-1](lm_logits)
 
-                shift_logits = lm_logits[:, :-1, :].contiguous()
-                shift_labels = inputs[:, 1:]
+            shift_logits = lm_logits[:, :-1, :].contiguous()
+            shift_labels = inputs[:, 1:]
 
-                with autocast():
-                    loss_fct = nn.CrossEntropyLoss()
-                loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
-                print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
-
-
-                #loss.backward()
-                scaler.scale(loss).backward()
-
-                # Check gradients BEFORE clipping
-                invalid_grad = False
-                for name, p in deEmbedding.named_parameters():
-                    if p.grad is not None and not torch.isfinite(p.grad).all():
-                        print(f"❌ Invalid gradient in {name}")
-                        invalid_grad = True
-                        break
-
-                if invalid_grad:
-                    optimizer.zero_grad()
-                    torch.cuda.empty_cache()
-                    continue  # skip this batch
-                else:
-                    torch.nn.utils.clip_grad_norm_(
-                        [p for p in deEmbedding.parameters() if p.grad is not None],
-                        max_norm=1.0
-                    )
+            with autocast():
+                loss_fct = nn.CrossEntropyLoss()
+            loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
+            print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
 
 
-                scaler.unscale_(optimizer)
-                scaler.step(optimizer)
-                scaler.update()
+            #loss.backward()
+            scaler.scale(loss).backward()
+
+            # Check gradients BEFORE clipping
+            invalid_grad = False
+            for name, p in deEmbedding.named_parameters():
+                if p.grad is not None and not torch.isfinite(p.grad).all():
+                    print(f"❌ Invalid gradient in {name}")
+                    invalid_grad = True
+                    break
+
+            if invalid_grad:
                 optimizer.zero_grad()
-
-                optimizer.step()
-                lr_scheduler.step()
-                optimizer.zero_grad()
-                #progress_bar.update(1)
-
-
-
-                neg_log_likelihood = loss.detach().float() * seqlen * (j - i)
-                # Append to list of negative log likelihoods
-                nlls.append(neg_log_likelihood)
-                sys.stdout.flush()
-                # Empty CUDA cache to save memory
-                del out, lm_logits, loss, inputs
                 torch.cuda.empty_cache()
+                continue  # skip this batch
+            else:
+                torch.nn.utils.clip_grad_norm_(
+                    [p for p in deEmbedding.parameters() if p.grad is not None],
+                    max_norm=1.0
+                )
 
-                #break
 
-            # Compute perplexity
-            ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
-            if ppl.item() < opt_ppl:
-                opt_ppl = ppl.item()
-                #torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.10.pth')
-                torch.save(deEmbedding.state_dict(), args.ckpt_dir_hf_sep + '/decoder1.pth')
-                print(f"Saved new best model with PPL = {opt_ppl:.2f}")
+            scaler.unscale_(optimizer)
+            scaler.step(optimizer)
+            scaler.update()
+            optimizer.zero_grad()
+
+            optimizer.step()
+            lr_scheduler.step()
+            optimizer.zero_grad()
+            progress_bar.update(1)
+
+
+
+            neg_log_likelihood = loss.detach().float() * seqlen * (j - i)
+            # Append to list of negative log likelihoods
+            nlls.append(neg_log_likelihood)
+            sys.stdout.flush()
+            # Empty CUDA cache to save memory
+            del out, lm_logits, loss, inputs
+            torch.cuda.empty_cache()
+
+            #break
+
+        # Compute perplexity
+        ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
+        if ppl.item() < opt_ppl:
+            opt_ppl = ppl.item()
+            #torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.10.pth')
+            torch.save(deEmbedding.state_dict(), args.ckpt_dir_hf_sep + '/decoder1.pth')
+            print(f"Saved new best model with PPL = {opt_ppl:.2f}")
 
         del lm_models
-            #print('ppl: ', ppl.item())
-            # Empty CUDA cache to save memory
-            #torch.cuda.empty_cache()
+        #print('ppl: ', ppl.item())
+        # Empty CUDA cache to save memory
+        #torch.cuda.empty_cache()
 
     #ppl = eval_ppl_sep_hf(models, tokenizer, device)
     #print('eval ppl: ', ppl)
