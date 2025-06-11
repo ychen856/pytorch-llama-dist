@@ -234,7 +234,6 @@ if __name__ == '__main__':
     opt_ppl = np.inf
     deEmbedding.train()
     for splitting_point in ([1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]):
-        del lm_models
         torch.cuda.empty_cache()
         _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, splitting_point, device, cache_dir="llm_weights")
         for epoch in range(num_epochs):
@@ -319,7 +318,7 @@ if __name__ == '__main__':
                 torch.save(deEmbedding.state_dict(), args.ckpt_dir_hf_sep + '/decoder1.pth')
                 print(f"Saved new best model with PPL = {opt_ppl:.2f}")
 
-
+        del lm_models
             #print('ppl: ', ppl.item())
             # Empty CUDA cache to save memory
             #torch.cuda.empty_cache()
