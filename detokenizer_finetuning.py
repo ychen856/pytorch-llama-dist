@@ -7,7 +7,7 @@ import torch
 import time
 from pathlib import Path
 import argparse
-'''
+
 from natsort import natsorted
 import torch.nn as nn
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
@@ -16,7 +16,7 @@ from transformers import get_scheduler
 from tqdm.auto import tqdm
 import sys
 
-from early_exit import early_exit_lm_head
+'''from early_exit import early_exit_lm_head
 from eval_sep_hf import get_eval_data, get_train_data
 from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
     LlamaForCausalLM_linear'''
