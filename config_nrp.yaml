@@ -38,24 +38,24 @@ model_config:
   vocab_size: 32000
 
 llama_2_7b:
-  ckpt_dir: /ychen-storage-fast/llama-2-7b/
-  tokenizer_path: /ychen-storage-fast/llama-2-7b/
+  ckpt_dir: /ychen-storage/llama-2-7b/
+  tokenizer_path: /ychen-storage/llama-2-7b/
 
 
 llama_2_7b_hf:
-  ckpt_dir_hf: /ychen-storage-fast/llama-2-7b-chat-hf
-  tokenizer_path_hf: /ychen-storage-fast/llama-2-7b-chat-hf
+  ckpt_dir_hf: /ychen-storage/llama-2-7b-chat-hf
+  tokenizer_path_hf: /ychen-storage/llama-2-7b-chat-hf
 
 
 llama_2_7b_sep:
     #ckpt_dir_sep: D:/workspace/llama-2-7b-sep
     #tokenizer_path_sep: D:/workspace/llama-2-7b-sep/tokenizer.model
-    ckpt_dir_sep: /ychen-storage-fast/llama-2-7b-sep
-    tokenizer_path_sep: /ychen-storage-fast/llama-2-7b-sep/tokenizer.model
+    ckpt_dir_sep: /ychen-storage/llama-2-7b-sep
+    tokenizer_path_sep: /ychen-storage/llama-2-7b-sep/tokenizer.model
 
 llama_2_7b_hf_sep:
-    ckpt_dir_hf_sep:  /ychen-storage-fast/llama-2-7b-chat-hf-sep/
-    tokenizer_path_hf_sep: /ychen-storage-fast/llama-2-7b-chat-hf-sep/tokenizer.model
+    ckpt_dir_hf_sep:  /ychen-storage/llama-2-7b-chat-hf-sep/
+    tokenizer_path_hf_sep: /ychen-storage/llama-2-7b-chat-hf-sep/tokenizer.model
 
 communication:
     server_ip: test-server-service.nrp-nautilus.io
