@@ -186,6 +186,35 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
 
     return lm_head, lm_models
 
+def load_decoder(checkpoints_dir, seqlen=1024):
+    config, kwargs = AutoConfig.from_pretrained(
+        args.ckpt_dir_hf,
+        return_unused_kwargs=True
+    )
+
+    checkpoint_list = []
+    checkpoints = sorted(Path(checkpoints_dir).glob("decoder.1.pth"))
+    checkpoints = natsorted(checkpoints)
+
+    assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
+
+    ckpt_path = checkpoints[0]
+    print(f'Loading checkpoint "{ckpt_path}"')
+
+    checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
+
+    if device.type == 'cuda':
+        torch.set_default_tensor_type(torch.cuda.HalfTensor)
+    else:
+        torch.set_default_tensor_type(torch.BFloat16Tensor)
+
+    decoder = FeatureDecoder(seq_len=seqlen)
+    decoder.load_state_dict(checkpoint_list[0], strict=True)
+    decoder.to(device)
+
+
+    return decoder
+
 
 if __name__ == '__main__':
     with open(args.config) as f:
@@ -360,13 +389,13 @@ if __name__ == '__main__':
     device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-    deEmbedding = FeatureDecoder(seq_len=256).to(device)
+    deEmbedding = load_decoder(512)
 
 
     print("loading success")
 
     # loading inputs data
-    seqlen = 256
+    seqlen = 512
     test_loader = get_eval_data(tokenizer, seqlen)
     bs = 1
     # Get input IDs
@@ -382,11 +411,6 @@ if __name__ == '__main__':
     scaler = GradScaler()
     optimizer = AdamW(models[-1].parameters(), lr=5e-5)
 
-    num_epochs = 20
-    num_training_steps = num_epochs * nsamples
-    lr_scheduler = get_scheduler(
-        name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps
-    )
     progress_bar = tqdm(range(num_training_steps))
 
     opt_ppl = np.inf
@@ -399,56 +423,55 @@ if __name__ == '__main__':
         with torch.no_grad():
             _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, splitting_point, device, cache_dir="llm_weights")
             nlls = []
-            for epoch in range(num_epochs):
-                for i in tqdm(range(0, nsamples, bs)):
-                    is_early_exit = False
-                    # Calculate end index
-                    j = min(i + bs, nsamples)
+            for i in tqdm(range(0, nsamples, bs)):
+                is_early_exit = False
+                # Calculate end index
+                j = min(i + bs, nsamples)
 
-                    # Prepare inputs and move to device
-                    inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
-                    inputs = inputs.reshape(j - i, seqlen)
+                # Prepare inputs and move to device
+                inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
+                inputs = inputs.reshape(j - i, seqlen)
 
-                    lm_logits = None
+                lm_logits = None
 
-                    # Start the model
-                    out, ids, mask = models[0](inputs)
-                    for k in range(1, len(models) - 2):
-                        #print('k: ', k)
-                        start_time = time.time()
-                        out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+                # Start the model
+                out, ids, mask = models[0](inputs)
+                for k in range(1, len(models) - 2):
+                    #print('k: ', k)
+                    start_time = time.time()
+                    out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
 
-                        if k == splitting_point:
-                            is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, splitting_point)
+                    if k == splitting_point:
+                        is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, splitting_point)
 
-                            #MAX confidence
-                            probs = lm_logits.softmax(dim=-1)  # [1, seq_len, vocab]
-                            max_probs = probs.max(dim=-1).values  # [1, seq_len]
-                            topk = random.choice([1, 3, 5, 8])
-                            topk_indices = max_probs.topk(topk, dim=-1).indices  # [1, k]
-                            selected_token_ids = max_probs[0, topk_indices[0].long()]  # [topk]
-                            out.last_hidden_state = deEmbedding(selected_token_ids.unsqueeze(0).long())  # [1, topk]
+                        #MAX confidence
+                        probs = lm_logits.softmax(dim=-1)  # [1, seq_len, vocab]
+                        max_probs = probs.max(dim=-1).values  # [1, seq_len]
+                        topk = random.choice([1, 3, 5, 8])
+                        topk_indices = max_probs.topk(topk, dim=-1).indices  # [1, k]
+                        selected_token_ids = max_probs[0, topk_indices[0].long()]  # [topk]
+                        out.last_hidden_state = deEmbedding(selected_token_ids.unsqueeze(0).long())  # [1, topk]
 
-                    lm_logits = models[-2](out.last_hidden_state)
-                    lm_logits = models[-1](lm_logits)
+                lm_logits = models[-2](out.last_hidden_state)
+                lm_logits = models[-1](lm_logits)
 
-                    shift_logits = lm_logits[:, :-1, :].contiguous()
-                    shift_labels = inputs[:, 1:]
+                shift_logits = lm_logits[:, :-1, :].contiguous()
+                shift_labels = inputs[:, 1:]
 
-                    with autocast():
-                        loss_fct = nn.CrossEntropyLoss()
-                    loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
-                    print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
+                with autocast():
+                    loss_fct = nn.CrossEntropyLoss()
+                loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
+                print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
 
-                    neg_log_likelihood = loss.detach().float() * seqlen * (j - i)
-                    # Append to list of negative log likelihoods
-                    nlls.append(neg_log_likelihood)
-                    sys.stdout.flush()
+                neg_log_likelihood = loss.detach().float() * seqlen * (j - i)
+                # Append to list of negative log likelihoods
+                nlls.append(neg_log_likelihood)
+                sys.stdout.flush()
 
-            # Compute perplexity
-            ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
+        # Compute perplexity
+        ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
 
-            print('ppl: ', ppl.item())
-            # Empty CUDA cache to save memory
-            torch.cuda.empty_cache()
+        print('ppl: ', ppl.item())
+        # Empty CUDA cache to save memory
+        torch.cuda.empty_cache()
