@@ -224,7 +224,7 @@ if __name__ == '__main__':
 
     print('head:', args.head)
     start_idx = 0
-    end_idx = 34
+    end_idx = 20
     #splitting_point = 2
 
     # train
