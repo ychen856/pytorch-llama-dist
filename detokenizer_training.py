@@ -247,11 +247,11 @@ if __name__ == '__main__':
                 inputs = inputs.reshape(j - i, seqlen)
 
                 lm_logits = None
-                print('inputs: ', inputs)
-                print('inputs size: ', inputs.shape)
+                #print('inputs: ', inputs)
+                #print('inputs size: ', inputs.shape)
                 out, ids, mask = models[0](inputs)
                 for k in range(1, len(models) - 2):
-                    print('k: ', k)
+                    #print('k: ', k)
                     start_time = time.time()
                     out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
