@@ -71,10 +71,10 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
         if checkpoint_idx > end_idx:
             break
 
-    '''if device.type == 'cuda':
+    if device.type == 'cuda':
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
     else:
-        torch.set_default_tensor_type(torch.BFloat16Tensor)'''
+        torch.set_default_tensor_type(torch.BFloat16Tensor)
 
     models = []
     for i in range(start_idx, end_idx + 1):
@@ -166,11 +166,10 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
 
 
 
-    '''if device.type == 'cuda':
+    if device.type == 'cuda':
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
     else:
-        torch.set_default_tensor_type(torch.BFloat16Tensor)'''
-
+        torch.set_default_tensor_type(torch.BFloat16Tensor)
     lm_models = []
 
     for i in range(0, len(checkpoint_list)):
@@ -203,10 +202,10 @@ def load_decoder(checkpoints_dir, k, seqlen=1024):
 
     checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
 
-    '''if device.type == 'cuda':
+    if device.type == 'cuda':
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
     else:
-        torch.set_default_tensor_type(torch.BFloat16Tensor)'''
+        torch.set_default_tensor_type(torch.BFloat16Tensor)
 
     decoder = FeatureDecoder(seq_len=seqlen)
     decoder.load_state_dict(checkpoint_list[0], strict=True)
@@ -325,8 +324,8 @@ if __name__ == '__main__':
                 print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
 
 
-                #loss.backward()
-                scaler.scale(loss).backward()
+                loss.backward()
+                #scaler.scale(loss).backward()
 
                 # Check gradients BEFORE clipping
                 invalid_grad = False
@@ -347,15 +346,15 @@ if __name__ == '__main__':
                     )
 
 
-                scaler.unscale_(optimizer)
+                '''scaler.unscale_(optimizer)
                 scaler.step(optimizer)
                 scaler.update()
-                optimizer.zero_grad()
+                optimizer.zero_grad()'''
 
-                '''optimizer.step()
+                optimizer.step()
                 lr_scheduler.step()
                 optimizer.zero_grad()
-                progress_bar.update(1)'''
+                progress_bar.update(1)
 
 
 
@@ -386,7 +385,7 @@ if __name__ == '__main__':
     #ppl = eval_ppl_sep_hf(models, tokenizer, device)
     #print('eval ppl: ', ppl)
 
-    #eval
+    '''#eval
     device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
@@ -585,10 +584,10 @@ if __name__ == '__main__':
                     )
 
 
-                '''scaler.unscale_(optimizer)
+                scaler.unscale_(optimizer)
                 scaler.step(optimizer)
                 scaler.update()
-                optimizer.zero_grad()'''
+                optimizer.zero_grad()
 
                 optimizer.step()
                 lr_scheduler.step()
@@ -622,4 +621,4 @@ if __name__ == '__main__':
         #torch.cuda.empty_cache()
 
     #ppl = eval_ppl_sep_hf(models, tokenizer, device)
-    #print('eval ppl: ', ppl)
+    #print('eval ppl: ', ppl)'''
