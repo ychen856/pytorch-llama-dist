@@ -186,14 +186,14 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
 
     return lm_head, lm_models
 
-def load_decoder(checkpoints_dir, seqlen=1024):
+def load_decoder(checkpoints_dir, k, seqlen=1024):
     config, kwargs = AutoConfig.from_pretrained(
         args.ckpt_dir_hf,
         return_unused_kwargs=True
     )
 
     checkpoint_list = []
-    checkpoints = sorted(Path(checkpoints_dir).glob("decoder.1.pth"))
+    checkpoints = sorted(Path(checkpoints_dir).glob("decoder." + str(args.k) + ".pth"))
     checkpoints = natsorted(checkpoints)
 
     assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
@@ -375,7 +375,7 @@ if __name__ == '__main__':
             if ppl.item() < opt_ppl:
                 opt_ppl = ppl.item()
                 #torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.10.pth')
-                torch.save(deEmbedding.state_dict(), args.ckpt_dir_hf_sep + '/decoder1.pth')
+                torch.save(deEmbedding.state_dict(), args.ckpt_dir_hf_sep + '/decoder.' + str(args.k) + '.pth')
                 print(f"Saved new best model with PPL = {opt_ppl:.2f}")
 
         del lm_models
@@ -613,7 +613,7 @@ if __name__ == '__main__':
         if ppl.item() < opt_ppl:
             opt_ppl = ppl.item()
             #torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.10.pth')
-            torch.save(deEmbedding.state_dict(), args.ckpt_dir_hf_sep + '/decoder1.pth')
+            torch.save(deEmbedding.state_dict(), args.ckpt_dir_hf_sep + '/decoder.' + str(args.k) + '.pth')
             print(f"Saved new best model with PPL = {opt_ppl:.2f}")
 
         del lm_models
