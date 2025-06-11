@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import sys
 from data import get_loaders
-import http_sender
+#import http_sender
 import random
 from datetime import datetime
 
@@ -78,7 +78,7 @@ def eval_ppl_wikitext_sep_hf(models, testenc, args, start_idx = 0, end_idx = 34,
 
             for k in range(1, len(models)):
                 out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-            http_sender.send_data(args.server_ip, out)
+            #http_sender.send_data(args.server_ip, out)
 
         elif (start_idx != 0 and end_idx == 34):
             print('server device:')
@@ -158,7 +158,7 @@ def eval_dist(models, testenc, args, start_idx = 0, end_idx = 34, bs=1, device=N
 
             for k in range(1, len(models)):
                 out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-            http_sender.send_data(args.server_ip, out)
+            #http_sender.send_data(args.server_ip, out)
 
         elif (start_idx != 0 and end_idx == 34):
             print('server device:')

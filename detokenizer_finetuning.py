@@ -18,11 +18,11 @@ import sys
 
 from early_exit import early_exit_lm_head
 from eval_sep_hf import get_eval_data, get_train_data
-'''from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
-    LlamaForCausalLM_linear'''
+from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
+    LlamaForCausalLM_linear
 import yaml
-'''from feature_decoder import *
-from torch.cuda.amp import GradScaler, autocast'''
+from feature_decoder import *
+from torch.cuda.amp import GradScaler, autocast
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
