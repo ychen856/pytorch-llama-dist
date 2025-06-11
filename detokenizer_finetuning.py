@@ -7,7 +7,7 @@ import torch
 import time
 from pathlib import Path
 import argparse
-
+'''
 from natsort import natsorted
 import torch.nn as nn
 from transformers import PreTrainedTokenizerFast, LlamaTokenizer, AutoModelForCausalLM, LlamaConfig, AutoConfig
@@ -22,7 +22,7 @@ from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_la
     LlamaForCausalLM_linear
 import yaml
 from feature_decoder import *
-from torch.cuda.amp import GradScaler, autocast
+from torch.cuda.amp import GradScaler, autocast'''
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
