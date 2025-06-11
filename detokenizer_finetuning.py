@@ -310,8 +310,8 @@ if __name__ == '__main__':
                 print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
 
 
-                loss.backward()
-                #scaler.scale(loss).backward()
+                #loss.backward()
+                scaler.scale(loss).backward()
 
                 # Check gradients BEFORE clipping
                 invalid_grad = False
@@ -332,14 +332,14 @@ if __name__ == '__main__':
                     )
 
 
-                '''scaler.unscale_(optimizer)
+                scaler.unscale_(optimizer)
                 scaler.step(optimizer)
                 scaler.update()
-                optimizer.zero_grad()'''
-
-                optimizer.step()
-                lr_scheduler.step()
                 optimizer.zero_grad()
+
+                '''optimizer.step()
+                lr_scheduler.step()
+                optimizer.zero_grad()'''
                 progress_bar.update(1)
 
 
