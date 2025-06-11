@@ -32,6 +32,7 @@ parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
 parser.add_argument('--config', default='config_server.yaml')
 parser.add_argument('--head', type=int)
+parser.add_argument('--k', type=int)
 args = parser.parse_args()
 
 
@@ -193,7 +194,9 @@ if __name__ == '__main__':
             setattr(args, k, v)
 
     print('config type: ', args.config)
+    print('topk: ', args.k)
     torch.manual_seed(0)
+    torch.autograd.set_detect_anomaly(True)
 
     print('head:', args.head)
     start_idx = 0
@@ -288,19 +291,23 @@ if __name__ == '__main__':
 
 
                 loss.backward()
-                if not torch.isfinite(loss):
-                    print("⚠️ Loss is NaN/Inf. Skipping this step.")
+                # Check gradients BEFORE clipping
+                invalid_grad = False
+                for name, p in deEmbedding.named_parameters():
+                    if p.grad is not None and not torch.isfinite(p.grad).all():
+                        print(f"❌ Invalid gradient in {name}")
+                        invalid_grad = True
+                        break
+
+                if invalid_grad:
                     optimizer.zero_grad()
-                    continue
-
-                for p in deEmbedding.parameters():
-                    if p.grad is not None:
-                        torch.nan_to_num_(p.grad, nan=0.0, posinf=1.0, neginf=-1.0)
-
-                torch.nn.utils.clip_grad_norm_(
-                    [p for p in deEmbedding.parameters() if p.grad is not None],
-                    max_norm=1.0
-                )
+                    torch.cuda.empty_cache()
+                    continue  # skip this batch
+                else:
+                    torch.nn.utils.clip_grad_norm_(
+                        [p for p in deEmbedding.parameters() if p.grad is not None],
+                        max_norm=1.0
+                    )
 
                 optimizer.step()
                 lr_scheduler.step()
