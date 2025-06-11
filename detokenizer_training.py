@@ -71,10 +71,10 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
         if checkpoint_idx > end_idx:
             break
 
-    if device.type == 'cuda':
+    '''if device.type == 'cuda':
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
     else:
-        torch.set_default_tensor_type(torch.BFloat16Tensor)
+        torch.set_default_tensor_type(torch.BFloat16Tensor)'''
 
     models = []
     for i in range(start_idx, end_idx + 1):
@@ -166,10 +166,10 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
 
 
 
-    if device.type == 'cuda':
+    '''if device.type == 'cuda':
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
     else:
-        torch.set_default_tensor_type(torch.BFloat16Tensor)
+        torch.set_default_tensor_type(torch.BFloat16Tensor)'''
 
     lm_models = []
 
@@ -203,10 +203,10 @@ def load_decoder(checkpoints_dir, k, seqlen=1024):
 
     checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
 
-    if device.type == 'cuda':
+    '''if device.type == 'cuda':
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
     else:
-        torch.set_default_tensor_type(torch.BFloat16Tensor)
+        torch.set_default_tensor_type(torch.BFloat16Tensor)'''
 
     decoder = FeatureDecoder(seq_len=seqlen)
     decoder.load_state_dict(checkpoint_list[0], strict=True)
@@ -347,15 +347,15 @@ if __name__ == '__main__':
                     )
 
 
-                '''scaler.unscale_(optimizer)
+                scaler.unscale_(optimizer)
                 scaler.step(optimizer)
                 scaler.update()
-                optimizer.zero_grad()'''
+                optimizer.zero_grad()
 
-                optimizer.step()
+                '''optimizer.step()
                 lr_scheduler.step()
                 optimizer.zero_grad()
-                progress_bar.update(1)
+                progress_bar.update(1)'''
 
 
 
@@ -390,7 +390,7 @@ if __name__ == '__main__':
     device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-    deEmbedding = load_decoder(512)
+    deEmbedding = load_decoder(args.k, 512)
 
 
     print("loading success")
