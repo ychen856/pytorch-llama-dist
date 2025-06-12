@@ -214,8 +214,106 @@ def load_decoder(checkpoints_dir, k, seqlen=1024):
 
     return decoder
 
-
 if __name__ == '__main__':
+    with open(args.config) as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+    for key in config:
+        for k, v in config[key].items():
+            setattr(args, k, v)
+
+    torch.manual_seed(0)
+    torch.autograd.set_detect_anomaly(True)
+    device = torch.device("cuda")
+
+    models = load_model(args.ckpt_dir_hf_sep, 0, 34, device)
+    tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
+    deEmbedding = FeatureDecoder(seq_len=128).to(device)
+    trainenc = get_train_data(tokenizer, 128, 0.3)
+
+    seqlen = 128
+    bs = 1
+    nsamples = len(trainenc)
+
+    scaler = GradScaler()
+    optimizer = AdamW(deEmbedding.parameters(), lr=1e-5)
+    num_epochs = 20
+    num_training_steps = num_epochs * nsamples
+    lr_scheduler = get_scheduler("linear", optimizer=optimizer, num_warmup_steps=20, num_training_steps=num_training_steps)
+    progress_bar = tqdm(range(num_training_steps))
+
+    opt_ppl = np.inf
+    deEmbedding.train()
+
+    for splitting_point in [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]:
+        torch.cuda.empty_cache()
+        _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, splitting_point, device, cache_dir="llm_weights")
+        nlls = []
+
+        for epoch in range(num_epochs):
+            for i in tqdm(range(0, nsamples, bs)):
+                j = min(i + bs, nsamples)
+                try:
+                    inputs = trainenc[i].to(device)
+                    with autocast():
+                        out, ids, mask = models[0](inputs)
+                        for k in range(1, len(models) - 2):
+                            out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+
+                            if k == splitting_point:
+                                is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, splitting_point)
+                                probs = lm_logits.softmax(dim=-1)
+                                max_probs = probs.max(dim=-1).values
+                                topk = random.choice([1, 3, 5, 8])
+                                topk_indices = max_probs.topk(topk, dim=-1).indices
+                                selected_token_ids = topk_indices[0].long()
+                                out.last_hidden_state = deEmbedding(selected_token_ids.unsqueeze(0))
+
+
+                        lm_logits = models[-2](out.last_hidden_state)
+                        lm_logits = models[-1](lm_logits)
+
+                        shift_logits = lm_logits[:, :-1, :].contiguous()
+                        shift_labels = inputs[:, 1:]
+
+                        loss_fct = torch.nn.CrossEntropyLoss()
+                        loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
+
+                    scaler.scale(loss).backward()
+                    scaler.unscale_(optimizer)
+
+                    torch.nn.utils.clip_grad_norm_(deEmbedding.parameters(), max_norm=1.0)
+
+                    scaler.step(optimizer)
+                    scaler.update()
+                    optimizer.zero_grad(set_to_none=True)
+
+                    progress_bar.update(1)
+                    neg_log_likelihood = loss.detach().float() * seqlen * (j - i)
+                    nlls.append(neg_log_likelihood)
+
+                except RuntimeError as e:
+                    print("Runtime error:", e)
+                    optimizer.zero_grad(set_to_none=True)
+                    torch.cuda.empty_cache()
+                    continue
+
+                finally:
+                    del inputs, out, ids, mask, lm_logits, loss
+                    torch.cuda.empty_cache()
+                    gc.collect()
+
+            ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
+            if ppl.item() < opt_ppl:
+                opt_ppl = ppl.item()
+                torch.save(deEmbedding.state_dict(), f"{args.ckpt_dir_hf_sep}/decoder.{args.k}.pth")
+                print(f"Saved new best model with PPL = {opt_ppl:.2f}")
+
+        del lm_models
+        gc.collect()
+        torch.cuda.empty_cache()
+
+
+'''if __name__ == '__main__':
     with open(args.config) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
     for key in config:
@@ -288,7 +386,6 @@ if __name__ == '__main__':
                 #print('inputs size: ', inputs.shape)
                 with autocast():
                     out, ids, mask = models[0](inputs)
-                    decoder_data = None
                     for k in range(1, len(models) - 2):
                         #print('k: ', k)
                         start_time = time.time()
@@ -313,7 +410,7 @@ if __name__ == '__main__':
                     #    continue
 
 
-                    lm_logits = models[-2](decoder_data)
+                    lm_logits = models[-2](out.last_hidden_state.detach())
                     lm_logits = models[-1](lm_logits)
 
                     shift_logits = lm_logits[:, :-1, :].contiguous()
@@ -324,8 +421,9 @@ if __name__ == '__main__':
                     loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
                     print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
 
-                    del out, lm_logits, inputs, ids, mask, selected_token_ids, topk_indices, max_probs, probs, decoder_data, shift_logits, shift_labels
+                    del out, lm_logits, inputs, ids, mask, selected_token_ids, topk_indices, max_probs, probs, shift_logits, shift_labels
                     torch.cuda.empty_cache()
+                    gc.collect()
 
 
                     print(torch.cuda.memory_summary(device=None, abbreviated=False))
@@ -342,7 +440,7 @@ if __name__ == '__main__':
 
                     scaler.unscale_(optimizer)
                     if invalid_grad:
-                        optimizer.zero_grad()
+                        optimizer.zero_grad(set_to_none=True)
                         torch.cuda.empty_cache()
                         continue  # skip this batch
                     else:
@@ -357,9 +455,9 @@ if __name__ == '__main__':
                     scaler.update()
                     optimizer.zero_grad(set_to_none=True)
 
-                    '''optimizer.step()
+                    optimizer.step()
                     lr_scheduler.step()
-                    optimizer.zero_grad()'''
+                    optimizer.zero_grad()
                     progress_bar.update(1)
 
 
@@ -372,6 +470,7 @@ if __name__ == '__main__':
                 # Empty CUDA cache to save memory
                 del loss
                 torch.cuda.empty_cache()
+                gc.collect()
 
             #break
 
@@ -392,7 +491,7 @@ if __name__ == '__main__':
     #ppl = eval_ppl_sep_hf(models, tokenizer, device)
     #print('eval ppl: ', ppl)
 
-    '''#eval
+    #eval
     device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
