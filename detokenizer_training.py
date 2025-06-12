@@ -263,7 +263,7 @@ if __name__ == '__main__':
     num_epochs = 20
     num_training_steps = num_epochs * nsamples
     lr_scheduler = get_scheduler(
-        name="linear", optimizer=optimizer, num_warmup_steps=200, num_training_steps=num_training_steps
+        name="linear", optimizer=optimizer, num_warmup_steps=20, num_training_steps=num_training_steps
     )
     progress_bar = tqdm(range(num_training_steps))
 
@@ -324,7 +324,7 @@ if __name__ == '__main__':
                     loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
                     print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
 
-                    del out, lm_logits, inputs, ids, mask, selected_token_ids, topk_indices, max_probs, probs, decoder_data
+                    del out, lm_logits, inputs, ids, mask, selected_token_ids, topk_indices, max_probs, probs, decoder_data, shift_logits, shift_labels
                     torch.cuda.empty_cache()
 
 

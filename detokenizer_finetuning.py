@@ -263,7 +263,7 @@ if __name__ == '__main__':
     num_epochs = 20
     num_training_steps = num_epochs * nsamples
     lr_scheduler = get_scheduler(
-        name="linear", optimizer=optimizer, num_warmup_steps=200, num_training_steps=num_training_steps
+        name="linear", optimizer=optimizer, num_warmup_steps=20, num_training_steps=num_training_steps
     )
     progress_bar = tqdm(range(num_training_steps))
 
