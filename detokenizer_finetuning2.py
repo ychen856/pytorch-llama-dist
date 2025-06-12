@@ -225,7 +225,7 @@ if __name__ == '__main__':
     torch.autograd.set_detect_anomaly(True)
     device = torch.device("cuda")
 
-    seqlen = 64
+    seqlen = 128
     bs = 1
 
     models = load_model(args.ckpt_dir_hf_sep, 0, 20, device)
@@ -308,7 +308,7 @@ if __name__ == '__main__':
             ppl = torch.exp(torch.stack(nlls).mean())
             if ppl.item() < opt_ppl:
                 opt_ppl = ppl.item()
-                torch.save(deEmbedding.state_dict(), args.ckpt_dir_hf_sep + f"/decoder.k{args.k}.pth")
+                torch.save(deEmbedding.state_dict(), args.ckpt_dir_hf_sep + '/decoder.' + str(args.k) + '.pth')
                 print(f"✅ Saved best model with PPL = {opt_ppl:.2f}")
 
         del lm_models
