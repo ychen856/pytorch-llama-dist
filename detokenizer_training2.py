@@ -308,7 +308,7 @@ if __name__ == '__main__':
                 print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
 
                 # Cleanup
-                del loss, reconstructed, target_features, selected_token_ids
+                del loss, reconstructed, selected_token_ids
                 torch.cuda.empty_cache()
 
             ppl = torch.exp(torch.stack(nlls).mean())
