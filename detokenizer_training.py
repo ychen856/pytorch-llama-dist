@@ -225,7 +225,7 @@ if __name__ == '__main__':
     torch.autograd.set_detect_anomaly(True)
     device = torch.device("cuda")
 
-    models = load_model(args.ckpt_dir_hf_sep, 0, 34, device)
+    models = load_model(args.ckpt_dir_hf_sep, 0, 20, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
     deEmbedding = FeatureDecoder(seq_len=64).to(device)
     trainenc = get_train_data(tokenizer, 64, 0.3)
@@ -240,9 +240,6 @@ if __name__ == '__main__':
     opt_ppl = float('inf')
     num_epochs = 20
 
-    # --- Freeze the downstream model for now to reduce memory usage ---
-    for param in models[-2:].parameters():
-        param.requires_grad = False
 
     # --- Training loop with decoder-only training ---
     for splitting_point in [1, 2, 4, 6, 8]:
