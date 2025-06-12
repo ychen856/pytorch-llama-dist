@@ -279,7 +279,7 @@ if __name__ == '__main__':
                     selected_token_ids = topk_indices[0].long()
                     reconstructed = deEmbedding(selected_token_ids.unsqueeze(0))
 
-                    for k in range(splitting_point + 1, len(models)):
+                    for k in range(splitting_point + 1, len(models) - 2):
                         out, ids, mask = models[k](reconstructed, position_ids=ids, attention_mask=mask)
 
                     lm_logits = models[-2](out.last_hidden_state)
