@@ -1,7 +1,8 @@
 # this code is used for seperating the weights into small pieces and store them into seperated .pt files. One time usage.
-import gc
 import math
 import random
+import threading
+from typing import Optional
 
 import numpy as np
 import torch
@@ -16,20 +17,23 @@ from torch.optim import AdamW
 from transformers import get_scheduler
 from tqdm.auto import tqdm
 import sys
-
+import gc
 from early_exit import early_exit_lm_head
+from eval import eval_ppl_sep_hf, eval_lm_head_ppl_sep_hf
 from eval_sep_hf import get_eval_data, get_train_data
+from layerwrapper import WrappedGPT
 from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
     LlamaForCausalLM_linear
 import yaml
+import copy
 from feature_decoder import *
 from torch.cuda.amp import GradScaler, autocast
 
 parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
-parser.add_argument('--k', type=int)
 parser.add_argument('--config', default='config_server.yaml')
 parser.add_argument('--head', type=int)
+parser.add_argument('--k', type=int)
 args = parser.parse_args()
 
 
@@ -188,7 +192,7 @@ def load_decoder(checkpoints_dir, k, seqlen=1024):
     )
 
     checkpoint_list = []
-    checkpoints = sorted(Path(checkpoints_dir).glob("decoder." + str(k) + ".pth"))
+    checkpoints = sorted(Path(checkpoints_dir).glob("decoder." + str(args.k) + ".pth"))
     checkpoints = natsorted(checkpoints)
 
     assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
@@ -225,10 +229,9 @@ if __name__ == '__main__':
 
     print('head:', args.head)
     start_idx = 0
-    end_idx = 20
+    end_idx = 34
     #splitting_point = 2
 
-    # train
     device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, start_idx, end_idx, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
@@ -243,7 +246,7 @@ if __name__ == '__main__':
     # loading inputs data
     seqlen = 128
 
-    trainenc = get_train_data(tokenizer, seqlen, 0.7)
+    trainenc = get_train_data(tokenizer, 128, 0.3)
     bs = 1
 
     # Calculate number of samples
@@ -280,12 +283,14 @@ if __name__ == '__main__':
                 #inputs = testenc[:, (i * seqlen):(j * seqlen)].to(device)
                 #inputs = inputs.reshape(j - i, seqlen)
                 inputs = trainenc[i].to(device)
-                decoded_data = None
+                lm_logits = None
                 #print('inputs: ', inputs)
                 #print('inputs size: ', inputs.shape)
                 with autocast():
                     out, ids, mask = models[0](inputs)
-                    for k in range(1, len(models)):
+                    decoder_data = None
+                    lm_logits = None
+                    for k in range(1, splitting_point + 1):
                         #print('k: ', k)
                         start_time = time.time()
                         out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
@@ -300,26 +305,24 @@ if __name__ == '__main__':
                             topk = random.choice([1, 3, 5, 8])
                             topk_indices = max_probs.topk(topk, dim=-1).indices  # [1, k]
                             selected_token_ids = max_probs[0, topk_indices[0].long()]  # [topk]
-                            decoded_data = deEmbedding(selected_token_ids.unsqueeze(0).long())  # [1, topk]
+                            out.last_hidden_state = deEmbedding(selected_token_ids.unsqueeze(0).long())  # [1, topk]
 
                             break
 
-                    if not torch.isfinite(decoded_data).all():
-                        print("❌ output exploded, skipping step")
-                        continue
+                        #if is_early_exit:
+                        #    break
 
-                    loss_fct = nn.MSELoss()
-                    #print('lm logit: ', lm_logits.shape)
-                    #print('???: ', out.last_hidden_state.shape)
-                    loss = loss_fct(decoded_data, out.last_hidden_state)
+                    #if is_early_exit:
+                    #    continue
+
+
+                    loss_fct = nn.CrossEntropyLoss()
+                    loss = loss_fct(out.last_hidden_state, lm_logits)
                     print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
 
-                    '''if not torch.isfinite(loss):
-                        print("❌ loss is NaN or Inf, skipping step")
-                        continue'''
-
-                    del out, lm_logits, inputs, ids, mask, selected_token_ids, topk_indices, max_probs, probs, decoded_data
+                    del out, lm_logits, inputs, ids, mask, selected_token_ids, topk_indices, max_probs, probs, decoder_data
                     torch.cuda.empty_cache()
+
 
                     print(torch.cuda.memory_summary(device=None, abbreviated=False))
                     #loss.backward()
@@ -345,9 +348,10 @@ if __name__ == '__main__':
                         )
 
 
+
                     scaler.step(optimizer)
                     scaler.update()
-                    optimizer.zero_grad()
+                    optimizer.zero_grad(set_to_none=True)
 
                     '''optimizer.step()
                     lr_scheduler.step()
@@ -361,19 +365,19 @@ if __name__ == '__main__':
                     nlls.append(neg_log_likelihood)
                     sys.stdout.flush()
 
-            # Empty CUDA cache to save memory
-            del loss
-            torch.cuda.empty_cache()
+                # Empty CUDA cache to save memory
+                del loss
+                torch.cuda.empty_cache()
 
             #break
 
-        # Compute perplexity
-        ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
-        if ppl.item() < opt_ppl:
-            opt_ppl = ppl.item()
-            #torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.10.pth')
-            torch.save(deEmbedding.state_dict(), args.ckpt_dir_hf_sep + '/decoder.' + str(args.k) + '.pth')
-            print(f"Saved new best model with PPL = {opt_ppl:.2f}")
+            # Compute perplexity
+            ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
+            if ppl.item() < opt_ppl:
+                opt_ppl = ppl.item()
+                #torch.save(models[-1].state_dict(), args.ckpt_dir_hf_sep + '/lm_head.10.pth')
+                torch.save(deEmbedding.state_dict(), args.ckpt_dir_hf_sep + '/decoder.' + str(args.k) + '.pth')
+                print(f"Saved new best model with PPL = {opt_ppl:.2f}")
 
         del lm_models
         gc.collect()
@@ -382,4 +386,4 @@ if __name__ == '__main__':
         #torch.cuda.empty_cache()
 
     #ppl = eval_ppl_sep_hf(models, tokenizer, device)
-    #print('eval ppl: ', ppl)'''
+    #print('eval ppl: ', ppl)
