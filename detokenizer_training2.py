@@ -302,6 +302,7 @@ if __name__ == '__main__':
 
                 scaler.step(optimizer)
                 scaler.update()
+                optimizer.zero_grad(set_to_none=True)
 
                 # Bookkeeping
                 nlls.append(loss.detach().float())
