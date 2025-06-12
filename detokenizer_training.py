@@ -234,7 +234,87 @@ if __name__ == '__main__':
     bs = 1
     nsamples = len(trainenc)
 
+    #////////////
     scaler = GradScaler()
+    optimizer = AdamW(deEmbedding.parameters(), lr=1e-5)
+    opt_ppl = float('inf')
+    num_epochs = 20
+
+    # --- Freeze the downstream model for now to reduce memory usage ---
+    for param in models[-2:].parameters():
+        param.requires_grad = False
+
+    # --- Training loop with decoder-only training ---
+    for splitting_point in [1, 2, 4, 6, 8]:
+        torch.cuda.empty_cache()
+        _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, splitting_point, device, cache_dir="llm_weights")
+
+        for epoch in range(num_epochs):
+            nlls = []
+
+            for i in range(0, len(trainenc), bs):
+                optimizer.zero_grad(set_to_none=True)
+
+                inputs = trainenc[i].to(device)
+
+                with torch.no_grad():
+                    out, ids, mask = models[0](inputs)
+                    for k in range(1, splitting_point + 1):
+                        out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+
+                    target_features = out.last_hidden_state.detach()
+
+                # Decoder forward pass with autocast
+                with autocast():
+                    lm_logits = models[-2](target_features)
+                    lm_logits = models[-1](lm_logits)
+                    probs = lm_logits.softmax(dim=-1)
+                    max_probs = probs.max(dim=-1).values
+                    topk = random.choice([1, 3, 5, 8])
+                    topk_indices = max_probs.topk(topk, dim=-1).indices
+                    selected_token_ids = topk_indices[0].long()
+                    reconstructed = deEmbedding(selected_token_ids)
+
+                    # Loss between reconstructed features and true features
+                    loss = torch.nn.functional.mse_loss(reconstructed, target_features)
+
+                # Backward
+                scaler.scale(loss).backward()
+                scaler.unscale_(optimizer)
+
+                # Check gradients and clip
+                torch.nn.utils.clip_grad_norm_([p for p in deEmbedding.parameters() if p.grad is not None],
+                                               max_norm=1.0)
+
+                scaler.step(optimizer)
+                scaler.update()
+
+                # Bookkeeping
+                nlls.append(loss.detach().float())
+                print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
+
+                # Cleanup
+                del loss, reconstructed, target_features, selected_token_ids
+                torch.cuda.empty_cache()
+
+            ppl = torch.exp(torch.stack(nlls).mean())
+            if ppl.item() < opt_ppl:
+                opt_ppl = ppl.item()
+                torch.save(deEmbedding.state_dict(), args.ckpt_dir_hf_sep + f"/decoder.k{args.k}.pth")
+                print(f"✅ Saved best model with PPL = {opt_ppl:.2f}")
+
+        del lm_models
+        gc.collect()
+        torch.cuda.empty_cache()
+
+
+
+
+
+
+
+
+    '''scaler = GradScaler()
     optimizer = AdamW(deEmbedding.parameters(), lr=1e-5)
     num_epochs = 20
     num_training_steps = num_epochs * nsamples
@@ -298,7 +378,7 @@ if __name__ == '__main__':
                     continue
 
                 finally:
-                    del inputs, out, ids, mask, lm_logits
+                    del inputs, out, ids, mask
                     torch.cuda.empty_cache()
                     gc.collect()
 
@@ -310,7 +390,7 @@ if __name__ == '__main__':
 
         del lm_models
         gc.collect()
-        torch.cuda.empty_cache()
+        torch.cuda.empty_cache()'''
 
 
 '''if __name__ == '__main__':
