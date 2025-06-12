@@ -225,7 +225,7 @@ if __name__ == '__main__':
     torch.autograd.set_detect_anomaly(True)
     device = torch.device("cuda")
 
-    models = load_model(args.ckpt_dir_hf_sep, 0, 34, device)
+    models = load_model(args.ckpt_dir_hf_sep, 0, 20, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
     deEmbedding = FeatureDecoder(seq_len=128).to(device)
     trainenc = get_train_data(tokenizer, 128, 0.3)
@@ -293,7 +293,7 @@ if __name__ == '__main__':
                     continue
 
                 finally:
-                    del inputs, out, ids, mask, decoder_out, lm_logits, loss
+                    del inputs, out, ids, mask, decoder_out, lm_logits
                     torch.cuda.empty_cache()
                     gc.collect()
 
