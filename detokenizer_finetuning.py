@@ -288,7 +288,7 @@ if __name__ == '__main__':
                 #print('inputs size: ', inputs.shape)
                 with autocast():
                     out, ids, mask = models[0](inputs)
-                    decoder_data = None
+                    decoded_data = None
                     lm_logits = None
                     for k in range(1, splitting_point + 1):
                         #print('k: ', k)
@@ -305,7 +305,7 @@ if __name__ == '__main__':
                             topk = random.choice([1, 3, 5, 8])
                             topk_indices = max_probs.topk(topk, dim=-1).indices  # [1, k]
                             selected_token_ids = max_probs[0, topk_indices[0].long()]  # [topk]
-                            out.last_hidden_state = deEmbedding(selected_token_ids.unsqueeze(0).long())  # [1, topk]
+                            decoded_data = deEmbedding(selected_token_ids.unsqueeze(0).long())  # [1, topk]
 
                             break
 
@@ -317,10 +317,10 @@ if __name__ == '__main__':
 
 
                     loss_fct = nn.CrossEntropyLoss()
-                    loss = loss_fct(out.last_hidden_state, lm_logits)
+                    loss = loss_fct(decoded_data, out.last_hidden_state)
                     print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
 
-                    del out, lm_logits, inputs, ids, mask, selected_token_ids, topk_indices, max_probs, probs, decoder_data
+                    del out, lm_logits, inputs, ids, mask, selected_token_ids, topk_indices, max_probs, probs, decoded_data
                     torch.cuda.empty_cache()
 
 
