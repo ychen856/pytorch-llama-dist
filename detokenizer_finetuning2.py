@@ -225,7 +225,7 @@ if __name__ == '__main__':
     torch.autograd.set_detect_anomaly(True)
     device = torch.device("cuda")
 
-    seqlen = 128
+    seqlen = 64
     bs = 1
 
     models = load_model(args.ckpt_dir_hf_sep, 0, 20, device)
