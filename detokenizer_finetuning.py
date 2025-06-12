@@ -247,15 +247,15 @@ if __name__ == '__main__':
     for splitting_point in [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]:
         torch.cuda.empty_cache()
         _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, splitting_point, device, cache_dir="llm_weights")
+        nlls = []
         for epoch in range(num_epochs):
-            nlls = []
             for i in tqdm(range(0, nsamples, bs)):
                 j = min(i + bs, nsamples)
                 try:
                     inputs = trainenc[i].to(device)
                     with autocast():
                         out, ids, mask = models[0](inputs)
-                        for k in range(1, len(models) - 2):
+                        for k in range(1, splitting_point + 1):
                             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
                             if k == splitting_point:
