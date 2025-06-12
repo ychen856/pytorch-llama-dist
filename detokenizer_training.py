@@ -269,7 +269,7 @@ if __name__ == '__main__':
                     topk = random.choice([1, 3, 5, 8])
                     topk_indices = max_probs.topk(topk, dim=-1).indices
                     selected_token_ids = topk_indices[0].long()
-                    reconstructed = deEmbedding(selected_token_ids)
+                    reconstructed = deEmbedding(selected_token_ids.unsqueeze(0))
 
                     # Loss between reconstructed features and true features
                     loss = torch.nn.functional.mse_loss(reconstructed, target_features)
