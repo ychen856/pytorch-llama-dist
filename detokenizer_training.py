@@ -228,9 +228,9 @@ if __name__ == '__main__':
     models = load_model(args.ckpt_dir_hf_sep, 0, 34, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
     deEmbedding = FeatureDecoder(seq_len=128).to(device)
-    trainenc = get_train_data(tokenizer, 128, 0.3)
+    trainenc = get_train_data(tokenizer, 64, 0.3)
 
-    seqlen = 128
+    seqlen = 64
     bs = 1
     nsamples = len(trainenc)
 
@@ -298,7 +298,7 @@ if __name__ == '__main__':
                     continue
 
                 finally:
-                    del inputs, out, ids, mask, lm_logits, loss
+                    del inputs, out, ids, mask, lm_logits
                     torch.cuda.empty_cache()
                     gc.collect()
 
