@@ -263,8 +263,7 @@ if __name__ == '__main__':
 
                 # Decoder forward pass with autocast
                 with autocast():
-                    lm_logits = models[-2](target_features)
-                    lm_logits = models[-1](lm_logits)
+                    is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, splitting_point)
                     probs = lm_logits.softmax(dim=-1)
                     max_probs = probs.max(dim=-1).values
                     topk = random.choice([1, 3, 5, 8])
