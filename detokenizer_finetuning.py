@@ -227,7 +227,7 @@ if __name__ == '__main__':
 
     models = load_model(args.ckpt_dir_hf_sep, 0, 20, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-    deEmbedding = FeatureDecoder(seq_len=128).to(device)
+    deEmbedding = FeatureDecoder(seq_len=64).to(device)
     trainenc = get_train_data(tokenizer, 64, 0.3)
 
     seqlen = 64
