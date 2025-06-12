@@ -247,9 +247,8 @@ if __name__ == '__main__':
     for splitting_point in [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]:
         torch.cuda.empty_cache()
         _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, splitting_point, device, cache_dir="llm_weights")
-        nlls = []
-
         for epoch in range(num_epochs):
+            nlls = []
             for i in tqdm(range(0, nsamples, bs)):
                 j = min(i + bs, nsamples)
                 try:
