@@ -267,7 +267,6 @@ if __name__ == '__main__':
                     for k in range(1, splitting_point + 1):
                         out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
-                    target_features = out.last_hidden_state.detach()
 
                 # Decoder forward pass with autocast
                 with autocast():
