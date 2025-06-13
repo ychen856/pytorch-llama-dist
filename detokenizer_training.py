@@ -315,7 +315,18 @@ if __name__ == '__main__':
 
 
                 optimizer.zero_grad()
+
+                if torch.isnan(recon_hidden).any() or torch.isinf(recon_hidden).any():
+                    print("⚠️ recon_hidden has NaN or Inf")
+                    break
+
                 loss.backward()
+
+                torch.nn.utils.clip_grad_norm_(
+                    list(encoder.parameters()) + list(decoder.parameters()),
+                    max_norm=1.0
+                )
+
                 optimizer.step()
 
                 nlls.append(loss.detach().float())
