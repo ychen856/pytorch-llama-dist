@@ -248,8 +248,8 @@ if __name__ == '__main__':
     #allow_cuda = False
     #device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
 
-    head_idx = 12
-    seqlen = 1024
+    head_idx = 1
+    seqlen = 64
     device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, 0, 34, device)
     _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, head_idx, device)
@@ -295,7 +295,7 @@ if __name__ == '__main__':
             start_time = time.time()
             out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
             # print('mask: ', mask)
-            if k == args.head:
+            if k == head_idx:
                 is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, k)
                 if is_early_exit:
                     is_early_exit = True
