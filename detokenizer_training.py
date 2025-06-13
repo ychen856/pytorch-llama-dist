@@ -299,13 +299,13 @@ if __name__ == '__main__':
                 recon_hidden = decoder(z, topk_idx, bottleneck_dim=bottleneck_dim)  # [B, 1024, H]
 
                 print('decoder output size: ', recon_hidden.shape)
-                with torch.no_grad():
-                    out, ids, mask = models[splitting_point + 1](recon_hidden, position_ids=ids, attention_mask=mask)
-                    for k in range(splitting_point + 2, len(models) - 2):
-                        out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
-                    lm_logits = models[-2](out.last_hidden_state)
-                    lm_logits = models[-1](lm_logits)
+                out, ids, mask = models[splitting_point + 1](recon_hidden, position_ids=ids, attention_mask=mask)
+                for k in range(splitting_point + 2, len(models) - 2):
+                    out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+
+                lm_logits = models[-2](out.last_hidden_state)
+                lm_logits = models[-1](lm_logits)
 
                 shift_logits = lm_logits[:, :-1, :].contiguous()
                 shift_labels = inputs[:, 1:]
