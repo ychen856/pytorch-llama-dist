@@ -298,8 +298,9 @@ if __name__ == '__main__':
                 z = encoder(topk_logits, bottleneck_dim=bottleneck_dim)  # [B, k, bottleneck_dim]
                 recon_hidden = decoder(z, topk_idx, bottleneck_dim=bottleneck_dim)  # [B, 1024, H]
 
+                print('decoder output size: ', recon_hidden.shape)
                 with torch.no_grad():
-                    out, ids, mask = models[splitting_point + 1](recon_hidden, ids, mask)
+                    out, ids, mask = models[splitting_point + 1](recon_hidden, position_ids=ids, attention_mask=mask)
                     for k in range(splitting_point + 2, len(models) - 2):
                         out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
