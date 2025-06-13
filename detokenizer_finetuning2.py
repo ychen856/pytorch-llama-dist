@@ -228,9 +228,9 @@ if __name__ == '__main__':
     seqlen = 64
     bs = 1
 
-    models = load_model(args.ckpt_dir_hf_sep, 0, 20, device)
+    models = load_model(args.ckpt_dir_hf_sep, 0, 8, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-    deEmbedding = load_decoder(args.k, seqlen)
+    deEmbedding = load_decoder(args.ckpt_dir_hf_sep, args.k, seqlen)
     #deEmbedding = FeatureDecoder(seq_len=seqlen).to(device)
     trainenc = get_train_data(tokenizer, seqlen, 0.7)
 
