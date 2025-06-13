@@ -320,6 +320,10 @@ if __name__ == '__main__':
                     print("⚠️ recon_hidden has NaN or Inf")
                     break
 
+                if torch.isnan(z).any() or torch.isinf(z).any():
+                    print("⚠️ z has NaN or Inf")
+                    break
+
                 loss.backward()
 
                 torch.nn.utils.clip_grad_norm_(
