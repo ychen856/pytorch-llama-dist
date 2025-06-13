@@ -230,7 +230,8 @@ if __name__ == '__main__':
 
     models = load_model(args.ckpt_dir_hf_sep, 0, 20, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-    deEmbedding = FeatureDecoder(seq_len=seqlen).to(device)
+    deEmbedding = load_decoder(args.k, seqlen)
+    #deEmbedding = FeatureDecoder(seq_len=seqlen).to(device)
     trainenc = get_train_data(tokenizer, seqlen, 0.7)
 
     nsamples = len(trainenc)
@@ -249,7 +250,8 @@ if __name__ == '__main__':
 
 
     # --- Training loop with decoder-only training ---
-    for splitting_point in [1, 2, 4, 6, 8]:
+    #for splitting_point in [1, 2, 4, 6, 8]:
+    for splitting_point in [8]:
         torch.cuda.empty_cache()
         _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, splitting_point, device, cache_dir="llm_weights")
         for m in range(0, len(lm_models)):
