@@ -276,7 +276,7 @@ if __name__ == '__main__':
             for i in range(0, len(trainenc), bs):
                 j = min(i + bs, nsamples)
                 optimizer.zero_grad(set_to_none=True)
-                k = random.choice(possible_ks)
+                topk = random.choice(possible_ks)
                 bottleneck_dim = random.choice(possible_bottleneck_dims)
 
                 inputs = trainenc[i].to(device)
@@ -291,7 +291,7 @@ if __name__ == '__main__':
                             # Step 1: compute confidence + top-k
                             probs = torch.softmax(lm_logits, dim=-1)
                             conf = probs.max(dim=-1).values  # [B, 1024]
-                            topk_vals, topk_idx = conf.topk(args.k, dim=1)
+                            topk_vals, topk_idx = conf.topk(topk, dim=1)
                             B, _, V = lm_logits.shape
                             topk_idx_exp = topk_idx.unsqueeze(-1).expand(-1, -1, V)
                             topk_logits = torch.gather(lm_logits, dim=1, index=topk_idx_exp)
