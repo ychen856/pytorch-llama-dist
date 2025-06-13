@@ -295,9 +295,11 @@ if __name__ == '__main__':
                 # print('Processing layer: ', k)
                 start_time = time.time()
                 out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+                print('out.hidden.shape: ', out.last_hidden_state.shape)
                 # print('mask: ', mask)
                 if k == head_idx:
                     is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, k)
+                    print('lm shape: ', lm_logits.shape)
                     if is_early_exit:
                         is_early_exit = True
                         early_count = early_count + 1
