@@ -229,10 +229,13 @@ if __name__ == '__main__':
     seqlen = 128
     bs = 1
 
+    possible_ks = [32, 64, 128],
+    possible_bottleneck_dims = [64, 128, 256, 512]
+
     models = load_model(args.ckpt_dir_hf_sep, 0, 34, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-    encoder = TopKEncoder()
-    decoder = FeatureReconstructionDecoder(seq_len=seqlen).to(device)
+    encoder = TopKEncoder().to(device)
+    decoder = FlexibleDecoder(seq_len=seqlen).to(device)
     trainenc = get_train_data(tokenizer, seqlen, 0.7)
 
 
@@ -271,36 +274,36 @@ if __name__ == '__main__':
             for i in range(0, len(trainenc), bs):
                 j = min(i + bs, nsamples)
                 optimizer.zero_grad(set_to_none=True)
+                k = random.choice(possible_ks)
+                bottleneck_dim = random.choice(possible_bottleneck_dims)
+
                 inputs = trainenc[i].to(device)
 
-                out, ids, mask = models[0](inputs)
-                for k in range(1, splitting_point + 1):
-                    out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+                with torch.no_grad():
+                    out, ids, mask = models[0](inputs)
+                    for k in range(1, splitting_point + 1):
+                        out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
-                    if k == splitting_point:
-                        is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, splitting_point)
-                        # Step 1: compute confidence + top-k
-                        probs = torch.softmax(lm_logits, dim=-1)  # [B, 1024, V]
-                        conf = probs.max(dim=-1).values  # [B, 1024]
-                        topk_vals, topk_idx = conf.topk(args.k, dim=1)  # [B, k]
+                        if k == splitting_point:
+                            is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, splitting_point)
+                            # Step 1: compute confidence + top-k
+                            probs = torch.softmax(lm_logits, dim=-1)
+                            conf = probs.max(dim=-1).values  # [B, 1024]
+                            topk_vals, topk_idx = conf.topk(k, dim=1)
+                            B, _, V = lm_logits.shape
+                            topk_idx_exp = topk_idx.unsqueeze(-1).expand(-1, -1, V)
+                            topk_logits = torch.gather(lm_logits, dim=1, index=topk_idx_exp)
 
-                        # Step 2: extract top-k logits
-                        B, _, V = lm_logits.shape
-                        topk_idx_exp = topk_idx.unsqueeze(-1).expand(-1, -1, V)
-                        topk_logits = torch.gather(lm_logits, dim=1, index=topk_idx_exp)  # [B, k, V]
+                z = encoder(topk_logits, bottleneck_dim=bottleneck_dim)  # [B, k, bottleneck_dim]
+                recon_hidden = decoder(z, topk_idx, bottleneck_dim=bottleneck_dim)  # [B, 1024, H]
 
-                        # Step 3: encoder (壓縮 top-k logits)
-                        z = encoder(topk_logits)  # [B, k, bottleneck_dim]
+                with torch.no_grad():
+                    out, ids, mask = models[splitting_point + 1](recon_hidden, ids, mask)
+                    for k in range(splitting_point + 2, len(models) - 2):
+                        out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
 
-                        # Step 4: decoder (還原 full hidden features)
-                        recon_hidden = decoder(z, topk_idx)  # [B, 1024, H]
-
-                out, ids, mask = models[splitting_point + 1](recon_hidden, ids, mask)
-                for k in range(splitting_point + 2, len(models) - 2):
-                    out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-
-                lm_logits = models[-2](out.last_hidden_state)
-                lm_logits = models[-1](lm_logits)
+                    lm_logits = models[-2](out.last_hidden_state)
+                    lm_logits = models[-1](lm_logits)
 
                 shift_logits = lm_logits[:, :-1, :].contiguous()
                 shift_labels = inputs[:, 1:]
