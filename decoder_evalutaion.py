@@ -289,70 +289,71 @@ if __name__ == '__main__':
         out, ids, mask = models[0](inputs)
         is_early_exit = False
         # for k in range (1, len(models) - 2):
-        for k in range(1, len(models) - 2):
-            is_early_exit = False
-            # print('Processing layer: ', k)
-            start_time = time.time()
-            out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
-            # print('mask: ', mask)
-            if k == head_idx:
-                is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, k)
-                if is_early_exit:
-                    is_early_exit = True
-                    early_count = early_count + 1
-                    print('early: ', early_count)
-                    break
-                else:
-                    probs = lm_logits.softmax(dim=-1)
-                    max_probs = probs.max(dim=-1).values
-                    if args.k == 0:
-                        topk = random.choice([1, 3, 5, 8])
+        with torch.no_grad():
+            for k in range(1, len(models) - 2):
+                is_early_exit = False
+                # print('Processing layer: ', k)
+                start_time = time.time()
+                out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
+                # print('mask: ', mask)
+                if k == head_idx:
+                    is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, k)
+                    if is_early_exit:
+                        is_early_exit = True
+                        early_count = early_count + 1
+                        print('early: ', early_count)
+                        break
                     else:
-                        topk = args.k
-                        topk_indices = max_probs.topk(topk, dim=-1).indices
-                        selected_token_ids = topk_indices[0].long()
-                        out.last_hidden_state = deEmbedding(selected_token_ids.unsqueeze(0))
+                        probs = lm_logits.softmax(dim=-1)
+                        max_probs = probs.max(dim=-1).values
+                        if args.k == 0:
+                            topk = random.choice([1, 3, 5, 8])
+                        else:
+                            topk = args.k
+                            topk_indices = max_probs.topk(topk, dim=-1).indices
+                            selected_token_ids = topk_indices[0].long()
+                            out.last_hidden_state = deEmbedding(selected_token_ids.unsqueeze(0))
 
-        if not is_early_exit:
-            lm_logits = models[33](out.last_hidden_state)
-            lm_logits = models[34](lm_logits)
+            if not is_early_exit:
+                lm_logits = models[33](out.last_hidden_state)
+                lm_logits = models[34](lm_logits)
 
-        # lm_logits = models[33](out.last_hidden_state)
-        # lm_logits = models[34](lm_logits)
+            # lm_logits = models[33](out.last_hidden_state)
+            # lm_logits = models[34](lm_logits)
 
-        # Shift logits and labels for next token prediction
-        shift_logits = lm_logits[:, :-1, :].contiguous()
-        shift_labels = inputs[:, 1:]
+            # Shift logits and labels for next token prediction
+            shift_logits = lm_logits[:, :-1, :].contiguous()
+            shift_labels = inputs[:, 1:]
 
-        # Compute loss
-        loss_fct = nn.CrossEntropyLoss()
-        loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
+            # Compute loss
+            loss_fct = nn.CrossEntropyLoss()
+            loss = loss_fct(shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1))
 
-        # text_logit = F.softmax(shift_logits.reshape(-1, shift_logits.size(-1))).argmax(dim=-1)
-        # text_labels = F.softmax(shift_labels.reshape(-1, shift_labels.size(-1))).argmax(dim=-1)
-        # reshaped_logit = text_logit.view(1, -1)
-        # reshaped_labels = text_labels.view(1, -1)
+            # text_logit = F.softmax(shift_logits.reshape(-1, shift_logits.size(-1))).argmax(dim=-1)
+            # text_labels = F.softmax(shift_labels.reshape(-1, shift_labels.size(-1))).argmax(dim=-1)
+            # reshaped_logit = text_logit.view(1, -1)
+            # reshaped_labels = text_labels.view(1, -1)
 
-        # print('text logits: ',
-        #      tokenizer.batch_decode(reshaped_logit, skip_special_tokens=True, clean_up_tokenization_spaces=False))
-        # print('text lables: ',
-        #      tokenizer.batch_decode(reshaped_labels, skip_special_tokens=True, clean_up_tokenization_spaces=False))
+            # print('text logits: ',
+            #      tokenizer.batch_decode(reshaped_logit, skip_special_tokens=True, clean_up_tokenization_spaces=False))
+            # print('text lables: ',
+            #      tokenizer.batch_decode(reshaped_labels, skip_special_tokens=True, clean_up_tokenization_spaces=False))
 
-        # Calculate negative log likelihood
-        neg_log_likelihood = loss.float() * seqlen * (j - i)
-        # print('ppl: ', torch.exp(neg_log_likelihood / seqlen))
+            # Calculate negative log likelihood
+            neg_log_likelihood = loss.float() * seqlen * (j - i)
+            # print('ppl: ', torch.exp(neg_log_likelihood / seqlen))
 
-        # Append to list of negative log likelihoods
-        nlls.append(neg_log_likelihood)
+            # Append to list of negative log likelihoods
+            nlls.append(neg_log_likelihood)
 
-        sys.stdout.flush()
+            sys.stdout.flush()
 
-    print('begin calcualte ppl')
-    # Compute perplexity
-    ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
-    # Empty CUDA cache to save memory
-    torch.cuda.empty_cache()
-    print('early count: ', early_count)
+        print('begin calcualte ppl')
+        # Compute perplexity
+        ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * seqlen))
+        # Empty CUDA cache to save memory
+        torch.cuda.empty_cache()
+        print('early count: ', early_count)
 
 
     print(f"ppl on wikitext {ppl.item()}")
