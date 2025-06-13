@@ -208,7 +208,7 @@ def load_decoder(checkpoints_dir, k, seqlen=1024):
     else:
         torch.set_default_tensor_type(torch.BFloat16Tensor)'''
 
-    decoder = FeatureReconstructionDecoder(seq_len=seqlen)
+    decoder = FlexibleDecoder(seq_len=seqlen)
     decoder.load_state_dict(checkpoint_list[0], strict=True)
     decoder.to(device)
 
