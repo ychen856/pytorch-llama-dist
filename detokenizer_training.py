@@ -21,7 +21,8 @@ import gc
 from early_exit import early_exit_lm_head
 from eval import eval_ppl_sep_hf, eval_lm_head_ppl_sep_hf
 from eval_sep_hf import get_eval_data, get_train_data
-from feature_encoder import TopKEncoder
+from feature_encoder import FlexibleTopKEncoder
+from feature_decoder import FlexibleDecoder
 from layerwrapper import WrappedGPT
 from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
     LlamaForCausalLM_linear
@@ -234,7 +235,7 @@ if __name__ == '__main__':
 
     models = load_model(args.ckpt_dir_hf_sep, 0, 34, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-    encoder = TopKEncoder().to(device)
+    encoder = FlexibleTopKEncoder().to(device)
     decoder = FlexibleDecoder(seq_len=seqlen).to(device)
     trainenc = get_train_data(tokenizer, seqlen, 0.7)
 
