@@ -38,6 +38,7 @@ parser.add_argument('--head', type=int)
 parser.add_argument('--k', type=int)
 args = parser.parse_args()
 
+torch.autograd.set_detect_anomaly(True)
 
 def get_llm2(model, cache_dir="llm_weights"):
     model = AutoModelForCausalLM.from_pretrained(
@@ -300,6 +301,16 @@ if __name__ == '__main__':
 
                 print('decoder output size: ', recon_hidden.shape)
 
+                # Check decoder output
+                if torch.isnan(recon_hidden).any() or torch.isinf(recon_hidden).any():
+                    print("❌ decoder output contains NaN or Inf")
+                    continue
+                max_val = recon_hidden.abs().max()
+                if max_val > 1e4:
+                    print(f"⚠️ decoder output too large: max={max_val.item():.2e}")
+                    continue
+
+
                 out, ids, mask = models[splitting_point + 1](recon_hidden, position_ids=ids, attention_mask=mask)
                 for k in range(splitting_point + 2, len(models) - 2):
                     out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
@@ -315,15 +326,6 @@ if __name__ == '__main__':
 
 
                 optimizer.zero_grad()
-
-                if torch.isnan(recon_hidden).any() or torch.isinf(recon_hidden).any():
-                    print("⚠️ recon_hidden has NaN or Inf")
-                    break
-
-                if torch.isnan(z).any() or torch.isinf(z).any():
-                    print("⚠️ z has NaN or Inf")
-                    break
-
                 loss.backward()
 
                 torch.nn.utils.clip_grad_norm_(
