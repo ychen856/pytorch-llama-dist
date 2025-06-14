@@ -234,7 +234,7 @@ if __name__ == '__main__':
     possible_ks = [32, 64, 128]
     possible_bottleneck_dims = [64, 128, 256, 512]
 
-    models = load_model(args.ckpt_dir_hf_sep, 0, 1, device)
+    models = load_model(args.ckpt_dir_hf_sep, 0, 34, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
     encoder = FlexibleTopKEncoder().to(device)
     decoder = FlexibleDecoder(seq_len=seqlen).to(device)
