@@ -282,6 +282,8 @@ if __name__ == '__main__':
                     top_k = random.choice(possible_ks)
                 else:
                     top_k = args.k
+
+                top_k = 64
                 print('top k: ', top_k)
                 bottleneck_dim = random.choice(possible_bottleneck_dims)
 
