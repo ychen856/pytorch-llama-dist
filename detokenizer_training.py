@@ -277,7 +277,6 @@ if __name__ == '__main__':
                 j = min(i + bs, nsamples)
                 optimizer.zero_grad(set_to_none=True)
                 top_k = random.choice(possible_ks)
-                print('kkkkkkkkkkkkk: ', top_k)
                 bottleneck_dim = random.choice(possible_bottleneck_dims)
 
                 inputs = trainenc[i].to(device)
@@ -344,7 +343,7 @@ if __name__ == '__main__':
             ppl = torch.exp(torch.stack(nlls).mean())
             if ppl.item() < opt_ppl:
                 opt_ppl = ppl.item()
-                torch.save(encoder.state_dict(), args.ckpt_dir_hf_sep + f"/encoder." + args.k + ".pth")
-                torch.save(decoder.state_dict(), args.ckpt_dir_hf_sep + f"/decoder." + args.k + ".pth")
+                torch.save(encoder.state_dict(), args.ckpt_dir_hf_sep + f"/encoder." + str(args.k) + ".pth")
+                torch.save(decoder.state_dict(), args.ckpt_dir_hf_sep + f"/decoder." + str(args.k) + ".pth")
                 print(f"✅ Saved best model with PPL = {opt_ppl:.2f}")
 
