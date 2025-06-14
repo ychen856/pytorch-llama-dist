@@ -224,11 +224,13 @@ if __name__ == '__main__':
         for k, v in config[key].items():
             setattr(args, k, v)
 
+    args.k = int(args.k)
+
     torch.manual_seed(0)
     torch.autograd.set_detect_anomaly(True)
     device = torch.device("cuda")
 
-    seqlen = 128
+    seqlen = 1024
     bs = 1
 
     possible_ks = [32, 64, 128]
