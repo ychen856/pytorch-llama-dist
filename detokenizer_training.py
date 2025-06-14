@@ -230,7 +230,7 @@ if __name__ == '__main__':
     torch.autograd.set_detect_anomaly(True)
     device = torch.device("cuda")
 
-    seqlen = 1024
+    seqlen = 128
     bs = 1
 
     possible_ks = [32, 64, 128]
