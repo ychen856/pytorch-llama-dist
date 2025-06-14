@@ -28,7 +28,7 @@ class FlexibleDecoder(nn.Module):
 
         # Build full feature map
         full_feat = self.default_token.expand(B, self.seq_len, -1).clone()
-        full_feat = full_feat.scatter(1, topk_idx.unsqueeze(-1).expand(-1, -1, decoded_topk.size(-1)), decoded_topk)
-        #for b in range(B):
-        #    full_feat[b, topk_idx[b]] = decoded_topk[b]
+        #full_feat = full_feat.scatter(1, topk_idx.unsqueeze(-1).expand(-1, -1, decoded_topk.size(-1)), decoded_topk)
+        for b in range(B):
+            full_feat[b, topk_idx[b]] = decoded_topk[b]
         return full_feat  # → to Layer k+1
