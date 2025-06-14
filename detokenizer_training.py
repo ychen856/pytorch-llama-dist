@@ -234,7 +234,7 @@ if __name__ == '__main__':
     possible_ks = [32, 64, 128]
     possible_bottleneck_dims = [64, 128, 256, 512]
 
-    models = load_model(args.ckpt_dir_hf_sep, 0, 1, device)
+    models = load_model(args.ckpt_dir_hf_sep, 0, 34, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
     encoder = FlexibleTopKEncoder().to(device)
     decoder = FlexibleDecoder(seq_len=seqlen).to(device)
@@ -280,7 +280,7 @@ if __name__ == '__main__':
                     top_k = random.choice(possible_ks)
                 else:
                     top_k = args.k
-                print('kkkkkkkkkkk: ', top_k)
+                print('top k: ', top_k)
                 bottleneck_dim = random.choice(possible_bottleneck_dims)
 
                 inputs = trainenc[i].to(device)
