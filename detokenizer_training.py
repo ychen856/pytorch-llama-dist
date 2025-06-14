@@ -233,8 +233,8 @@ if __name__ == '__main__':
     seqlen = 1024
     bs = 1
 
-    #possible_ks = [32, 64, 128]
-    possible_ks = [64]
+    possible_ks = [32, 64, 128]
+    #possible_ks = [64]
     possible_bottleneck_dims = [64, 128, 256, 512]
 
     models = load_model(args.ckpt_dir_hf_sep, 0, 34, device)
