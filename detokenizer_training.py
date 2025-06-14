@@ -251,7 +251,7 @@ if __name__ == '__main__':
     scaler = GradScaler()
     optimizer = AdamW(
         list(encoder.parameters()) + list(decoder.parameters()),
-        lr=1e-5,
+        lr=1e-6,
         weight_decay=0.01
     )
     opt_ppl = float('inf')
@@ -308,6 +308,8 @@ if __name__ == '__main__':
 
                 z = encoder(topk_logits, bottleneck_dim=bottleneck_dim)  # [B, k, bottleneck_dim]
                 recon_hidden = decoder(z, topk_idx, bottleneck_dim=bottleneck_dim)  # [B, 1024, H]
+                print("Decoder output stats:", recon_hidden.mean().item(), recon_hidden.std().item(),
+                      recon_hidden.abs().max().item())
 
                 print('decoder output size: ', recon_hidden.shape)
 
