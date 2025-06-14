@@ -247,7 +247,7 @@ if __name__ == '__main__':
     scaler = GradScaler()
     optimizer = AdamW(
         list(encoder.parameters()) + list(decoder.parameters()),
-        lr=1e-5,
+        lr=5e-6,
         weight_decay=0.01
     )
     opt_ppl = float('inf')
