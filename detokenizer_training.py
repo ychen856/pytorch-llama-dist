@@ -247,7 +247,7 @@ if __name__ == '__main__':
     scaler = GradScaler()
     optimizer = AdamW(
         list(encoder.parameters()) + list(decoder.parameters()),
-        lr=5e-6,
+        lr=1e-5,
         weight_decay=0.01
     )
     opt_ppl = float('inf')
@@ -276,7 +276,10 @@ if __name__ == '__main__':
             for i in range(0, len(trainenc), bs):
                 j = min(i + bs, nsamples)
                 optimizer.zero_grad(set_to_none=True)
-                top_k = random.choice(possible_ks)
+                if args.k == 0:
+                    top_k = random.choice(possible_ks)
+                else:
+                    top_k = args.k
                 bottleneck_dim = random.choice(possible_bottleneck_dims)
 
                 inputs = trainenc[i].to(device)
