@@ -230,12 +230,13 @@ if __name__ == '__main__':
     torch.autograd.set_detect_anomaly(True)
     device = torch.device("cuda")
 
-    seqlen = 128
+    seqlen = 1024
     bs = 1
 
-    possible_ks = [32, 64, 128]
-    #possible_ks = [64]
-    possible_bottleneck_dims = [64, 128, 256, 512]
+    #possible_ks = [32, 64, 128]
+    #possible_bottleneck_dims = [64, 128, 256, 512]
+    possible_ks = [64, 128, 256]
+    possible_bottleneck_dims = [128, 256, 512, 768]
 
     models = load_model(args.ckpt_dir_hf_sep, 0, 34, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
@@ -319,7 +320,7 @@ if __name__ == '__main__':
                     print(f"⚠️ decoder output too large: max={max_val.item():.2e}")
                     continue
 
-
+                recon_hidden = torch.clamp(recon_hidden, min=-10, max=10)
                 out, ids, mask = models[splitting_point + 1](recon_hidden, position_ids=ids, attention_mask=mask)
                 for k in range(splitting_point + 2, len(models) - 2):
                     out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
