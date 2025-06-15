@@ -199,7 +199,8 @@ def load_encoder(checkpoints_dir, k, device):
     checkpoints = natsorted(checkpoints)
 
     assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
-
+    if not len(checkpoints) > 0:
+        return None
     ckpt_path = checkpoints[0]
     print(f'Loading checkpoint "{ckpt_path}"')
 
@@ -227,6 +228,8 @@ def load_decoder(checkpoints_dir, k, device, seqlen=1024):
     checkpoints = natsorted(checkpoints)
 
     assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
+    if not len(checkpoints) > 0:
+        return None
 
     ckpt_path = checkpoints[0]
     print(f'Loading checkpoint "{ckpt_path}"')
@@ -272,6 +275,14 @@ if __name__ == '__main__':
     #decoder = FlexibleDecoder(seq_len=seqlen).to(device)
     encoder = load_encoder(args.ckpt_dir_hf_sep, args.k, device)
     decoder = load_decoder(args.ckpt_dir_hf_sep, args.k, device, seqlen)
+
+    if not encoder:
+        print('encoder checkpoint not found!')
+        encoder = FlexibleTopKEncoder().to(device)
+    if not decoder:
+        print('decoder checkpoint note found!')
+        decoder = FlexibleDecoder(seq_len=seqlen).to(device)
+
     trainenc = get_train_data(tokenizer, seqlen, 0.7)
 
 
