@@ -188,14 +188,42 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
 
     return lm_head, lm_models
 
-def load_decoder(checkpoints_dir, k, seqlen=1024):
+def load_encoder(checkpoints_dir, k, device):
     config, kwargs = AutoConfig.from_pretrained(
         args.ckpt_dir_hf,
         return_unused_kwargs=True
     )
 
     checkpoint_list = []
-    checkpoints = sorted(Path(checkpoints_dir).glob("decoder." + str(args.k) + ".pth"))
+    checkpoints = sorted(Path(checkpoints_dir).glob("encoder." + str(k) + ".pth"))
+    checkpoints = natsorted(checkpoints)
+
+    assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
+
+    ckpt_path = checkpoints[0]
+    print(f'Loading checkpoint "{ckpt_path}"')
+
+    checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
+
+    '''if device.type == 'cuda':
+        torch.set_default_tensor_type(torch.cuda.HalfTensor)
+    else:
+        torch.set_default_tensor_type(torch.BFloat16Tensor)'''
+
+    encoder = FlexibleTopKEncoder()
+    encoder.load_state_dict(checkpoint_list[0], strict=True)
+    encoder.to(device)
+
+    return encoder
+
+def load_decoder(checkpoints_dir, k, device, seqlen=1024):
+    config, kwargs = AutoConfig.from_pretrained(
+        args.ckpt_dir_hf,
+        return_unused_kwargs=True
+    )
+
+    checkpoint_list = []
+    checkpoints = sorted(Path(checkpoints_dir).glob("decoder." + str(k) + ".pth"))
     checkpoints = natsorted(checkpoints)
 
     assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
@@ -240,8 +268,10 @@ if __name__ == '__main__':
 
     models = load_model(args.ckpt_dir_hf_sep, 0, 34, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-    encoder = FlexibleTopKEncoder().to(device)
-    decoder = FlexibleDecoder(seq_len=seqlen).to(device)
+    #encoder = FlexibleTopKEncoder().to(device)
+    #decoder = FlexibleDecoder(seq_len=seqlen).to(device)
+    encoder = load_encoder(args.ckpt_dir_hf_sep, args.k, device)
+    decoder = load_decoder(args.ckpt_dir_hf_sep, args.k, device, seqlen)
     trainenc = get_train_data(tokenizer, seqlen, 0.7)
 
 
@@ -255,7 +285,7 @@ if __name__ == '__main__':
         weight_decay=0.01
     )
     opt_ppl = float('inf')
-    num_epochs = 20
+    num_epochs = 14
 
     for i in range(0, len(models)):
         models[i].eval()
@@ -266,7 +296,7 @@ if __name__ == '__main__':
     encoder.train()
 
     # --- Training loop with decoder-only training ---
-    for splitting_point in [1, 2, 4, 6, 8]:
+    for splitting_point in [2, 4, 6, 8]:
         torch.cuda.empty_cache()
         _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, splitting_point, device, cache_dir="llm_weights")
         for i in range(0, len(lm_models)):
