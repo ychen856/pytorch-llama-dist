@@ -1,13 +1,12 @@
-
 import torch
 import torch.nn as nn
-
-
+import torch.nn.functional as F
 class CrossAttentionDecoder(nn.Module):
     def __init__(self, hidden_dim=4096, seq_len=1024, bottleneck_dims=[64, 128, 256, 512, 768], num_heads=8):
         super().__init__()
         self.seq_len = seq_len
-        self.query_tokens = nn.Parameter(torch.randn(seq_len, hidden_dim))
+        self.query_tokens = nn.Parameter(torch.empty(seq_len, hidden_dim))
+        nn.init.xavier_normal_(self.query_tokens)
 
         self.token_decoder_heads = nn.ModuleDict({
             str(d): nn.Sequential(
@@ -18,7 +17,7 @@ class CrossAttentionDecoder(nn.Module):
             for d in bottleneck_dims
         })
 
-        self.attn = nn.MultiheadAttention(embed_dim=hidden_dim, num_heads=num_heads, batch_first=True)
+        self.attn = nn.MultiheadAttention(embed_dim=hidden_dim, num_heads=num_heads, dropout=0.1, batch_first=True)
         self.norm = nn.LayerNorm(hidden_dim)
 
     def forward(self, z, topk_idx, bottleneck_dim):
