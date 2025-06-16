@@ -328,12 +328,12 @@ if __name__ == '__main__':
                     top_k = args.k
                 bottleneck_dim = random.choice(possible_bottleneck_dims)
 
-                '''if epoch < 4:
+                if epoch < 4:
                     top_k = 256
                     bottleneck_dim = 768
                 elif epoch < 8:
                     top_k = 128
-                    bottleneck_dim = 512'''
+                    bottleneck_dim = 512
 
                 print('top k: ', top_k)
                 print('bottleneck: ', bottleneck_dim)
