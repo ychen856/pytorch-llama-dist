@@ -271,9 +271,9 @@ if __name__ == '__main__':
 
     models = load_model(args.ckpt_dir_hf_sep, 0, 34, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-    encoder = FlexibleTopKEncoder().to(device)
-    decoder = CrossAttentionDecoder(seq_len=seqlen).to(device)
-    '''encoder = load_encoder(args.ckpt_dir_hf_sep, args.k, device)
+    #encoder = FlexibleTopKEncoder().to(device)
+    #decoder = CrossAttentionDecoder(seq_len=seqlen).to(device)
+    encoder = load_encoder(args.ckpt_dir_hf_sep, args.k, device)
     decoder = load_decoder(args.ckpt_dir_hf_sep, args.k, device, seqlen)
 
     if not encoder:
@@ -281,7 +281,7 @@ if __name__ == '__main__':
         encoder = FlexibleTopKEncoder().to(device)
     if not decoder:
         print('decoder checkpoint note found!')
-        decoder = CrossAttentionDecoder(seq_len=seqlen).to(device)'''
+        decoder = CrossAttentionDecoder(seq_len=seqlen).to(device)
 
     trainenc = get_train_data(tokenizer, seqlen, 0.9)
 
@@ -328,12 +328,12 @@ if __name__ == '__main__':
                     top_k = args.k
                 bottleneck_dim = random.choice(possible_bottleneck_dims)
 
-                if epoch < 4:
+                '''if epoch < 4:
                     top_k = 256
                     bottleneck_dim = 768
                 elif epoch < 8:
                     top_k = 128
-                    bottleneck_dim = 512
+                    bottleneck_dim = 512'''
 
                 print('top k: ', top_k)
                 print('bottleneck: ', bottleneck_dim)
