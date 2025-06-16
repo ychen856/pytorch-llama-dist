@@ -283,7 +283,7 @@ if __name__ == '__main__':
         print('decoder checkpoint note found!')
         decoder = CrossAttentionDecoder(seq_len=seqlen).to(device)'''
 
-    trainenc = get_train_data(tokenizer, seqlen, 1)
+    trainenc = get_train_data(tokenizer, seqlen, 0.9)
 
 
     nsamples = len(trainenc)
