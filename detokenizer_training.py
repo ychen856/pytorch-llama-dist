@@ -22,13 +22,12 @@ from early_exit import early_exit_lm_head
 from eval import eval_ppl_sep_hf, eval_lm_head_ppl_sep_hf
 from eval_sep_hf import get_eval_data, get_train_data
 from feature_encoder import FlexibleTopKEncoder
-from feature_decoder import FlexibleDecoder
+from feature_decoder import DeepMLPDecoder
 from layerwrapper import WrappedGPT
 from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
     LlamaForCausalLM_linear
 import yaml
 import copy
-from feature_decoder import *
 from torch.cuda.amp import GradScaler, autocast
 
 parser = argparse.ArgumentParser(
@@ -241,7 +240,7 @@ def load_decoder(checkpoints_dir, k, device, seqlen=1024):
     else:
         torch.set_default_tensor_type(torch.BFloat16Tensor)'''
 
-    decoder = FlexibleDecoder(seq_len=seqlen)
+    decoder = DeepMLPDecoder(seq_len=seqlen)
     decoder.load_state_dict(checkpoint_list[0], strict=True)
     decoder.to(device)
 
@@ -281,7 +280,7 @@ if __name__ == '__main__':
         encoder = FlexibleTopKEncoder().to(device)
     if not decoder:
         print('decoder checkpoint note found!')
-        decoder = FlexibleDecoder(seq_len=seqlen).to(device)
+        decoder = DeepMLPDecoder(seq_len=seqlen).to(device)
 
     trainenc = get_train_data(tokenizer, seqlen, 0.7)
 
@@ -289,14 +288,14 @@ if __name__ == '__main__':
     nsamples = len(trainenc)
 
     #////////////
-    scaler = GradScaler()
+    #scaler = GradScaler()
     optimizer = AdamW(
         list(encoder.parameters()) + list(decoder.parameters()),
         lr=1e-5,
         weight_decay=0.01
     )
     opt_ppl = float('inf')
-    num_epochs = 14
+    num_epochs = 20
 
     for i in range(0, len(models)):
         models[i].eval()
@@ -307,7 +306,7 @@ if __name__ == '__main__':
     encoder.train()
 
     # --- Training loop with decoder-only training ---
-    for splitting_point in [6, 8]:
+    for splitting_point in [1, 2, 4, 6, 8]:
         torch.cuda.empty_cache()
         _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, splitting_point, device, cache_dir="llm_weights")
         for i in range(0, len(lm_models)):
@@ -321,14 +320,22 @@ if __name__ == '__main__':
             for i in range(0, len(trainenc), bs):
                 j = min(i + bs, nsamples)
                 optimizer.zero_grad(set_to_none=True)
+
                 if args.k == 0:
                     top_k = random.choice(possible_ks)
                 else:
                     top_k = args.k
-
-                #top_k = 64
-                print('top k: ', top_k)
                 bottleneck_dim = random.choice(possible_bottleneck_dims)
+
+                if epoch < 4:
+                    top_k = 256
+                    bottleneck_dim = 768
+                elif epoch < 8:
+                    top_k = 128
+                    bottleneck_dim = 512
+
+                print('top k: ', top_k)
+                print('bottleneck: ', bottleneck_dim)
 
                 inputs = trainenc[i].to(device)
 
@@ -364,6 +371,13 @@ if __name__ == '__main__':
                     continue
 
                 recon_hidden = torch.clamp(recon_hidden, min=-10, max=10)
+
+                B, k = topk_idx.shape
+                batch_indices = torch.arange(B).unsqueeze(1).to(device)
+                target_hidden = out.last_hidden_state[batch_indices, topk_idx]  # [B, k, H]
+                recon_tokens = recon_hidden[batch_indices, topk_idx]  # [B, k, H]
+                loss_recon = nn.functional.mse_loss(recon_tokens, target_hidden)
+
                 out, ids, mask = models[splitting_point + 1](recon_hidden, position_ids=ids, attention_mask=mask)
                 for k in range(splitting_point + 2, len(models) - 2):
                     out, ids, mask = models[k](out.last_hidden_state, position_ids=ids, attention_mask=mask)
@@ -375,8 +389,8 @@ if __name__ == '__main__':
                 shift_labels = inputs[:, 1:]
 
                 loss_fct = torch.nn.CrossEntropyLoss()
-                loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
-
+                loss_lm = loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
+                loss = loss_lm + args.lam * loss_recon
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -389,7 +403,8 @@ if __name__ == '__main__':
                 optimizer.step()
 
                 nlls.append(loss.detach().float())
-                print(f"Epoch {epoch} | Split {splitting_point} | Loss: {loss.item():.4f}")
+                print(f"Epoch {epoch} | Split {splitting_point}")
+                print(f"lm_loss: {loss_lm.item():.4f} | recon_loss: {loss_recon.item(): .4f} | Loss: {loss.item():.4f}")
 
                 torch.cuda.empty_cache()
 
@@ -398,5 +413,8 @@ if __name__ == '__main__':
                 opt_ppl = ppl.item()
                 torch.save(encoder.state_dict(), args.ckpt_dir_hf_sep + f"/encoder." + str(args.k) + ".pth")
                 torch.save(decoder.state_dict(), args.ckpt_dir_hf_sep + f"/decoder." + str(args.k) + ".pth")
+                torch.save(encoder.state_dict(), args.ckpt_dir_hf_sep + f"/encoder.split{splitting_point}.k{args.k}.pth")
+                torch.save(decoder.state_dict(), args.ckpt_dir_hf_sep + f"/decoder.split{splitting_point}.k{args.k}.pth")
+
                 print(f"✅ Saved best model with PPL = {opt_ppl:.2f}")
 
