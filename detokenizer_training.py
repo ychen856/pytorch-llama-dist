@@ -307,7 +307,7 @@ if __name__ == '__main__':
     encoder.train()
 
     # --- Training loop with decoder-only training ---
-    for splitting_point in [4, 6, 8]:
+    for splitting_point in [6, 8]:
         torch.cuda.empty_cache()
         _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, splitting_point, device, cache_dir="llm_weights")
         for i in range(0, len(lm_models)):
