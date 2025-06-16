@@ -271,9 +271,9 @@ if __name__ == '__main__':
 
     models = load_model(args.ckpt_dir_hf_sep, 0, 34, device)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
-    #encoder = FlexibleTopKEncoder().to(device)
-    #decoder = DeepMLPDecoder(seq_len=seqlen).to(device)
-    encoder = load_encoder(args.ckpt_dir_hf_sep, args.k, device)
+    encoder = FlexibleTopKEncoder().to(device)
+    decoder = DeepMLPDecoder(seq_len=seqlen).to(device)
+    '''encoder = load_encoder(args.ckpt_dir_hf_sep, args.k, device)
     decoder = load_decoder(args.ckpt_dir_hf_sep, args.k, device, seqlen)
 
     if not encoder:
@@ -281,7 +281,7 @@ if __name__ == '__main__':
         encoder = FlexibleTopKEncoder().to(device)
     if not decoder:
         print('decoder checkpoint note found!')
-        decoder = DeepMLPDecoder(seq_len=seqlen).to(device)
+        decoder = DeepMLPDecoder(seq_len=seqlen).to(device)'''
 
     trainenc = get_train_data(tokenizer, seqlen, 1)
 
