@@ -34,6 +34,7 @@ parser = argparse.ArgumentParser(
     description='Pytorch Imagenet Training')
 parser.add_argument('--config', default='config_server.yaml')
 parser.add_argument('--head', type=int)
+parser.add_argument('--lam', type=float)
 parser.add_argument('--k', type=int)
 args = parser.parse_args()
 
