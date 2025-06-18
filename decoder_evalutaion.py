@@ -335,7 +335,7 @@ if __name__ == '__main__':
                 if k == head_idx:
                     is_early_exit, lm_logits = early_exit_lm_head(lm_models, out, k)
                     print('lm shape: ', lm_logits.shape)
-                    if is_early_exit:
+                    '''if is_early_exit:
                         is_early_exit = True
                         early_count = early_count + 1
                         print('early: ', early_count)
@@ -349,6 +349,15 @@ if __name__ == '__main__':
                         topk_logits = torch.gather(lm_logits, dim=1, index=topk_idx_exp)
                         z = encoder(topk_logits, bottleneck_dim=bottleneck_dim)  # [B, k, bottleneck_dim]
                         out.last_hidden_state = decoder(z, topk_idx, bottleneck_dim=bottleneck_dim)  # [B, 1024, H]
+'''
+                    probs = torch.softmax(lm_logits, dim=-1)
+                    conf = probs.max(dim=-1).values  # [B, 1024]
+                    topk_vals, topk_idx = conf.topk(top_k, dim=1)
+                    B, _, V = lm_logits.shape
+                    topk_idx_exp = topk_idx.unsqueeze(-1).expand(-1, -1, V)
+                    topk_logits = torch.gather(lm_logits, dim=1, index=topk_idx_exp)
+                    z = encoder(topk_logits, bottleneck_dim=bottleneck_dim)  # [B, k, bottleneck_dim]
+                    out.last_hidden_state = decoder(z, topk_idx, bottleneck_dim=bottleneck_dim)  # [B, 1024, H]
 
             if not is_early_exit:
                 lm_logits = models[33](out.last_hidden_state)
