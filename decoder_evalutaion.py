@@ -83,10 +83,10 @@ def load_model(checkpoints_dir, start_idx, end_idx, device):
         if checkpoint_idx > end_idx:
             break
 
-    if device.type == 'cuda':
+    '''if device.type == 'cuda':
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
     else:
-        torch.set_default_tensor_type(torch.BFloat16Tensor)
+        torch.set_default_tensor_type(torch.BFloat16Tensor)'''
 
     models = []
     for i in range(start_idx, end_idx + 1):
@@ -187,10 +187,10 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
 
 
 
-    if device.type == 'cuda':
+    '''if device.type == 'cuda':
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
     else:
-        torch.set_default_tensor_type(torch.BFloat16Tensor)
+        torch.set_default_tensor_type(torch.BFloat16Tensor)'''
 
     lm_models = []
 
@@ -225,10 +225,10 @@ def load_encoder(checkpoints_dir, k, device):
 
     checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
 
-    if device.type == 'cuda':
+    '''if device.type == 'cuda':
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
     else:
-        torch.set_default_tensor_type(torch.BFloat16Tensor)
+        torch.set_default_tensor_type(torch.BFloat16Tensor)'''
 
     encoder = FlexibleTopKEncoder()
     encoder.load_state_dict(checkpoint_list[0], strict=True)
