@@ -253,10 +253,10 @@ def load_decoder(checkpoints_dir, k, device, seqlen=1024):
 
     checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
 
-    if device.type == 'cuda':
+    '''if device.type == 'cuda':
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
     else:
-        torch.set_default_tensor_type(torch.BFloat16Tensor)
+        torch.set_default_tensor_type(torch.BFloat16Tensor)'''
 
     decoder = DeepMLPDecoder(seq_len=seqlen)
     decoder.load_state_dict(checkpoint_list[0], strict=True)
