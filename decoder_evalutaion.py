@@ -25,7 +25,9 @@ import sys
 from early_exit import early_exit_lm_head
 from eval import eval_ppl_sep_hf, eval_lm_head_ppl_sep_hf
 from eval_sep_hf import get_eval_data
-from feature_decoder import DeepMLPDecoder
+#from feature_decoder import DeepMLPDecoder
+
+from feature_decoder2 import CrossAttentionDecoder
 from feature_encoder import FlexibleTopKEncoder
 from layerwrapper import WrappedGPT
 from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
@@ -258,7 +260,7 @@ def load_decoder(checkpoints_dir, k, device, seqlen=1024):
     else:
         torch.set_default_tensor_type(torch.BFloat16Tensor)'''
 
-    decoder = DeepMLPDecoder(seq_len=seqlen)
+    decoder = CrossAttentionDecoder(seq_len=seqlen)
     decoder.load_state_dict(checkpoint_list[0], strict=True)
     decoder.to(device)
 
