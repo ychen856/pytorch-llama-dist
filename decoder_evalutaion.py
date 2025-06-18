@@ -236,7 +236,7 @@ def load_encoder(checkpoints_dir, k, device):
 
     return encoder
 
-def load_decoder(checkpoints_dir, k, seqlen=1024):
+def load_decoder(checkpoints_dir, k, device, seqlen=1024):
     config, kwargs = AutoConfig.from_pretrained(
         args.ckpt_dir_hf,
         return_unused_kwargs=True
@@ -291,6 +291,9 @@ if __name__ == '__main__':
     test_loader = get_eval_data(tokenizer)
     bs = 1
 
+    top_k = int(256)
+    bottleneck_dim = int(args.bot)
+
     print("loading success")
     # Get input IDs
     testenc = test_loader.input_ids
@@ -320,8 +323,6 @@ if __name__ == '__main__':
         # Forward pass through the model
         out, ids, mask = models[0](inputs)
         is_early_exit = False
-        top_k = int(args.k)
-        bottleneck_dim = int(args.bot)
         # for k in range (1, len(models) - 2):
         with torch.no_grad():
             for k in range(1, len(models) - 2):
