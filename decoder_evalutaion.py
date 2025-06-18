@@ -25,7 +25,8 @@ import sys
 from early_exit import early_exit_lm_head
 from eval import eval_ppl_sep_hf, eval_lm_head_ppl_sep_hf
 from eval_sep_hf import get_eval_data
-from feature_decoder import FeatureDecoder
+from feature_decoder import DeepMLPDecoder
+from feature_encoder import FlexibleTopKEncoder
 from layerwrapper import WrappedGPT
 from model_hf import LlamaForCausalLM, LlamaForCausalLM_emb, LlamaForCausalLM_layer_0, LlamaForCausalLM_norm, \
     LlamaForCausalLM_linear
@@ -44,6 +45,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--config', default='config_server.yaml')
 parser.add_argument('--head', type=int)
 parser.add_argument('--k', type=int)
+parser.add_argument('--bot', type=int)
 args = parser.parse_args()
 
 
@@ -205,6 +207,35 @@ def load_lm_head(checkpoints_dir, end_idx, device, cache_dir="llm_weights"):
 
     return lm_head, lm_models
 
+def load_encoder(checkpoints_dir, k, device):
+    config, kwargs = AutoConfig.from_pretrained(
+        args.ckpt_dir_hf,
+        return_unused_kwargs=True
+    )
+
+    checkpoint_list = []
+    checkpoints = sorted(Path(checkpoints_dir).glob("encoder." + str(k) + ".pth"))
+    checkpoints = natsorted(checkpoints)
+
+    assert len(checkpoints) > 0, f"no checkpoint files found in {checkpoints_dir}"
+    if not len(checkpoints) > 0:
+        return None
+    ckpt_path = checkpoints[0]
+    print(f'Loading checkpoint "{ckpt_path}"')
+
+    checkpoint_list.append(torch.load(ckpt_path, map_location="cpu"))
+
+    if device.type == 'cuda':
+        torch.set_default_tensor_type(torch.cuda.HalfTensor)
+    else:
+        torch.set_default_tensor_type(torch.BFloat16Tensor)
+
+    encoder = FlexibleTopKEncoder()
+    encoder.load_state_dict(checkpoint_list[0], strict=True)
+    encoder.to(device)
+
+    return encoder
+
 def load_decoder(checkpoints_dir, k, seqlen=1024):
     config, kwargs = AutoConfig.from_pretrained(
         args.ckpt_dir_hf,
@@ -227,7 +258,7 @@ def load_decoder(checkpoints_dir, k, seqlen=1024):
     else:
         torch.set_default_tensor_type(torch.BFloat16Tensor)
 
-    decoder = FeatureDecoder(seq_len=seqlen)
+    decoder = DeepMLPDecoder(seq_len=seqlen)
     decoder.load_state_dict(checkpoint_list[0], strict=True)
     decoder.to(device)
 
@@ -249,11 +280,12 @@ if __name__ == '__main__':
     #device = 'cuda' if torch.cuda.is_available() and allow_cuda else 'cpu'
 
     head_idx = 1
-    seqlen = 64
+    seqlen = 1024
     device = torch.device("cuda")
     models = load_model(args.ckpt_dir_hf_sep, 0, 34, device)
     _, lm_models = load_lm_head(args.ckpt_dir_hf_sep, head_idx, device)
-    deEmbedding = load_decoder(args.ckpt_dir_hf_sep, args.k, seqlen)
+    encoder = load_encoder(args.ckpt_dir_hf_sep, args.k, device)
+    decoder = load_decoder(args.ckpt_dir_hf_sep, args.k, device, seqlen)
     tokenizer = LlamaTokenizer.from_pretrained(args.ckpt_dir_hf, use_fast=False)
 
     test_loader = get_eval_data(tokenizer)
@@ -288,6 +320,8 @@ if __name__ == '__main__':
         # Forward pass through the model
         out, ids, mask = models[0](inputs)
         is_early_exit = False
+        top_k = int(args.k)
+        bottleneck_dim = int(args.bot)
         # for k in range (1, len(models) - 2):
         with torch.no_grad():
             for k in range(1, len(models) - 2):
@@ -306,15 +340,14 @@ if __name__ == '__main__':
                         print('early: ', early_count)
                         break
                     else:
-                        probs = lm_logits.softmax(dim=-1)
-                        max_probs = probs.max(dim=-1).values
-                        if args.k == 0:
-                            topk = random.choice([1, 3, 5, 8])
-                        else:
-                            topk = args.k
-                            topk_indices = max_probs.topk(topk, dim=-1).indices
-                            selected_token_ids = topk_indices[0].long()
-                            out.last_hidden_state = deEmbedding(selected_token_ids.unsqueeze(0))
+                        probs = torch.softmax(lm_logits, dim=-1)
+                        conf = probs.max(dim=-1).values  # [B, 1024]
+                        topk_vals, topk_idx = conf.topk(top_k, dim=1)
+                        B, _, V = lm_logits.shape
+                        topk_idx_exp = topk_idx.unsqueeze(-1).expand(-1, -1, V)
+                        topk_logits = torch.gather(lm_logits, dim=1, index=topk_idx_exp)
+                        z = encoder(topk_logits, bottleneck_dim=bottleneck_dim)  # [B, k, bottleneck_dim]
+                        out.last_hidden_state = decoder(z, topk_idx, bottleneck_dim=bottleneck_dim)  # [B, 1024, H]
 
             if not is_early_exit:
                 lm_logits = models[33](out.last_hidden_state)
